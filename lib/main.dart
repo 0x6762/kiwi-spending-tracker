@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'models/expense.dart';
-import 'models/expense_category.dart';
 import 'repositories/expense_repository.dart';
 import 'widgets/add_expense_dialog.dart';
+import 'widgets/expense_list.dart';
+import 'widgets/expense_summary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +42,6 @@ class ExpenseListScreen extends StatefulWidget {
 
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
   List<Expense> _expenses = [];
-  final _dateFormat = DateFormat.yMMMd();
 
   @override
   void initState() {
@@ -71,45 +70,26 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     }
   }
 
+  void _viewExpenseDetails(Expense expense) {
+    // TODO: Implement expense details/edit
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Spending Tracker'),
       ),
-      body: ListView.builder(
-        itemCount: _expenses.length,
-        itemBuilder: (context, index) {
-          final expense = _expenses[index];
-          final category = expense.category != null
-              ? ExpenseCategories.findByName(expense.category!)
-              : null;
-
-          return ListTile(
-            leading: CircleAvatar(
-              child: Icon(category?.icon ?? Icons.receipt_long),
+      body: Column(
+        children: [
+          ExpenseSummary(expenses: _expenses),
+          Expanded(
+            child: ExpenseList(
+              expenses: _expenses,
+              onTap: _viewExpenseDetails,
             ),
-            title: Text(expense.title),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_dateFormat.format(expense.date)),
-                if (category != null)
-                  Text(
-                    category.name,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-              ],
-            ),
-            trailing: Text(
-              '\$${expense.amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () {
-              // TODO: Implement expense details/edit
-            },
-          );
-        },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addExpense,
