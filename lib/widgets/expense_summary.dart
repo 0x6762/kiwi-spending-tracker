@@ -155,6 +155,7 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isFixed = label == 'Fixed Expenses';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -169,7 +170,7 @@ class _SummaryRow extends StatelessWidget {
             width: 24,
             height: 24,
             colorFilter: ColorFilter.mode(
-              theme.colorScheme.onSurfaceVariant,
+              isFixed ? const Color(0xFFCF5825) : const Color(0xFF8056E4),
               BlendMode.srcIn,
             ),
           ),

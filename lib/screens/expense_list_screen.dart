@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
@@ -81,168 +82,185 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                ExpenseSummary(
-                  expenses: _expenses,
-                  selectedMonth: _selectedMonth,
-                  onMonthSelected: _onMonthSelected,
-                ),
-              ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light.copyWith(
+              statusBarColor: Colors.transparent,
+            )
+          : SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
             ),
-            DraggableScrollableSheet(
-              initialChildSize: 0.4,
-              minChildSize: 0.4,
-              maxChildSize: 0.8,
-              builder: (context, scrollController) {
-                return Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(16)),
-                    ),
-                    child: ListView(
-                      controller: scrollController,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 32,
-                            height: 4,
-                            margin: const EdgeInsets.only(top: 8, bottom: 12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(2),
+      child: Scaffold(
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  ExpenseSummary(
+                    expenses: _expenses,
+                    selectedMonth: _selectedMonth,
+                    onMonthSelected: _onMonthSelected,
+                  ),
+                ],
+              ),
+              DraggableScrollableSheet(
+                initialChildSize: 0.4,
+                minChildSize: 0.4,
+                maxChildSize: 0.8,
+                builder: (context, scrollController) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16)),
+                      ),
+                      child: ListView(
+                        controller: scrollController,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 32,
+                              height: 4,
+                              margin: const EdgeInsets.only(top: 8, bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Recent transactions',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                    ),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Recent transactions',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        ...(_expenses
-                                .where((expense) =>
-                                    expense.date.year == _selectedMonth.year &&
-                                    expense.date.month == _selectedMonth.month)
-                                .toList()
-                              ..sort((a, b) {
-                                final dateComparison = b.date.compareTo(a.date);
-                                if (dateComparison != 0) return dateComparison;
-                                return b.createdAt.compareTo(a.createdAt);
-                              }))
-                            .map((expense) => Dismissible(
-                                  key: Key(expense.id),
-                                  direction: DismissDirection.endToStart,
-                                  background: Container(
-                                    color: Theme.of(context).colorScheme.error,
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.only(right: 16),
-                                    child: const Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
+                          ...(_expenses
+                                  .where((expense) =>
+                                      expense.date.year ==
+                                          _selectedMonth.year &&
+                                      expense.date.month ==
+                                          _selectedMonth.month)
+                                  .toList()
+                                ..sort((a, b) {
+                                  final dateComparison =
+                                      b.date.compareTo(a.date);
+                                  if (dateComparison != 0)
+                                    return dateComparison;
+                                  return b.createdAt.compareTo(a.createdAt);
+                                }))
+                              .map((expense) => Dismissible(
+                                    key: Key(expense.id),
+                                    direction: DismissDirection.endToStart,
+                                    background: Container(
+                                      color:
+                                          Theme.of(context).colorScheme.error,
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.only(right: 16),
+                                      child: const Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  confirmDismiss: (direction) async {
-                                    return await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Delete Expense'),
-                                            content: const Text(
-                                                'Are you sure you want to delete this expense?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                    context, false),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                    context, true),
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .error,
+                                    confirmDismiss: (direction) async {
+                                      return await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title:
+                                                  const Text('Delete Expense'),
+                                              content: const Text(
+                                                  'Are you sure you want to delete this expense?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, false),
+                                                  child: const Text('Cancel'),
                                                 ),
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          ),
-                                        ) ??
-                                        false;
-                                  },
-                                  onDismissed: (direction) =>
-                                      _deleteExpense(expense),
-                                  child: ListTile(
-                                    leading: CircleAvatar(
-                                      child: Icon(expense.category != null
-                                          ? ExpenseCategories.findByName(
-                                                  expense.category!)
-                                              ?.icon
-                                          : Icons.receipt_long),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, true),
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .error,
+                                                  ),
+                                                  child: const Text('Delete'),
+                                                ),
+                                              ],
+                                            ),
+                                          ) ??
+                                          false;
+                                    },
+                                    onDismissed: (direction) =>
+                                        _deleteExpense(expense),
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        child: Icon(expense.category != null
+                                            ? ExpenseCategories.findByName(
+                                                    expense.category!)
+                                                ?.icon
+                                            : Icons.receipt_long),
+                                      ),
+                                      title: Text(expense.title),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(_formatDate(expense.date)),
+                                          if (expense.category != null)
+                                            Text(
+                                              ExpenseCategories.findByName(
+                                                      expense.category!)!
+                                                  .name,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall,
+                                            ),
+                                        ],
+                                      ),
+                                      trailing: Text(
+                                        '\$${expense.amount.toStringAsFixed(2)}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                      onTap: () => _viewExpenseDetails(expense),
                                     ),
-                                    title: Text(expense.title),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(_formatDate(expense.date)),
-                                        if (expense.category != null)
-                                          Text(
-                                            ExpenseCategories.findByName(
-                                                    expense.category!)!
-                                                .name,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                      ],
-                                    ),
-                                    trailing: Text(
-                                      '\$${expense.amount.toStringAsFixed(2)}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                    onTap: () => _viewExpenseDetails(expense),
-                                  ),
-                                ))
-                            .toList(),
-                      ],
+                                  ))
+                              .toList(),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addExpense,
-        child: const Icon(Icons.add),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _addExpense,
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }

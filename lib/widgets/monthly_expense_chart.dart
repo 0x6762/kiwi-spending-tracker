@@ -68,8 +68,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                     color: total > 0
                         ? (isSelectedMonth
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.primary.withOpacity(0.6))
-                        : theme.colorScheme.surfaceVariant.withOpacity(0.15),
+                            : theme.colorScheme.surfaceVariant)
+                        : theme.colorScheme.surfaceVariant,
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,
@@ -93,7 +93,7 @@ class MonthlyExpenseChart extends StatelessWidget {
             barTouchData: BarTouchData(
               enabled: false,
               touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: theme.colorScheme.primary.withOpacity(0.15),
+                tooltipBgColor: theme.colorScheme.surfaceVariant,
                 tooltipPadding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 tooltipMargin: 8,
