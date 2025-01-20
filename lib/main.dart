@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import 'models/expense.dart';
 import 'repositories/expense_repository.dart';
 import 'widgets/add_expense_dialog.dart';
@@ -40,6 +41,7 @@ class ExpenseListScreen extends StatefulWidget {
 
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
   List<Expense> _expenses = [];
+  final _dateFormat = DateFormat.yMMMd();
 
   @override
   void initState() {
@@ -80,8 +82,19 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
           final expense = _expenses[index];
           return ListTile(
             title: Text(expense.title),
-            subtitle: Text(expense.category ?? ''),
-            trailing: Text('\$${expense.amount.toStringAsFixed(2)}'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_dateFormat.format(expense.date)),
+                if (expense.category != null)
+                  Text(expense.category!,
+                      style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+            trailing: Text(
+              '\$${expense.amount.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             onTap: () {
               // TODO: Implement expense details/edit
             },
