@@ -7,6 +7,7 @@ class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
   final void Function(Expense expense)? onTap;
   final void Function(Expense expense)? onDelete;
+  final ScrollController? scrollController;
   final _dateFormat = DateFormat.yMMMd();
 
   ExpenseList({
@@ -14,6 +15,7 @@ class ExpenseList extends StatelessWidget {
     required this.expenses,
     this.onTap,
     this.onDelete,
+    this.scrollController,
   });
 
   String _formatDate(DateTime date) {
@@ -48,6 +50,7 @@ class ExpenseList extends StatelessWidget {
     final sortedExpenses = _sortedExpenses;
 
     return ListView.builder(
+      controller: scrollController,
       itemCount: sortedExpenses.length,
       itemBuilder: (context, index) {
         final expense = sortedExpenses[index];
