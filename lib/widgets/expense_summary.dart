@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/expense.dart';
+import 'monthly_expense_chart.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
@@ -106,7 +107,11 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          MonthlyExpenseChart(
+            expenses: widget.expenses,
+          ),
+          const SizedBox(height: 16),
           _SummaryRow(
             label: 'Fixed Expenses',
             amount: _fixedTotal,

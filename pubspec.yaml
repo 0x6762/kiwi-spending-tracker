@@ -38,6 +38,7 @@ dependencies:
   uuid: ^3.0.7
   intl: ^0.18.1
   flutter_svg: ^2.0.17
+  fl_chart: ^0.63.0
 
 dev_dependencies:
   flutter_test:
