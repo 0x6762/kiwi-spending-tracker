@@ -29,6 +29,15 @@ class MonthlyExpenseChart extends StatelessWidget {
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
+  String _formatAmount(double amount) {
+    if (amount < 1000) {
+      return NumberFormat.currency(symbol: '\$', decimalDigits: 0)
+          .format(amount);
+    }
+    final value = (amount / 100).floor() / 10;
+    return '\$${value.toStringAsFixed(1)}k';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -38,105 +47,108 @@ class MonthlyExpenseChart extends StatelessWidget {
 
     return AspectRatio(
       aspectRatio: 1.7,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: BarChart(
-          BarChartData(
-            alignment: BarChartAlignment.spaceEvenly,
-            groupsSpace: 16,
-            maxY: expenses.isEmpty ? 100 : null,
-            titlesData: FlTitlesData(
-              show: true,
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    if (value < 0 || value >= months.length)
-                      return const Text('');
-                    final month = months[value.toInt()];
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        monthFormat.format(month),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    );
-                  },
-                  reservedSize: 32,
-                ),
-              ),
-              leftTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-            ),
-            gridData: const FlGridData(show: false),
-            borderData: FlBorderData(show: false),
-            barGroups: months.asMap().entries.map((entry) {
-              final index = entry.key;
-              final month = entry.value;
-              final total = _getMonthlyTotal(month);
-              final isSelectedMonth = month.year == selectedMonth.year &&
-                  month.month == selectedMonth.month;
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceBetween,
+          barGroups: months.asMap().entries.map((entry) {
+            final index = entry.key;
+            final month = entry.value;
+            final total = _getMonthlyTotal(month);
+            final isSelectedMonth = month.year == selectedMonth.year &&
+                month.month == selectedMonth.month;
 
-              return BarChartGroupData(
-                x: index,
-                barRods: [
-                  BarChartRodData(
-                    toY: total > 0 ? total : 100,
-                    width: 32,
-                    color: total > 0
-                        ? (isSelectedMonth
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.primary.withOpacity(0.6))
-                        : theme.colorScheme.surfaceVariant.withOpacity(0.15),
-                    backDrawRodData: BackgroundBarChartRodData(
-                      show: true,
-                      toY: expenses.isEmpty ? 100 : null,
-                      color:
-                          theme.colorScheme.primaryContainer.withOpacity(0.2),
-                    ),
-                    rodStackItems: [
-                      BarChartRodStackItem(
-                        0,
-                        total > 0 ? total : 100, // Match the full height
-                        Colors.transparent,
-                        BorderSide.none,
-                      ),
-                    ],
-                    borderRadius: BorderRadius.zero,
+            return BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: total > 0 ? total : 100,
+                  width: 48,
+                  color: total > 0
+                      ? (isSelectedMonth
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.primary.withOpacity(0.6))
+                      : theme.colorScheme.surfaceVariant.withOpacity(0.15),
+                  backDrawRodData: BackgroundBarChartRodData(
+                    show: true,
+                    toY: expenses.isEmpty ? 100 : null,
+                    color: theme.colorScheme.primaryContainer.withOpacity(0.2),
                   ),
-                ],
-                showingTooltipIndicators: total > 0 ? [0] : [],
-              );
-            }).toList(),
-            barTouchData: BarTouchData(
-              enabled: false,
-              touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: Colors.transparent,
-                tooltipPadding: EdgeInsets.zero,
-                tooltipMargin: 0,
-                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  final month = months[groupIndex];
-                  final total = _getMonthlyTotal(month);
-                  if (total <= 0) return null;
-                  return BarTooltipItem(
-                    currencyFormat.format(total),
-                    theme.textTheme.bodySmall!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+                  rodStackItems: [
+                    BarChartRodStackItem(
+                      0,
+                      total > 0 ? total : 100, // Match the full height
+                      Colors.transparent,
+                      BorderSide.none,
                     ),
-                    textAlign: TextAlign.center,
-                  );
-                },
-              ),
+                  ],
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                ),
+              ],
+              showingTooltipIndicators: total > 0 ? [0] : [],
+            );
+          }).toList(),
+          barTouchData: BarTouchData(
+            enabled: false,
+            touchTooltipData: BarTouchTooltipData(
+              tooltipBgColor: theme.colorScheme.primary.withOpacity(0.15),
+              tooltipPadding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              tooltipMargin: 8,
+              tooltipRoundedRadius: 24,
+              fitInsideHorizontally: true,
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                final month = months[groupIndex];
+                final total = _getMonthlyTotal(month);
+                if (total <= 0) return null;
+                final isSelectedMonth = month.year == selectedMonth.year &&
+                    month.month == selectedMonth.month;
+                return BarTooltipItem(
+                  _formatAmount(total),
+                  theme.textTheme.bodySmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isSelectedMonth
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.primary.withOpacity(0.8),
+                    height: 1.0,
+                  ),
+                  textAlign: TextAlign.center,
+                );
+              },
+              tooltipHorizontalAlignment: FLHorizontalAlignment.center,
             ),
           ),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  if (value < 0 || value >= months.length)
+                    return const Text('');
+                  final month = months[value.toInt()];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      monthFormat.format(month),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  );
+                },
+                reservedSize: 32,
+              ),
+            ),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
         ),
       ),
     );
