@@ -64,28 +64,27 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Spending Tracker'),
-      ),
-      body: Column(
-        children: [
-          ExpenseSummary(
-            expenses: _expenses,
-            selectedMonth: _selectedMonth,
-            onMonthSelected: _onMonthSelected,
-          ),
-          Expanded(
-            child: ExpenseList(
-              expenses: _expenses
-                  .where((expense) =>
-                      expense.date.year == _selectedMonth.year &&
-                      expense.date.month == _selectedMonth.month)
-                  .toList(),
-              onTap: _viewExpenseDetails,
-              onDelete: _deleteExpense,
+      body: SafeArea(
+        child: Column(
+          children: [
+            ExpenseSummary(
+              expenses: _expenses,
+              selectedMonth: _selectedMonth,
+              onMonthSelected: _onMonthSelected,
             ),
-          ),
-        ],
+            Expanded(
+              child: ExpenseList(
+                expenses: _expenses
+                    .where((expense) =>
+                        expense.date.year == _selectedMonth.year &&
+                        expense.date.month == _selectedMonth.month)
+                    .toList(),
+                onTap: _viewExpenseDetails,
+                onDelete: _deleteExpense,
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addExpense,

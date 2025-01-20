@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/expense.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -61,55 +62,65 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Monthly Total',
-                  style: Theme.of(context).textTheme.titleMedium,
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _showMonthPicker,
+              style: TextButton.styleFrom(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimaryContainer,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                TextButton.icon(
-                  onPressed: _showMonthPicker,
-                  icon: const Icon(Icons.calendar_month),
-                  label: Text(_monthFormat.format(widget.selectedMonth)),
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_monthFormat.format(widget.selectedMonth)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '\$${_monthlyTotal.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Total Spent',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.secondary,
             ),
-            const Divider(height: 24),
-            _SummaryRow(
-              label: 'Fixed Expenses',
-              amount: _fixedTotal,
-              context: context,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '\$${_monthlyTotal.toStringAsFixed(2)}',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
             ),
-            const SizedBox(height: 8),
-            _SummaryRow(
-              label: 'Variable Expenses',
-              amount: _variableTotal,
-              context: context,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 24),
+          _SummaryRow(
+            label: 'Fixed Expenses',
+            amount: _fixedTotal,
+            context: context,
+            iconAsset: 'assets/icons/fixed_expense.svg',
+          ),
+          const SizedBox(height: 12),
+          _SummaryRow(
+            label: 'Variable Expenses',
+            amount: _variableTotal,
+            context: context,
+            iconAsset: 'assets/icons/variable_expense.svg',
+          ),
+        ],
       ),
     );
   }
@@ -119,24 +130,53 @@ class _SummaryRow extends StatelessWidget {
   final String label;
   final double amount;
   final BuildContext context;
+  final String iconAsset;
 
   const _SummaryRow({
     required this.label,
     required this.amount,
     required this.context,
+    required this.iconAsset,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label),
-        Text(
-          '\$${amount.toStringAsFixed(2)}',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ],
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            iconAsset,
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              theme.colorScheme.onSurfaceVariant,
+              BlendMode.srcIn,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Text(
+            '\$${amount.toStringAsFixed(2)}',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
