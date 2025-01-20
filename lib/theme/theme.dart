@@ -5,33 +5,78 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   static TextTheme _buildTextTheme(
       TextTheme base, Color primaryTextColor, Color secondaryTextColor) {
-    return base.copyWith(
-      displayLarge: base.displayLarge?.copyWith(color: primaryTextColor),
-      displayMedium: base.displayMedium?.copyWith(color: primaryTextColor),
-      displaySmall: base.displaySmall?.copyWith(color: primaryTextColor),
-      headlineLarge: base.headlineLarge?.copyWith(color: primaryTextColor),
-      headlineMedium: base.headlineMedium?.copyWith(color: primaryTextColor),
-      headlineSmall: base.headlineSmall?.copyWith(color: primaryTextColor),
-      titleLarge: base.titleLarge?.copyWith(color: primaryTextColor),
-      titleMedium: base.titleMedium?.copyWith(color: primaryTextColor),
-      titleSmall: base.titleSmall?.copyWith(color: primaryTextColor),
-      bodyLarge: base.bodyLarge?.copyWith(color: primaryTextColor),
-      bodyMedium: base.bodyMedium?.copyWith(color: primaryTextColor),
-      bodySmall: base.bodySmall?.copyWith(color: secondaryTextColor),
-      labelLarge: base.labelLarge?.copyWith(color: primaryTextColor),
-      labelMedium: base.labelMedium?.copyWith(color: secondaryTextColor),
-      labelSmall: base.labelSmall?.copyWith(color: secondaryTextColor),
+    return GoogleFonts.interTextTheme(base).copyWith(
+      displayLarge: GoogleFonts.inter(
+        textStyle: base.displayLarge?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      displayMedium: GoogleFonts.inter(
+        textStyle: base.displayMedium?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      displaySmall: GoogleFonts.inter(
+        textStyle: base.displaySmall?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      headlineLarge: GoogleFonts.inter(
+        textStyle: base.headlineLarge?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      headlineMedium: GoogleFonts.inter(
+        textStyle: base.headlineMedium?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      headlineSmall: GoogleFonts.inter(
+        textStyle: base.headlineSmall?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      titleLarge: GoogleFonts.inter(
+        textStyle: base.titleLarge?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: GoogleFonts.inter(
+        textStyle: base.titleMedium?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w500,
+      ),
+      titleSmall: GoogleFonts.inter(
+        textStyle: base.titleSmall?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w500,
+      ),
+      bodyLarge: GoogleFonts.inter(
+        textStyle: base.bodyLarge?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.normal,
+      ),
+      bodyMedium: GoogleFonts.inter(
+        textStyle: base.bodyMedium?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.normal,
+      ),
+      bodySmall: GoogleFonts.inter(
+        textStyle: base.bodySmall?.copyWith(color: secondaryTextColor),
+        fontWeight: FontWeight.normal,
+      ),
+      labelLarge: GoogleFonts.inter(
+        textStyle: base.labelLarge?.copyWith(color: primaryTextColor),
+        fontWeight: FontWeight.w500,
+      ),
+      labelMedium: GoogleFonts.inter(
+        textStyle: base.labelMedium?.copyWith(color: secondaryTextColor),
+        fontWeight: FontWeight.w500,
+      ),
+      labelSmall: GoogleFonts.inter(
+        textStyle: base.labelSmall?.copyWith(color: secondaryTextColor),
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 
   static final textTheme = _buildTextTheme(
-    GoogleFonts.interTextTheme(),
+    ThemeData.light().textTheme,
     const Color(0xFF1C1B1F), // Primary text color for light mode
     const Color(0xFF49454F), // Secondary text color for light mode
   );
 
   static final darkTextTheme = _buildTextTheme(
-    GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+    ThemeData.dark().textTheme,
     const Color(0xFFE6E1E5), // Primary text color for dark mode
     const Color(0xFFCAC4D0), // Secondary text color for dark mode
   );
