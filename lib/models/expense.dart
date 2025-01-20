@@ -6,6 +6,7 @@ class Expense {
   final DateTime createdAt; // For sorting same-day items
   final String? category;
   final String? notes;
+  final bool isFixed; // Whether this is a fixed monthly expense
 
   Expense({
     required this.id,
@@ -15,6 +16,7 @@ class Expense {
     DateTime? createdAt,
     this.category,
     this.notes,
+    this.isFixed = false, // Default to variable expense
   })  : date = DateTime(
             date.year, date.month, date.day), // Normalize to start of day
         createdAt = createdAt ?? DateTime.now();
@@ -29,6 +31,7 @@ class Expense {
       'createdAt': createdAt.toIso8601String(),
       'category': category,
       'notes': notes,
+      'isFixed': isFixed,
     };
   }
 
@@ -44,6 +47,7 @@ class Expense {
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       category: json['category'],
       notes: json['notes'],
+      isFixed: json['isFixed'] ?? false,
     );
   }
 }

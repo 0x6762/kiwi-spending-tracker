@@ -17,6 +17,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   String? _category;
   final _notes = TextEditingController();
   DateTime _selectedDate = DateTime.now();
+  bool _isFixed = false;
   final _dateFormat = DateFormat.yMMMd();
 
   Future<void> _selectDate() async {
@@ -88,6 +89,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 createdAt: DateTime.now(),
                 category: _category,
                 notes: _notes.text.isEmpty ? null : _notes.text,
+                isFixed: _isFixed,
               );
 
               Navigator.of(context).pop(expense);
@@ -172,6 +174,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
               maxLines: 3,
               textInputAction: TextInputAction.done,
+            ),
+            const SizedBox(height: 16),
+            CheckboxListTile(
+              title: const Text('Fixed Monthly Expense'),
+              subtitle: const Text('This expense occurs every month'),
+              value: _isFixed,
+              onChanged: (value) => setState(() => _isFixed = value ?? false),
+              contentPadding: EdgeInsets.zero,
             ),
           ],
         ),
