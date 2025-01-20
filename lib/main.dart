@@ -55,8 +55,10 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   }
 
   Future<void> _addExpense() async {
-    final result = await showDialog<Expense>(
+    final result = await showModalBottomSheet<Expense>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => const AddExpenseDialog(),
     );
 
