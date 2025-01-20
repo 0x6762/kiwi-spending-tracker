@@ -21,13 +21,27 @@ class ExpenseSummary extends StatefulWidget {
 class _ExpenseSummaryState extends State<ExpenseSummary> {
   final _monthFormat = DateFormat.yMMMM();
 
-  double get _monthlyTotal {
+  List<Expense> get _monthlyExpenses {
     return widget.expenses
         .where((expense) =>
             expense.date.year == widget.selectedMonth.year &&
             expense.date.month == widget.selectedMonth.month)
+        .toList();
+  }
+
+  double get _fixedTotal {
+    return _monthlyExpenses
+        .where((expense) => expense.isFixed)
         .fold(0.0, (sum, expense) => sum + expense.amount);
   }
+
+  double get _variableTotal {
+    return _monthlyExpenses
+        .where((expense) => !expense.isFixed)
+        .fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  double get _monthlyTotal => _fixedTotal + _variableTotal;
 
   void _showMonthPicker() async {
     final DateTime? picked = await showDialog<DateTime>(
@@ -82,9 +96,47 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
             ),
+            const Divider(height: 24),
+            _SummaryRow(
+              label: 'Fixed Expenses',
+              amount: _fixedTotal,
+              context: context,
+            ),
+            const SizedBox(height: 8),
+            _SummaryRow(
+              label: 'Variable Expenses',
+              amount: _variableTotal,
+              context: context,
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final double amount;
+  final BuildContext context;
+
+  const _SummaryRow({
+    required this.label,
+    required this.amount,
+    required this.context,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label),
+        Text(
+          '\$${amount.toStringAsFixed(2)}',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ],
     );
   }
 }
