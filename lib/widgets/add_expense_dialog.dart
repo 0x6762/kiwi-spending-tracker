@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
+import '../models/expense_category.dart';
 import 'package:intl/intl.dart';
 
 class AddExpenseDialog extends StatefulWidget {
@@ -32,8 +33,38 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
+  Future<void> _selectCategory() async {
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Select Category'),
+        children: ExpenseCategories.values
+            .map((category) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, category.name),
+                  child: Row(
+                    children: [
+                      Icon(category.icon),
+                      const SizedBox(width: 8),
+                      Text(category.name),
+                    ],
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        _category = selected;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectedCategory =
+        _category != null ? ExpenseCategories.findByName(_category!) : null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Expense'),
@@ -102,6 +133,31 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   children: [
                     Text(_dateFormat.format(_selectedDate)),
                     const Icon(Icons.calendar_today),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _selectCategory,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        if (selectedCategory != null) ...[
+                          Icon(selectedCategory.icon),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(selectedCategory?.name ?? 'Select a category'),
+                      ],
+                    ),
+                    const Icon(Icons.arrow_drop_down),
                   ],
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'models/expense.dart';
+import 'models/expense_category.dart';
 import 'repositories/expense_repository.dart';
 import 'widgets/add_expense_dialog.dart';
 
@@ -80,15 +81,24 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         itemCount: _expenses.length,
         itemBuilder: (context, index) {
           final expense = _expenses[index];
+          final category = expense.category != null
+              ? ExpenseCategories.findByName(expense.category!)
+              : null;
+
           return ListTile(
+            leading: CircleAvatar(
+              child: Icon(category?.icon ?? Icons.receipt_long),
+            ),
             title: Text(expense.title),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_dateFormat.format(expense.date)),
-                if (expense.category != null)
-                  Text(expense.category!,
-                      style: Theme.of(context).textTheme.bodySmall),
+                if (category != null)
+                  Text(
+                    category.name,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
               ],
             ),
             trailing: Text(
