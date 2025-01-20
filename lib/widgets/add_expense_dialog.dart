@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
+import 'package:intl/intl.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({super.key});
@@ -14,6 +15,22 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _amountController = TextEditingController();
   String? _category;
   final _notes = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
+  final _dateFormat = DateFormat.yMMMd();
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +53,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 id: const Uuid().v4(),
                 title: _titleController.text,
                 amount: amount,
-                date: DateTime.now(),
+                date: _selectedDate,
                 category: _category,
                 notes: _notes.text.isEmpty ? null : _notes.text,
               );
@@ -71,6 +88,23 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _selectDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Date',
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_dateFormat.format(_selectedDate)),
+                    const Icon(Icons.calendar_today),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
