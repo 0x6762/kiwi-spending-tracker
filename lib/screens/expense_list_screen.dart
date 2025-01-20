@@ -46,6 +46,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     }
   }
 
+  Future<void> _deleteExpense(Expense expense) async {
+    await widget.repository.deleteExpense(expense.id);
+    _loadExpenses();
+  }
+
   void _viewExpenseDetails(Expense expense) {
     // TODO: Implement expense details/edit
   }
@@ -77,6 +82,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                       expense.date.month == _selectedMonth.month)
                   .toList(),
               onTap: _viewExpenseDetails,
+              onDelete: _deleteExpense,
             ),
           ),
         ],
