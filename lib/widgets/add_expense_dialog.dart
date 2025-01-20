@@ -85,6 +85,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 title: _titleController.text,
                 amount: amount,
                 date: _selectedDate,
+                createdAt: DateTime.now(),
                 category: _category,
                 notes: _notes.text.isEmpty ? null : _notes.text,
               );
