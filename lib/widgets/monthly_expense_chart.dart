@@ -5,10 +5,12 @@ import '../models/expense.dart';
 
 class MonthlyExpenseChart extends StatelessWidget {
   final List<Expense> expenses;
+  final DateTime selectedMonth;
 
   const MonthlyExpenseChart({
     super.key,
     required this.expenses,
+    required this.selectedMonth,
   });
 
   List<DateTime> _getLast6Months() {
@@ -33,7 +35,6 @@ class MonthlyExpenseChart extends StatelessWidget {
     final months = _getLast6Months();
     final monthFormat = DateFormat.MMM();
     final currencyFormat = NumberFormat.currency(symbol: '\$');
-    final now = DateTime.now();
 
     return AspectRatio(
       aspectRatio: 1.7,
@@ -80,23 +81,20 @@ class MonthlyExpenseChart extends StatelessWidget {
               final index = entry.key;
               final month = entry.value;
               final total = _getMonthlyTotal(month);
-              final isCurrentMonth =
-                  month.year == now.year && month.month == now.month;
+              final isSelectedMonth = month.year == selectedMonth.year &&
+                  month.month == selectedMonth.month;
 
               return BarChartGroupData(
                 x: index,
                 barRods: [
                   BarChartRodData(
-                    toY: total > 0
-                        ? total
-                        : 100, // Use full height for placeholders
-                    width: 32, // Increased bar width
+                    toY: total > 0 ? total : 100,
+                    width: 32,
                     color: total > 0
-                        ? (isCurrentMonth
+                        ? (isSelectedMonth
                             ? theme.colorScheme.primary
                             : theme.colorScheme.primary.withOpacity(0.6))
-                        : theme.colorScheme.surfaceVariant
-                            .withOpacity(0.15), // More subtle opacity
+                        : theme.colorScheme.surfaceVariant.withOpacity(0.15),
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,

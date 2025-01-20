@@ -110,6 +110,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
           const SizedBox(height: 16),
           MonthlyExpenseChart(
             expenses: widget.expenses,
+            selectedMonth: widget.selectedMonth,
           ),
           const SizedBox(height: 16),
           _SummaryRow(
