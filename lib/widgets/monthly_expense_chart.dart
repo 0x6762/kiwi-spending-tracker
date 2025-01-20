@@ -46,109 +46,113 @@ class MonthlyExpenseChart extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
 
     return AspectRatio(
-      aspectRatio: 1.7,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceBetween,
-          barGroups: months.asMap().entries.map((entry) {
-            final index = entry.key;
-            final month = entry.value;
-            final total = _getMonthlyTotal(month);
-            final isSelectedMonth = month.year == selectedMonth.year &&
-                month.month == selectedMonth.month;
+      aspectRatio: 2.2,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceBetween,
+            barGroups: months.asMap().entries.map((entry) {
+              final index = entry.key;
+              final month = entry.value;
+              final total = _getMonthlyTotal(month);
+              final isSelectedMonth = month.year == selectedMonth.year &&
+                  month.month == selectedMonth.month;
 
-            return BarChartGroupData(
-              x: index,
-              barRods: [
-                BarChartRodData(
-                  toY: total > 0 ? total : 100,
-                  width: 48,
-                  color: total > 0
-                      ? (isSelectedMonth
+              return BarChartGroupData(
+                x: index,
+                barRods: [
+                  BarChartRodData(
+                    toY: total > 0 ? total : 100,
+                    width: 48,
+                    color: total > 0
+                        ? (isSelectedMonth
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.primary.withOpacity(0.6))
+                        : theme.colorScheme.surfaceVariant.withOpacity(0.15),
+                    backDrawRodData: BackgroundBarChartRodData(
+                      show: true,
+                      toY: expenses.isEmpty ? 100 : null,
+                      color:
+                          theme.colorScheme.primaryContainer.withOpacity(0.2),
+                    ),
+                    rodStackItems: [
+                      BarChartRodStackItem(
+                        0,
+                        total > 0 ? total : 100, // Match the full height
+                        Colors.transparent,
+                        BorderSide.none,
+                      ),
+                    ],
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  ),
+                ],
+                showingTooltipIndicators: total > 0 ? [0] : [],
+              );
+            }).toList(),
+            barTouchData: BarTouchData(
+              enabled: false,
+              touchTooltipData: BarTouchTooltipData(
+                tooltipBgColor: theme.colorScheme.primary.withOpacity(0.15),
+                tooltipPadding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                tooltipMargin: 8,
+                tooltipRoundedRadius: 24,
+                fitInsideHorizontally: true,
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  final month = months[groupIndex];
+                  final total = _getMonthlyTotal(month);
+                  if (total <= 0) return null;
+                  final isSelectedMonth = month.year == selectedMonth.year &&
+                      month.month == selectedMonth.month;
+                  return BarTooltipItem(
+                    _formatAmount(total),
+                    theme.textTheme.bodySmall!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isSelectedMonth
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.primary.withOpacity(0.6))
-                      : theme.colorScheme.surfaceVariant.withOpacity(0.15),
-                  backDrawRodData: BackgroundBarChartRodData(
-                    show: true,
-                    toY: expenses.isEmpty ? 100 : null,
-                    color: theme.colorScheme.primaryContainer.withOpacity(0.2),
-                  ),
-                  rodStackItems: [
-                    BarChartRodStackItem(
-                      0,
-                      total > 0 ? total : 100, // Match the full height
-                      Colors.transparent,
-                      BorderSide.none,
+                          : theme.colorScheme.primary.withOpacity(0.8),
+                      height: 1.0,
                     ),
-                  ],
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                ),
-              ],
-              showingTooltipIndicators: total > 0 ? [0] : [],
-            );
-          }).toList(),
-          barTouchData: BarTouchData(
-            enabled: false,
-            touchTooltipData: BarTouchTooltipData(
-              tooltipBgColor: theme.colorScheme.primary.withOpacity(0.15),
-              tooltipPadding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              tooltipMargin: 8,
-              tooltipRoundedRadius: 24,
-              fitInsideHorizontally: true,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final month = months[groupIndex];
-                final total = _getMonthlyTotal(month);
-                if (total <= 0) return null;
-                final isSelectedMonth = month.year == selectedMonth.year &&
-                    month.month == selectedMonth.month;
-                return BarTooltipItem(
-                  _formatAmount(total),
-                  theme.textTheme.bodySmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isSelectedMonth
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.primary.withOpacity(0.8),
-                    height: 1.0,
-                  ),
-                  textAlign: TextAlign.center,
-                );
-              },
-              tooltipHorizontalAlignment: FLHorizontalAlignment.center,
-            ),
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  if (value < 0 || value >= months.length)
-                    return const Text('');
-                  final month = months[value.toInt()];
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      monthFormat.format(month),
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    textAlign: TextAlign.center,
                   );
                 },
-                reservedSize: 32,
+                tooltipHorizontalAlignment: FLHorizontalAlignment.center,
               ),
             ),
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    if (value < 0 || value >= months.length)
+                      return const Text('');
+                    final month = months[value.toInt()];
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        monthFormat.format(month),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    );
+                  },
+                  reservedSize: 32,
+                ),
+              ),
+              leftTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
             ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
           ),
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
         ),
       ),
     );

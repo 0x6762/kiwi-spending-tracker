@@ -77,35 +77,42 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               style: TextButton.styleFrom(
                 backgroundColor: theme.colorScheme.primaryContainer,
                 foregroundColor: theme.colorScheme.onPrimaryContainer,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 10,
+                  top: 8,
+                  bottom: 8,
                 ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(_monthFormat.format(widget.selectedMonth)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_drop_down),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Total Spent',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.secondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '\$${_monthlyTotal.toStringAsFixed(2)}',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Total Spent',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '\$${_monthlyTotal.toStringAsFixed(2)}',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           MonthlyExpenseChart(
