@@ -42,10 +42,12 @@ class ExpenseListScreen extends StatefulWidget {
 
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
   List<Expense> _expenses = [];
+  late DateTime _selectedMonth;
 
   @override
   void initState() {
     super.initState();
+    _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
     _loadExpenses();
   }
 
@@ -74,6 +76,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     // TODO: Implement expense details/edit
   }
 
+  void _onMonthSelected(DateTime month) {
+    setState(() {
+      _selectedMonth = month;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +90,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       ),
       body: Column(
         children: [
-          ExpenseSummary(expenses: _expenses),
+          ExpenseSummary(
+            expenses: _expenses,
+            selectedMonth: _selectedMonth,
+            onMonthSelected: _onMonthSelected,
+          ),
           Expanded(
             child: ExpenseList(
               expenses: _expenses,
