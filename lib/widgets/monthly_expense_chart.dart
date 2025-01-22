@@ -6,11 +6,13 @@ import '../models/expense.dart';
 class MonthlyExpenseChart extends StatelessWidget {
   final List<Expense> expenses;
   final DateTime selectedMonth;
+  final void Function(DateTime)? onMonthSelected;
 
   const MonthlyExpenseChart({
     super.key,
     required this.expenses,
     required this.selectedMonth,
+    this.onMonthSelected,
   });
 
   List<DateTime> _getLast6Months() {
@@ -91,7 +93,19 @@ class MonthlyExpenseChart extends StatelessWidget {
               );
             }).toList(),
             barTouchData: BarTouchData(
-              enabled: false,
+              enabled: true,
+              handleBuiltInTouches: true,
+              touchCallback: (event, response) {
+                if (event is FlTapUpEvent &&
+                    response?.spot != null &&
+                    onMonthSelected != null) {
+                  final monthIndex = response!.spot!.touchedBarGroupIndex;
+                  if (monthIndex >= 0 && monthIndex < months.length) {
+                    final selectedMonth = months[monthIndex];
+                    onMonthSelected!(selectedMonth);
+                  }
+                }
+              },
               touchTooltipData: BarTouchTooltipData(
                 tooltipBgColor: theme.colorScheme.surfaceVariant,
                 tooltipPadding:
