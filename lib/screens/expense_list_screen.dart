@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
+import '../utils/circular_reveal_route.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -38,11 +39,14 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
   }
 
   Future<void> _addExpense() async {
-    final result = await showModalBottomSheet<Expense>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => const AddExpenseDialog(),
+    final screenSize = MediaQuery.of(context).size;
+    final bottomRight = Offset(screenSize.width, screenSize.height);
+
+    final result = await Navigator.of(context).push<Expense>(
+      CircularRevealRoute(
+        center: bottomRight,
+        child: const AddExpenseDialog(),
+      ),
     );
 
     if (result != null) {
