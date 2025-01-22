@@ -102,7 +102,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
                 child: DraggableScrollableSheet(
                   initialChildSize: 0.33,
                   minChildSize: 0.33,
-                  maxChildSize: 0.9,
+                  maxChildSize: 0.8,
                   builder: (context, scrollController) {
                     return Container(
                       margin: const EdgeInsets.only(top: 16),
@@ -111,57 +111,64 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
                         borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16)),
                       ),
-                      child: ListView(
+                      child: NestedScrollView(
                         controller: scrollController,
-                        padding: EdgeInsets.zero,
-                        children: [
-                          // Handle and title
-                          Center(
-                            child: Container(
-                              width: 32,
-                              height: 4,
-                              margin: const EdgeInsets.only(top: 8, bottom: 12),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                          SliverToBoxAdapter(
+                            child: Column(
                               children: [
-                                Text(
-                                  'Recent transactions',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
+                                // Handle
+                                Center(
+                                  child: Container(
+                                    width: 32,
+                                    height: 4,
+                                    margin: const EdgeInsets.only(
+                                        top: 8, bottom: 12),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
+                                // Title
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Recent transactions',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
                                       ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          // Expense list
-                          ExpenseList(
-                            expenses: _expenses
-                                .where((expense) =>
-                                    expense.date.year == _selectedMonth.year &&
-                                    expense.date.month == _selectedMonth.month)
-                                .toList(),
-                            onDelete: _deleteExpense,
-                            onTap: _viewExpenseDetails,
-                            scrollController: scrollController,
-                            shrinkWrap: true,
-                          ),
                         ],
+                        body: ExpenseList(
+                          expenses: _expenses
+                              .where((expense) =>
+                                  expense.date.year == _selectedMonth.year &&
+                                  expense.date.month == _selectedMonth.month)
+                              .toList(),
+                          onDelete: _deleteExpense,
+                          onTap: _viewExpenseDetails,
+                          scrollController: scrollController,
+                          shrinkWrap: true,
+                        ),
                       ),
                     );
                   },
