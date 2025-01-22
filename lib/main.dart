@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'repositories/expense_repository.dart';
-import 'screens/expense_list_screen.dart';
+import 'screens/main_screen.dart';
 import 'theme/theme.dart';
 
 void main() async {
@@ -35,8 +35,7 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.system,
-        home:
-            ExpenseListScreen(repository: LocalStorageExpenseRepository(prefs)),
+        home: MainScreen(repository: LocalStorageExpenseRepository(prefs)),
       ),
     );
   }
