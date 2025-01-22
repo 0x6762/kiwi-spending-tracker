@@ -185,7 +185,7 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: const Color(0xFF6F737C),
+        backgroundColor: darkColorScheme.outlineVariant,
         foregroundColor: const Color(0xFFffffff),
       ),
     );

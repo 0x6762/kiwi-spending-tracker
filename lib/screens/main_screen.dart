@@ -25,25 +25,59 @@ class _MainScreenState extends State<MainScreen> {
           const SettingsScreen(),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.receipt_outlined),
-            selectedIcon: Icon(Icons.receipt),
-            label: 'Expenses',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              width: 1,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+        ),
+        child: NavigationBar(
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedIndex: _selectedIndex,
+          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+          elevation: 0,
+          height: 80,
+          indicatorColor: Theme.of(context).colorScheme.outlineVariant,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          indicatorShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.receipt_outlined,
+                color: _selectedIndex == 0
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              selectedIcon: Icon(
+                Icons.receipt,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: 'Expenses',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.settings_outlined,
+                color: _selectedIndex == 1
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              selectedIcon: Icon(
+                Icons.settings,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }
