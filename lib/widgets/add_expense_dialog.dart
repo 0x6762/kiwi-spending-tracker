@@ -123,16 +123,25 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     TextField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Title',
+                        labelText: 'What was the expense?',
                         border: OutlineInputBorder(),
                       ),
                       textInputAction: TextInputAction.next,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      title: const Text('Mark as a fixed expense'),
+                      // subtitle: const Text('This expense occurs every month'),
+                      value: _isFixed,
+                      onChanged: (value) =>
+                          setState(() => _isFixed = value ?? false),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: 24),
                     TextField(
                       controller: _amountController,
                       decoration: const InputDecoration(
-                        labelText: 'Amount',
+                        labelText: 'How much was it?',
                         border: OutlineInputBorder(),
                         prefixText: '\$',
                       ),
@@ -140,12 +149,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           const TextInputType.numberWithOptions(decimal: true),
                       textInputAction: TextInputAction.next,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 32),
                     InkWell(
                       onTap: _selectDate,
                       child: InputDecorator(
                         decoration: const InputDecoration(
-                          labelText: 'Date',
+                          labelText: 'When was it?',
                           border: OutlineInputBorder(),
                         ),
                         child: Row(
@@ -162,7 +171,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       onTap: _selectAccount,
                       child: InputDecorator(
                         decoration: const InputDecoration(
-                          labelText: 'Account',
+                          labelText: 'Select Account',
                           border: OutlineInputBorder(),
                         ),
                         child: Row(
@@ -209,24 +218,15 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 32),
                     TextField(
                       controller: _notes,
                       decoration: const InputDecoration(
-                        labelText: 'Notes (optional)',
+                        labelText: 'Additional Notes',
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 1,
                       textInputAction: TextInputAction.done,
-                    ),
-                    const SizedBox(height: 16),
-                    CheckboxListTile(
-                      title: const Text('Fixed Monthly Expense'),
-                      subtitle: const Text('This expense occurs every month'),
-                      value: _isFixed,
-                      onChanged: (value) =>
-                          setState(() => _isFixed = value ?? false),
-                      contentPadding: EdgeInsets.zero,
                     ),
                   ],
                 ),
@@ -256,9 +256,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   Navigator.of(context).pop(expense);
                 },
                 style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.outlineVariant,
                   minimumSize: const Size.fromHeight(56),
                 ),
-                child: const Text('Save'),
+                child: Text('Add Expense',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ),
             ),
           ],
