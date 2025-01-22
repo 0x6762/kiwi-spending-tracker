@@ -116,8 +116,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                         borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16)),
                       ),
-                      child: ListView(
-                        controller: scrollController,
+                      child: Column(
                         children: [
                           Center(
                             child: Container(
@@ -152,102 +151,20 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                               ],
                             ),
                           ),
-                          ...(_expenses
+                          Expanded(
+                            child: ExpenseList(
+                              expenses: _expenses
                                   .where((expense) =>
                                       expense.date.year ==
                                           _selectedMonth.year &&
                                       expense.date.month ==
                                           _selectedMonth.month)
-                                  .toList()
-                                ..sort((a, b) {
-                                  final dateComparison =
-                                      b.date.compareTo(a.date);
-                                  if (dateComparison != 0)
-                                    return dateComparison;
-                                  return b.createdAt.compareTo(a.createdAt);
-                                }))
-                              .map((expense) => Dismissible(
-                                    key: Key(expense.id),
-                                    direction: DismissDirection.endToStart,
-                                    background: Container(
-                                      color:
-                                          Theme.of(context).colorScheme.error,
-                                      alignment: Alignment.centerRight,
-                                      padding: const EdgeInsets.only(right: 16),
-                                      child: const Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    confirmDismiss: (direction) async {
-                                      return await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title:
-                                                  const Text('Delete Expense'),
-                                              content: const Text(
-                                                  'Are you sure you want to delete this expense?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, true),
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .error,
-                                                  ),
-                                                  child: const Text('Delete'),
-                                                ),
-                                              ],
-                                            ),
-                                          ) ??
-                                          false;
-                                    },
-                                    onDismissed: (direction) =>
-                                        _deleteExpense(expense),
-                                    child: ListTile(
-                                      leading: CircleAvatar(
-                                        child: Icon(expense.category != null
-                                            ? ExpenseCategories.findByName(
-                                                    expense.category!)
-                                                ?.icon
-                                            : Icons.receipt_long),
-                                      ),
-                                      title: Text(expense.title),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(_formatDate(expense.date)),
-                                          if (expense.category != null)
-                                            Text(
-                                              ExpenseCategories.findByName(
-                                                      expense.category!)!
-                                                  .name,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall,
-                                            ),
-                                        ],
-                                      ),
-                                      trailing: Text(
-                                        '\$${expense.amount.toStringAsFixed(2)}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
-                                      onTap: () => _viewExpenseDetails(expense),
-                                    ),
-                                  ))
-                              .toList(),
+                                  .toList(),
+                              onDelete: _deleteExpense,
+                              onTap: _viewExpenseDetails,
+                              scrollController: scrollController,
+                            ),
+                          ),
                         ],
                       ),
                     ),

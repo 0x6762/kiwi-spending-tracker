@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
+import '../models/account.dart';
 import 'package:intl/intl.dart';
 
 class AddExpenseDialog extends StatefulWidget {
@@ -18,6 +19,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _notes = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   bool _isFixed = false;
+  String _selectedAccountId = DefaultAccounts.checking.id;
   final _dateFormat = DateFormat.yMMMd();
 
   Future<void> _selectDate() async {
@@ -61,10 +63,42 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
+  Future<void> _selectAccount() async {
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Select Account'),
+        children: DefaultAccounts.defaultAccounts
+            .map((account) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, account.id),
+                  child: Row(
+                    children: [
+                      Icon(
+                        account.icon,
+                        color: account.color,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(account.name),
+                    ],
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedAccountId = selected;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedCategory =
         _category != null ? ExpenseCategories.findByName(_category!) : null;
+    final selectedAccount = DefaultAccounts.defaultAccounts
+        .firstWhere((account) => account.id == _selectedAccountId);
 
     return Scaffold(
       appBar: AppBar(
@@ -90,6 +124,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 category: _category,
                 notes: _notes.text.isEmpty ? null : _notes.text,
                 isFixed: _isFixed,
+                accountId: _selectedAccountId,
               );
 
               Navigator.of(context).pop(expense);
@@ -136,6 +171,32 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   children: [
                     Text(_dateFormat.format(_selectedDate)),
                     const Icon(Icons.calendar_today),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _selectAccount,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Account',
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          selectedAccount.icon,
+                          color: selectedAccount.color,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(selectedAccount.name),
+                      ],
+                    ),
+                    const Icon(Icons.arrow_drop_down),
                   ],
                 ),
               ),

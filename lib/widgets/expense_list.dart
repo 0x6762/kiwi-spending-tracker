@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
+import '../models/account.dart';
 
 class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
@@ -57,6 +58,8 @@ class ExpenseList extends StatelessWidget {
         final category = expense.category != null
             ? ExpenseCategories.findByName(expense.category!)
             : null;
+        final account = DefaultAccounts.defaultAccounts
+            .firstWhere((a) => a.id == expense.accountId);
 
         return Dismissible(
           key: Key(expense.id),
@@ -101,23 +104,76 @@ class ExpenseList extends StatelessWidget {
           },
           child: ListTile(
             leading: CircleAvatar(
-              child: Icon(category?.icon ?? Icons.receipt_long),
+              backgroundColor: account.color.withOpacity(0.2),
+              child: Icon(
+                category?.icon ?? Icons.receipt_long,
+                color: account.color,
+              ),
             ),
-            title: Text(expense.title),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(expense.title),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: account.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: account.color.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        account.icon,
+                        size: 12,
+                        color: account.color,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        account.name,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: account.color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_formatDate(expense.date)),
                 if (category != null)
                   Text(
                     category.name,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
               ],
             ),
-            trailing: Text(
-              '\$${expense.amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleMedium,
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '\$${expense.amount.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _formatDate(expense.date),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
             ),
             onTap: onTap != null ? () => onTap!(expense) : null,
           ),

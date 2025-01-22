@@ -1,3 +1,5 @@
+import 'account.dart';
+
 class Expense {
   final String id;
   final String title;
@@ -7,19 +9,43 @@ class Expense {
   final String? category;
   final String? notes;
   final bool isFixed; // Whether this is a fixed monthly expense
+  final String accountId;
 
-  Expense({
+  const Expense({
     required this.id,
     required this.title,
     required this.amount,
-    required DateTime date,
-    DateTime? createdAt,
+    required this.date,
+    required this.createdAt,
     this.category,
     this.notes,
     this.isFixed = false, // Default to variable expense
-  })  : date = DateTime(
-            date.year, date.month, date.day), // Normalize to start of day
-        createdAt = createdAt ?? DateTime.now();
+    required this.accountId,
+  });
+
+  Expense copyWith({
+    String? id,
+    String? title,
+    double? amount,
+    DateTime? date,
+    DateTime? createdAt,
+    String? category,
+    String? notes,
+    bool? isFixed,
+    String? accountId,
+  }) {
+    return Expense(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      createdAt: createdAt ?? this.createdAt,
+      category: category ?? this.category,
+      notes: notes ?? this.notes,
+      isFixed: isFixed ?? this.isFixed,
+      accountId: accountId ?? this.accountId,
+    );
+  }
 
   // Convert to and from JSON for storage
   Map<String, dynamic> toJson() {
@@ -32,22 +58,21 @@ class Expense {
       'category': category,
       'notes': notes,
       'isFixed': isFixed,
+      'accountId': accountId,
     };
   }
 
   factory Expense.fromJson(Map<String, dynamic> json) {
-    final date = DateTime.parse(json['date']);
     return Expense(
       id: json['id'],
       title: json['title'],
-      amount: json['amount'],
-      date: DateTime(
-          date.year, date.month, date.day), // Normalize to start of day
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      amount: json['amount'].toDouble(),
+      date: DateTime.parse(json['date']),
+      createdAt: DateTime.parse(json['createdAt']),
       category: json['category'],
       notes: json['notes'],
       isFixed: json['isFixed'] ?? false,
+      accountId: json['accountId'] ?? DefaultAccounts.checking.id,
     );
   }
 }
