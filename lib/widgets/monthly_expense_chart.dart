@@ -48,9 +48,9 @@ class MonthlyExpenseChart extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
 
     return AspectRatio(
-      aspectRatio: 2.2,
+      aspectRatio: 2.1,
       child: Padding(
-        padding: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.only(top: 24),
         child: BarChart(
           BarChartData(
             alignment: BarChartAlignment.spaceBetween,
