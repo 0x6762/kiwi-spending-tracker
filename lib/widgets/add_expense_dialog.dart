@@ -101,153 +101,167 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         .firstWhere((account) => account.id == _selectedAccountId);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
         title: const Text('Add Expense'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              final amount = double.tryParse(_amountController.text);
-              if (_titleController.text.isEmpty || amount == null) {
-                return;
-              }
-
-              final expense = Expense(
-                id: const Uuid().v4(),
-                title: _titleController.text,
-                amount: amount,
-                date: _selectedDate,
-                createdAt: DateTime.now(),
-                category: _category,
-                notes: _notes.text.isEmpty ? null : _notes.text,
-                isFixed: _isFixed,
-                accountId: _selectedAccountId,
-              );
-
-              Navigator.of(context).pop(expense);
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
       body: Container(
-        color: Theme.of(context).colorScheme.surface,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                ),
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  border: OutlineInputBorder(),
-                  prefixText: '\$',
-                ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: _selectDate,
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(_dateFormat.format(_selectedDate)),
-                      const Icon(Icons.calendar_today),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: _selectAccount,
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Account',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            selectedAccount.icon,
-                            color: selectedAccount.color,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(selectedAccount.name),
-                        ],
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title',
+                        border: OutlineInputBorder(),
                       ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: _selectCategory,
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          if (selectedCategory != null) ...[
-                            Icon(selectedCategory.icon),
-                            const SizedBox(width: 8),
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _amountController,
+                      decoration: const InputDecoration(
+                        labelText: 'Amount',
+                        border: OutlineInputBorder(),
+                        prefixText: '\$',
+                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: _selectDate,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Date',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_dateFormat.format(_selectedDate)),
+                            const Icon(Icons.calendar_today),
                           ],
-                          Text(selectedCategory?.name ?? 'Select a category'),
-                        ],
+                        ),
                       ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: _selectAccount,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Account',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  selectedAccount.icon,
+                                  color: selectedAccount.color,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(selectedAccount.name),
+                              ],
+                            ),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: _selectCategory,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          border: OutlineInputBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                if (selectedCategory != null) ...[
+                                  Icon(selectedCategory.icon),
+                                  const SizedBox(width: 8),
+                                ],
+                                Text(selectedCategory?.name ??
+                                    'Select a category'),
+                              ],
+                            ),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _notes,
+                      decoration: const InputDecoration(
+                        labelText: 'Notes (optional)',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 1,
+                      textInputAction: TextInputAction.done,
+                    ),
+                    const SizedBox(height: 16),
+                    CheckboxListTile(
+                      title: const Text('Fixed Monthly Expense'),
+                      subtitle: const Text('This expense occurs every month'),
+                      value: _isFixed,
+                      onChanged: (value) =>
+                          setState(() => _isFixed = value ?? false),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _notes,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  border: OutlineInputBorder(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FilledButton(
+                onPressed: () {
+                  final amount = double.tryParse(_amountController.text);
+                  if (_titleController.text.isEmpty || amount == null) {
+                    return;
+                  }
+
+                  final expense = Expense(
+                    id: const Uuid().v4(),
+                    title: _titleController.text,
+                    amount: amount,
+                    date: _selectedDate,
+                    createdAt: DateTime.now(),
+                    category: _category,
+                    notes: _notes.text.isEmpty ? null : _notes.text,
+                    isFixed: _isFixed,
+                    accountId: _selectedAccountId,
+                  );
+
+                  Navigator.of(context).pop(expense);
+                },
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(56),
                 ),
-                maxLines: 3,
-                textInputAction: TextInputAction.done,
+                child: const Text('Save'),
               ),
-              const SizedBox(height: 16),
-              CheckboxListTile(
-                title: const Text('Fixed Monthly Expense'),
-                subtitle: const Text('This expense occurs every month'),
-                value: _isFixed,
-                onChanged: (value) => setState(() => _isFixed = value ?? false),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
