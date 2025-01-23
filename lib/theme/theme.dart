@@ -90,12 +90,13 @@ class AppTheme {
     secondary: Color(0xFFCAC4D0),
     onSecondary: Color(0xFF13151D),
     // Error states and delete actions
-    error: Color(0xFFF2B8B5),
+    error: Color(0xFFC93838),
     onError: Color(0xFF601410),
     // Main screen background
     surface: Color(0xFF0C0E13),
     onSurface: Color(0xFFDCDCE8),
     onSurfaceVariant: Color(0xFFA3ABBF),
+    surfaceDim: Color(0xFF07090C),
     // Used for the bottom sheet, nav bar, and subtle backgrounds
     surfaceContainer: Color(0xFF13151D),
     surfaceContainerHighest: Color(0xFF13151D),

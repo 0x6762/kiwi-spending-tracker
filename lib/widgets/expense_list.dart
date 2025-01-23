@@ -59,12 +59,12 @@ class ExpenseList extends StatelessWidget {
       key: Key(expense.id),
       direction: DismissDirection.endToStart,
       background: Container(
-        color: Theme.of(context).colorScheme.error,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(
+        padding: const EdgeInsets.only(right: 24),
+        child: Icon(
           Icons.delete,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.error,
         ),
       ),
       confirmDismiss: (direction) async {
