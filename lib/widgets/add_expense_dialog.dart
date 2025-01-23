@@ -21,29 +21,58 @@ class AddExpenseDialog extends StatefulWidget {
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
+  String _amount = '0';
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
-  String _selectedAccountId = DefaultAccounts.checking.id;
+  String? _selectedAccountId;
   final _dateFormat = DateFormat.yMMMd();
 
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _amountController.dispose();
-    super.dispose();
+  void _addDigit(String digit) {
+    setState(() {
+      if (_amount == '0') {
+        _amount = digit;
+      } else {
+        _amount += digit;
+      }
+    });
+  }
+
+  void _addDoubleZero() {
+    setState(() {
+      if (_amount != '0') {
+        _amount += '00';
+      }
+    });
+  }
+
+  void _addDecimalPoint() {
+    if (!_amount.contains('.')) {
+      setState(() {
+        _amount += '.';
+      });
+    }
+  }
+
+  void _deleteDigit() {
+    setState(() {
+      if (_amount.length > 1) {
+        _amount = _amount.substring(0, _amount.length - 1);
+      } else {
+        _amount = '0';
+      }
+    });
   }
 
   void _submit() {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _selectedAccountId != null) {
       final expense = Expense(
         id: const Uuid().v4(),
         title: _titleController.text,
-        amount: double.parse(_amountController.text),
+        amount: double.parse(_amount),
         date: _selectedDate,
         category: _selectedCategory,
         isFixed: widget.isFixed,
-        accountId: _selectedAccountId,
+        accountId: _selectedAccountId!,
         createdAt: DateTime.now(),
       );
 
@@ -65,23 +94,97 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  Future<void> _selectCategory() async {
-    final selected = await showDialog<String>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Select Category'),
-        children: ExpenseCategories.values
-            .map((category) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context, category.name),
-                  child: Row(
-                    children: [
-                      Icon(category.icon),
-                      const SizedBox(width: 8),
-                      Text(category.name),
-                    ],
+  Widget _buildSelectionButton({
+    required String label,
+    required IconData icon,
+    required String text,
+    Color? iconColor,
+    required VoidCallback onTap,
+    required bool hasSelection,
+  }) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Material(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(32),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(32),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                if (hasSelection) ...[
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: iconColor ?? theme.colorScheme.onSurfaceVariant,
                   ),
-                ))
-            .toList(),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Text(
+                    hasSelection ? text : label,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (!hasSelection)
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showCategorySheet() async {
+    final theme = Theme.of(context);
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Select Category',
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
+            const Divider(),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: ExpenseCategories.values.map((category) {
+                    return ListTile(
+                      leading: Icon(category.icon),
+                      title: Text(category.name),
+                      onTap: () => Navigator.pop(context, category.name),
+                      selected: category.name == _selectedCategory,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
 
@@ -92,26 +195,48 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  Future<void> _selectAccount() async {
-    final selected = await showDialog<String>(
+  Future<void> _showAccountSheet() async {
+    final theme = Theme.of(context);
+    final selected = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Select Account'),
-        children: DefaultAccounts.defaultAccounts
-            .map((account) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context, account.id),
-                  child: Row(
-                    children: [
-                      Icon(
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Select Account',
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
+            const Divider(),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: DefaultAccounts.defaultAccounts.map((account) {
+                    return ListTile(
+                      leading: Icon(
                         account.icon,
                         color: account.color,
                       ),
-                      const SizedBox(width: 8),
-                      Text(account.name),
-                    ],
-                  ),
-                ))
-            .toList(),
+                      title: Text(account.name),
+                      onTap: () => Navigator.pop(context, account.id),
+                      selected: account.id == _selectedAccountId,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
 
@@ -122,14 +247,167 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
+  Widget _buildNumberPadButton(
+    String text, {
+    VoidCallback? onPressed,
+    bool isAction = false,
+    bool isLarge = false,
+  }) {
+    final theme = Theme.of(context);
+    return Expanded(
+      flex: isLarge ? 2 : 1,
+      child: AspectRatio(
+        aspectRatio: isLarge ? 1 : 1.5,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: Material(
+            color: isAction
+                ? theme.colorScheme.primary.withOpacity(0.1)
+                : theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(12),
+              child: Center(
+                child: _buildButtonContent(text, isAction, theme),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButtonContent(String text, bool isAction, ThemeData theme) {
+    switch (text) {
+      case 'backspace':
+        return Icon(
+          Icons.backspace_outlined,
+          color: theme.colorScheme.primary,
+          size: 20,
+        );
+      case 'date':
+        return Icon(
+          Icons.calendar_today,
+          color: theme.colorScheme.primary,
+          size: 20,
+        );
+      case 'save':
+        return Text(
+          'Save',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        );
+      default:
+        return Text(
+          text,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+        );
+    }
+  }
+
+  Widget _buildNumberPad() {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            _buildNumberPadButton('1', onPressed: () => _addDigit('1')),
+            _buildNumberPadButton('2', onPressed: () => _addDigit('2')),
+            _buildNumberPadButton('3', onPressed: () => _addDigit('3')),
+            _buildNumberPadButton(
+              'backspace',
+              onPressed: _deleteDigit,
+              isAction: true,
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            _buildNumberPadButton('4', onPressed: () => _addDigit('4')),
+            _buildNumberPadButton('5', onPressed: () => _addDigit('5')),
+            _buildNumberPadButton('6', onPressed: () => _addDigit('6')),
+            _buildNumberPadButton(
+              'date',
+              onPressed: _selectDate,
+              isAction: true,
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      _buildNumberPadButton('7',
+                          onPressed: () => _addDigit('7')),
+                      _buildNumberPadButton('8',
+                          onPressed: () => _addDigit('8')),
+                      _buildNumberPadButton('9',
+                          onPressed: () => _addDigit('9')),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _buildNumberPadButton('.', onPressed: _addDecimalPoint),
+                      _buildNumberPadButton('0',
+                          onPressed: () => _addDigit('0')),
+                      _buildNumberPadButton('00', onPressed: _addDoubleZero),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width / 4 - 16,
+              child: AspectRatio(
+                aspectRatio: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Material(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: _submit,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Center(
+                        child: Text(
+                          'Save',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedCategory = _selectedCategory != null
         ? ExpenseCategories.findByName(_selectedCategory!)
         : null;
-    final selectedAccount = DefaultAccounts.defaultAccounts
-        .firstWhere((account) => account.id == _selectedAccountId);
+    final selectedAccount = _selectedAccountId != null
+        ? DefaultAccounts.defaultAccounts
+            .firstWhere((account) => account.id == _selectedAccountId)
+        : null;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -137,138 +415,104 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         backgroundColor: theme.colorScheme.surface,
         title: Text(
           widget.isFixed ? 'Add Fixed Expense' : 'Add Variable Expense',
-          style: theme.textTheme.titleLarge,
+          style: theme.textTheme.titleMedium,
         ),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          TextButton(
-            onPressed: _submit,
-            child: const Text('Save'),
-          ),
-        ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                prefixText: '\$',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an amount';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Please enter a valid number';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedAccountId,
-              decoration: const InputDecoration(
-                labelText: 'Account',
-                border: OutlineInputBorder(),
-              ),
-              items: DefaultAccounts.defaultAccounts.map((account) {
-                return DropdownMenuItem(
-                  value: account.id,
-                  child: Row(
-                    children: [
-                      Icon(
-                        account.icon,
-                        color: account.color,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(account.name),
-                    ],
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '\$${_amount}',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedAccountId = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
-              ),
-              items: ExpenseCategories.values.map((category) {
-                return DropdownMenuItem(
-                  value: category.name,
-                  child: Row(
-                    children: [
-                      Icon(
-                        category.icon,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(category.name),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: _selectDate,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  border: OutlineInputBorder(),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
                   children: [
-                    Text(_dateFormat.format(_selectedDate)),
-                    const Icon(Icons.calendar_today),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              labelText: 'Title',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a title';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              _buildSelectionButton(
+                                label: 'Account',
+                                icon: selectedAccount?.icon ??
+                                    Icons.account_balance,
+                                text: selectedAccount?.name ?? 'Account',
+                                iconColor: selectedAccount?.color,
+                                onTap: _showAccountSheet,
+                                hasSelection: selectedAccount != null,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildSelectionButton(
+                                label: 'Category',
+                                icon: selectedCategory?.icon ?? Icons.category,
+                                text: selectedCategory?.name ?? 'Category',
+                                onTap: _showCategorySheet,
+                                hasSelection: selectedCategory != null,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _dateFormat.format(_selectedDate),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: _buildNumberPad(),
+                    ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
