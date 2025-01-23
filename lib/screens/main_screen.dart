@@ -77,6 +77,8 @@ class _MainScreenState extends State<MainScreen> {
         .toList();
 
     return Scaffold(
+      backgroundColor:
+          Theme.of(context).colorScheme.surface, //main screen background
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -87,14 +89,15 @@ class _MainScreenState extends State<MainScreen> {
                 onMonthSelected: _onMonthSelected,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
                       'Recent transactions',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
@@ -102,7 +105,9 @@ class _MainScreenState extends State<MainScreen> {
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface, //expenses list background
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(16)),
                 ),
@@ -118,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addExpense,
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         foregroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(Icons.add),
       ),
@@ -128,6 +133,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -142,14 +148,19 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         selectedIndex: _selectedIndex,
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        backgroundColor: Theme.of(context)
+            .colorScheme
+            .surfaceContainer, // Navigation bar background
+        indicatorColor: Theme.of(context)
+            .colorScheme
+            .primary //Navigation bar background indicator
+            .withOpacity(0.2),
         height: 72,
         destinations: [
           NavigationDestination(
             icon: Icon(
               Icons.receipt_outlined,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             selectedIcon: Icon(
               Icons.receipt,
@@ -160,7 +171,7 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Icon(
               Icons.settings_outlined,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             selectedIcon: Icon(
               Icons.settings,

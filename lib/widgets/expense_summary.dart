@@ -75,8 +75,8 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
             child: TextButton(
               onPressed: _showMonthPicker,
               style: TextButton.styleFrom(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.onPrimaryContainer,
+                backgroundColor: theme.colorScheme.surfaceContainer,
+                foregroundColor: theme.colorScheme.onSurfaceVariant,
                 padding: const EdgeInsets.only(
                   left: 16,
                   right: 10,
@@ -101,7 +101,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               Text(
                 'Total Spent',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.secondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 4),
@@ -109,7 +109,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 '\$${_monthlyTotal.toStringAsFixed(2)}',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -161,7 +161,7 @@ class _SummaryRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -187,7 +187,7 @@ class _SummaryRow extends StatelessWidget {
           Text(
             '\$${amount.toStringAsFixed(2)}',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],
@@ -221,6 +221,9 @@ class MonthPickerDialog extends StatelessWidget {
     final months = _availableMonths;
 
     return Dialog(
+      backgroundColor: Theme.of(context)
+          .colorScheme
+          .surfaceContainer, //select month top picker background color
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(

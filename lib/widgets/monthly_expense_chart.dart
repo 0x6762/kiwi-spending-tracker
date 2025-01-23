@@ -69,9 +69,12 @@ class MonthlyExpenseChart extends StatelessWidget {
                     width: 48,
                     color: total > 0
                         ? (isSelectedMonth
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.surfaceVariant)
-                        : theme.colorScheme.surfaceVariant,
+                            ? theme
+                                .colorScheme.primary //selected month bar color
+                            : theme.colorScheme
+                                .surfaceContainerLowest) //other months bar color
+                        : theme.colorScheme
+                            .surfaceContainer, //no expenses bar color
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,
@@ -107,12 +110,11 @@ class MonthlyExpenseChart extends StatelessWidget {
                 }
               },
               touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: theme.colorScheme.surfaceVariant,
-                tooltipPadding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                tooltipBgColor: theme.colorScheme.surfaceContainer,
+                tooltipPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                 tooltipMargin: 8,
-                tooltipRoundedRadius: 24,
-                fitInsideHorizontally: true,
+                tooltipRoundedRadius: 16,
+                fitInsideHorizontally: false,
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final month = months[groupIndex];
                   final total = _getMonthlyTotal(month);
@@ -125,7 +127,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: isSelectedMonth
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.primary.withOpacity(0.8),
+                          : theme.colorScheme.onSurfaceVariant.withOpacity(1),
                       height: 1.0,
                     ),
                     textAlign: TextAlign.center,
@@ -147,7 +149,9 @@ class MonthlyExpenseChart extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         monthFormat.format(month),
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     );
                   },

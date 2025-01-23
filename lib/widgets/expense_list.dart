@@ -98,13 +98,20 @@ class ExpenseList extends StatelessWidget {
       },
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+          backgroundColor: Theme.of(context)
+              .colorScheme
+              .surfaceContainer, //List item icon background color
           child: Icon(
             category?.icon ?? Icons.receipt_long,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurfaceVariant, //List item icon color
           ),
         ),
-        title: Text(expense.title),
+        title: Text(expense.title,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                )),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Row(
@@ -146,7 +153,9 @@ class ExpenseList extends StatelessWidget {
           children: [
             Text(
               '\$${expense.amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
             ),
             const SizedBox(height: 2),
             Text(
