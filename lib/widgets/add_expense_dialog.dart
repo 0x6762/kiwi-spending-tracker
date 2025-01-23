@@ -154,7 +154,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -164,7 +164,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               padding: const EdgeInsets.all(16),
               child: Text(
                 'Select Category',
-                style: theme.textTheme.titleLarge,
+                style: theme.textTheme.titleMedium,
               ),
             ),
             const Divider(),
@@ -203,7 +203,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       builder: (context) => Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -213,7 +213,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               padding: const EdgeInsets.all(16),
               child: Text(
                 'Select Account',
-                style: theme.textTheme.titleLarge,
+                style: theme.textTheme.titleMedium,
               ),
             ),
             const Divider(),
@@ -356,13 +356,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         return Icon(
           Icons.backspace_outlined,
           color: theme.colorScheme.primary,
-          size: 20,
+          size: 24,
         );
       case 'date':
         return Icon(
           Icons.calendar_today,
           color: theme.colorScheme.primary,
-          size: 20,
+          size: 24,
         );
       case 'save':
         return Text(
@@ -395,6 +395,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         : null;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
@@ -407,82 +408,91 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Row(
-                children: [
-                  _buildSelectionButton(
-                    label: 'Account',
-                    icon: selectedAccount?.icon ?? Icons.account_balance,
-                    text: selectedAccount?.name ?? 'Account',
-                    iconColor: selectedAccount?.color,
-                    onTap: _showAccountSheet,
-                    hasSelection: selectedAccount != null,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildSelectionButton(
-                    label: 'Category',
-                    icon: selectedCategory?.icon ?? Icons.category,
-                    text: selectedCategory?.name ?? 'Category',
-                    onTap: _showCategorySheet,
-                    hasSelection: selectedCategory != null,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 32, 16, 8),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    '\$${_amount}',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Row(
+                      children: [
+                        _buildSelectionButton(
+                          label: 'Account',
+                          icon: selectedAccount?.icon ?? Icons.account_balance,
+                          text: selectedAccount?.name ?? 'Account',
+                          iconColor: selectedAccount?.color,
+                          onTap: _showAccountSheet,
+                          hasSelection: selectedAccount != null,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildSelectionButton(
+                          label: 'Category',
+                          icon: selectedCategory?.icon ?? Icons.category,
+                          text: selectedCategory?.name ?? 'Category',
+                          onTap: _showCategorySheet,
+                          hasSelection: selectedCategory != null,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _dateFormat.format(_selectedDate),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 56, 16, 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          '\$${_amount}',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _dateFormat.format(_selectedDate),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: theme.colorScheme.surface,
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                    child: Form(
+                      key: _formKey,
+                      child: TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'What was the expense?',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (_) {
+                          _formKey.currentState?.validate();
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              color: theme.colorScheme.surfaceContainer,
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-              child: Form(
-                key: _formKey,
-                child: TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'What was the expense?',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a title';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ),
-            Container(
-              color: theme.colorScheme.surfaceContainer,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: _buildNumberPad(),
-            ),
-          ],
-        ),
+          ),
+          Container(
+            color: theme.colorScheme.surface,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _buildNumberPad(),
+          ),
+        ],
       ),
     );
   }
