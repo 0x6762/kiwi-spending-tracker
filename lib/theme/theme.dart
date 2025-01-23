@@ -100,6 +100,7 @@ class AppTheme {
     // Used for the bottom sheet, nav bar, and subtle backgrounds
     surfaceContainer: Color(0xFF13151D),
     surfaceContainerHighest: Color(0xFF13151D),
+    surfaceContainerLow: Color(0xFF1F2127),
     surfaceContainerLowest: Color(0xFF262933),
     // Used for borders and dividers
     outline: Color(0xFF13151D),

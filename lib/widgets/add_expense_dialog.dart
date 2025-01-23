@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
@@ -6,28 +7,56 @@ import '../models/account.dart';
 import 'package:intl/intl.dart';
 
 class AddExpenseDialog extends StatefulWidget {
-  const AddExpenseDialog({super.key});
+  final bool isFixed;
+
+  const AddExpenseDialog({
+    super.key,
+    required this.isFixed,
+  });
 
   @override
   State<AddExpenseDialog> createState() => _AddExpenseDialogState();
 }
 
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
-  String? _category;
-  final _notes = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  bool _isFixed = false;
+  String? _selectedCategory;
   String _selectedAccountId = DefaultAccounts.checking.id;
   final _dateFormat = DateFormat.yMMMd();
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      final expense = Expense(
+        id: const Uuid().v4(),
+        title: _titleController.text,
+        amount: double.parse(_amountController.text),
+        date: _selectedDate,
+        category: _selectedCategory,
+        isFixed: widget.isFixed,
+        accountId: _selectedAccountId,
+        createdAt: DateTime.now(),
+      );
+
+      Navigator.of(context).pop(expense);
+    }
+  }
+
   Future<void> _selectDate() async {
-    final picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(2100),
     );
     if (picked != null) {
       setState(() {
@@ -58,7 +87,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
     if (selected != null) {
       setState(() {
-        _category = selected;
+        _selectedCategory = selected;
       });
     }
   }
@@ -95,186 +124,152 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedCategory =
-        _category != null ? ExpenseCategories.findByName(_category!) : null;
+    final theme = Theme.of(context);
+    final selectedCategory = _selectedCategory != null
+        ? ExpenseCategories.findByName(_selectedCategory!)
+        : null;
     final selectedAccount = DefaultAccounts.defaultAccounts
         .firstWhere((account) => account.id == _selectedAccountId);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-        title: const Text('Add Expense'),
+        backgroundColor: theme.colorScheme.surface,
+        title: Text(
+          widget.isFixed ? 'Add Fixed Expense' : 'Add Variable Expense',
+          style: theme.textTheme.titleLarge,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton(
+            onPressed: _submit,
+            child: const Text('Save'),
+          ),
+        ],
       ),
-      body: Container(
-        color: Theme.of(context).colorScheme.surfaceVariant,
-        child: Column(
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _amountController,
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+                prefixText: '\$',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter an amount';
+                }
+                if (double.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedAccountId,
+              decoration: const InputDecoration(
+                labelText: 'Account',
+                border: OutlineInputBorder(),
+              ),
+              items: DefaultAccounts.defaultAccounts.map((account) {
+                return DropdownMenuItem(
+                  value: account.id,
+                  child: Row(
+                    children: [
+                      Icon(
+                        account.icon,
+                        color: account.color,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(account.name),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedAccountId = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+              ),
+              items: ExpenseCategories.values.map((category) {
+                return DropdownMenuItem(
+                  value: category.name,
+                  child: Row(
+                    children: [
+                      Icon(
+                        category.icon,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(category.name),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _selectDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Date',
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'What was the expense?',
-                        border: OutlineInputBorder(),
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      title: const Text('Mark as a fixed expense'),
-                      // subtitle: const Text('This expense occurs every month'),
-                      value: _isFixed,
-                      onChanged: (value) =>
-                          setState(() => _isFixed = value ?? false),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    const SizedBox(height: 24),
-                    TextField(
-                      controller: _amountController,
-                      decoration: const InputDecoration(
-                        labelText: 'How much was it?',
-                        border: OutlineInputBorder(),
-                        prefixText: '\$',
-                      ),
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 32),
-                    InkWell(
-                      onTap: _selectDate,
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'When was it?',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(_dateFormat.format(_selectedDate)),
-                            const Icon(Icons.calendar_today),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: _selectAccount,
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Select Account',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  selectedAccount.icon,
-                                  color: selectedAccount.color,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(selectedAccount.name),
-                              ],
-                            ),
-                            const Icon(Icons.arrow_drop_down),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: _selectCategory,
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                if (selectedCategory != null) ...[
-                                  Icon(selectedCategory.icon),
-                                  const SizedBox(width: 8),
-                                ],
-                                Text(selectedCategory?.name ??
-                                    'Select a category'),
-                              ],
-                            ),
-                            const Icon(Icons.arrow_drop_down),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _notes,
-                      decoration: const InputDecoration(
-                        labelText: 'Additional Notes',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 1,
-                      textInputAction: TextInputAction.done,
-                    ),
+                    Text(_dateFormat.format(_selectedDate)),
+                    const Icon(Icons.calendar_today),
                   ],
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: FilledButton(
-                onPressed: () {
-                  final amount = double.tryParse(_amountController.text);
-                  if (_titleController.text.isEmpty || amount == null) {
-                    return;
-                  }
-
-                  final expense = Expense(
-                    id: const Uuid().v4(),
-                    title: _titleController.text,
-                    amount: amount,
-                    date: _selectedDate,
-                    createdAt: DateTime.now(),
-                    category: _category,
-                    notes: _notes.text.isEmpty ? null : _notes.text,
-                    isFixed: _isFixed,
-                    accountId: _selectedAccountId,
-                  );
-
-                  Navigator.of(context).pop(expense);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.outlineVariant,
-                  minimumSize: const Size.fromHeight(56),
-                ),
-                child: Text('Add Expense',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _amountController.dispose();
-    _notes.dispose();
-    super.dispose();
   }
 }

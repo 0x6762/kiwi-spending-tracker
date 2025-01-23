@@ -8,6 +8,7 @@ import '../utils/circular_reveal_route.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
+import '../widgets/expense_type_sheet.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -41,16 +42,25 @@ class _MainScreenState extends State<MainScreen> {
     final screenSize = MediaQuery.of(context).size;
     final bottomRight = Offset(screenSize.width, screenSize.height);
 
-    final result = await Navigator.of(context).push<Expense>(
-      CircularRevealRoute(
-        center: bottomRight,
-        child: const AddExpenseDialog(),
-      ),
+    final isFixed = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) => const ExpenseTypeSheet(),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
     );
 
-    if (result != null) {
-      await widget.repository.addExpense(result);
-      _loadExpenses();
+    if (isFixed != null) {
+      final result = await Navigator.of(context).push<Expense>(
+        CircularRevealRoute(
+          center: bottomRight,
+          child: AddExpenseDialog(isFixed: isFixed),
+        ),
+      );
+
+      if (result != null) {
+        await widget.repository.addExpense(result);
+        _loadExpenses();
+      }
     }
   }
 
