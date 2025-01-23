@@ -120,14 +120,14 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
             selectedMonth: widget.selectedMonth,
             onMonthSelected: widget.onMonthSelected,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
           _SummaryRow(
             label: 'Fixed Expenses',
             amount: _fixedTotal,
             context: context,
             iconAsset: 'assets/icons/fixed_expense.svg',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           _SummaryRow(
             label: 'Variable Expenses',
             amount: _variableTotal,

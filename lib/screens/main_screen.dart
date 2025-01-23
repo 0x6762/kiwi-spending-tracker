@@ -102,7 +102,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(16)),
                 ),
@@ -118,6 +118,8 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addExpense,
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        foregroundColor: Theme.of(context).colorScheme.primary,
         child: const Icon(Icons.add),
       ),
     );
@@ -140,13 +142,14 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         selectedIndex: _selectedIndex,
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        height: 72,
         destinations: [
           NavigationDestination(
             icon: Icon(
               Icons.receipt_outlined,
-              color: _selectedIndex == 0
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             selectedIcon: Icon(
               Icons.receipt,
@@ -157,9 +160,7 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Icon(
               Icons.settings_outlined,
-              color: _selectedIndex == 1
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             selectedIcon: Icon(
               Icons.settings,
