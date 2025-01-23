@@ -247,6 +247,76 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
+  Widget _buildNumberPad() {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            _buildNumberPadButton('1', onPressed: () => _addDigit('1')),
+            _buildNumberPadButton('2', onPressed: () => _addDigit('2')),
+            _buildNumberPadButton('3', onPressed: () => _addDigit('3')),
+            _buildNumberPadButton(
+              'backspace',
+              onPressed: _deleteDigit,
+              isAction: true,
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            _buildNumberPadButton('4', onPressed: () => _addDigit('4')),
+            _buildNumberPadButton('5', onPressed: () => _addDigit('5')),
+            _buildNumberPadButton('6', onPressed: () => _addDigit('6')),
+            _buildNumberPadButton(
+              'date',
+              onPressed: _selectDate,
+              isAction: true,
+            ),
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      _buildNumberPadButton('7',
+                          onPressed: () => _addDigit('7')),
+                      _buildNumberPadButton('8',
+                          onPressed: () => _addDigit('8')),
+                      _buildNumberPadButton('9',
+                          onPressed: () => _addDigit('9')),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _buildNumberPadButton('.', onPressed: _addDecimalPoint),
+                      _buildNumberPadButton('0',
+                          onPressed: () => _addDigit('0')),
+                      _buildNumberPadButton('00', onPressed: _addDoubleZero),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: _buildNumberPadButton(
+                'save',
+                onPressed: _submit,
+                isAction: true,
+                isLarge: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildNumberPadButton(
     String text, {
     VoidCallback? onPressed,
@@ -255,15 +325,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }) {
     final theme = Theme.of(context);
     return Expanded(
-      flex: isLarge ? 2 : 1,
+      flex: 1,
       child: AspectRatio(
-        aspectRatio: isLarge ? 1 : 1.5,
+        aspectRatio: isLarge ? 0.5 : 1,
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: Material(
-            color: isAction
-                ? theme.colorScheme.primary.withOpacity(0.1)
-                : theme.colorScheme.surfaceContainerLow,
+            color: text == 'save'
+                ? theme.colorScheme.primary
+                : isAction
+                    ? theme.colorScheme.primary.withOpacity(0.1)
+                    : theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               onTap: onPressed,
@@ -311,93 +383,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  Widget _buildNumberPad() {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Row(
-          children: [
-            _buildNumberPadButton('1', onPressed: () => _addDigit('1')),
-            _buildNumberPadButton('2', onPressed: () => _addDigit('2')),
-            _buildNumberPadButton('3', onPressed: () => _addDigit('3')),
-            _buildNumberPadButton(
-              'backspace',
-              onPressed: _deleteDigit,
-              isAction: true,
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            _buildNumberPadButton('4', onPressed: () => _addDigit('4')),
-            _buildNumberPadButton('5', onPressed: () => _addDigit('5')),
-            _buildNumberPadButton('6', onPressed: () => _addDigit('6')),
-            _buildNumberPadButton(
-              'date',
-              onPressed: _selectDate,
-              isAction: true,
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      _buildNumberPadButton('7',
-                          onPressed: () => _addDigit('7')),
-                      _buildNumberPadButton('8',
-                          onPressed: () => _addDigit('8')),
-                      _buildNumberPadButton('9',
-                          onPressed: () => _addDigit('9')),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      _buildNumberPadButton('.', onPressed: _addDecimalPoint),
-                      _buildNumberPadButton('0',
-                          onPressed: () => _addDigit('0')),
-                      _buildNumberPadButton('00', onPressed: _addDoubleZero),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width / 4 - 16,
-              child: AspectRatio(
-                aspectRatio: 0.5,
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Material(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: _submit,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Center(
-                        child: Text(
-                          'Save',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -422,97 +407,82 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '\$${_amount}',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  _buildSelectionButton(
+                    label: 'Account',
+                    icon: selectedAccount?.icon ?? Icons.account_balance,
+                    text: selectedAccount?.name ?? 'Account',
+                    iconColor: selectedAccount?.color,
+                    onTap: _showAccountSheet,
+                    hasSelection: selectedAccount != null,
                   ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainer,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(32),
-                ),
+                  const SizedBox(width: 8),
+                  _buildSelectionButton(
+                    label: 'Category',
+                    icon: selectedCategory?.icon ?? Icons.category,
+                    text: selectedCategory?.name ?? 'Category',
+                    onTap: _showCategorySheet,
+                    hasSelection: selectedCategory != null,
+                  ),
+                ],
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 32, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '\$${_amount}',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _dateFormat.format(_selectedDate),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              color: theme.colorScheme.surfaceContainer,
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _titleController,
-                            decoration: const InputDecoration(
-                              labelText: 'Title',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a title';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              _buildSelectionButton(
-                                label: 'Account',
-                                icon: selectedAccount?.icon ??
-                                    Icons.account_balance,
-                                text: selectedAccount?.name ?? 'Account',
-                                iconColor: selectedAccount?.color,
-                                onTap: _showAccountSheet,
-                                hasSelection: selectedAccount != null,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildSelectionButton(
-                                label: 'Category',
-                                icon: selectedCategory?.icon ?? Icons.category,
-                                text: selectedCategory?.name ?? 'Category',
-                                onTap: _showCategorySheet,
-                                hasSelection: selectedCategory != null,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _dateFormat.format(_selectedDate),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: _buildNumberPad(),
-                    ),
-                  ],
+                child: TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'What was the expense?',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
                 ),
               ),
             ),
-          ),
-        ],
+            Container(
+              color: theme.colorScheme.surfaceContainer,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: _buildNumberPad(),
+            ),
+          ],
+        ),
       ),
     );
   }
