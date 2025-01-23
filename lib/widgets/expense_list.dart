@@ -166,24 +166,10 @@ class ExpenseList extends StatelessWidget {
   Widget build(BuildContext context) {
     final sortedExpenses = _sortedExpenses;
 
-    if (shrinkWrap) {
-      return MediaQuery.removePadding(
-        context: context,
-        removeTop: true,
-        child: ListView.builder(
-          controller: scrollController,
-          itemCount: sortedExpenses.length,
-          itemBuilder: (context, index) =>
-              _buildExpenseItem(context, sortedExpenses[index]),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      controller: scrollController,
-      itemCount: sortedExpenses.length,
-      itemBuilder: (context, index) =>
-          _buildExpenseItem(context, sortedExpenses[index]),
+    return Column(
+      children: sortedExpenses
+          .map((expense) => _buildExpenseItem(context, expense))
+          .toList(),
     );
   }
 }

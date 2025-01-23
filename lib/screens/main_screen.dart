@@ -19,12 +19,10 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   List<Expense> _expenses = [];
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-  bool _showFab = true;
 
   @override
   void initState() {
@@ -72,128 +70,55 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _buildExpensesScreen() {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: Theme.of(context).brightness == Brightness.dark
-          ? SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-            )
-          : SystemUiOverlayStyle.dark.copyWith(
-              statusBarColor: Colors.transparent,
-            ),
-      child: Scaffold(
-        body: SafeArea(
-          child: Stack(
+    final filteredExpenses = _expenses
+        .where((expense) =>
+            expense.date.year == _selectedMonth.year &&
+            expense.date.month == _selectedMonth.month)
+        .toList();
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
             children: [
-              Column(
-                children: [
-                  ExpenseSummary(
-                    expenses: _expenses,
-                    selectedMonth: _selectedMonth,
-                    onMonthSelected: _onMonthSelected,
-                  ),
-                ],
+              ExpenseSummary(
+                expenses: _expenses,
+                selectedMonth: _selectedMonth,
+                onMonthSelected: _onMonthSelected,
               ),
-              NotificationListener<DraggableScrollableNotification>(
-                onNotification: (notification) {
-                  final shouldShowFab = notification.extent <= 0.6;
-                  if (shouldShowFab != _showFab) {
-                    setState(() {
-                      _showFab = shouldShowFab;
-                    });
-                  }
-                  return false;
-                },
-                child: DraggableScrollableSheet(
-                  initialChildSize: 0.33,
-                  minChildSize: 0.33,
-                  maxChildSize: 0.8,
-                  builder: (context, scrollController) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16)),
-                      ),
-                      child: NestedScrollView(
-                        controller: scrollController,
-                        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                          SliverToBoxAdapter(
-                            child: Column(
-                              children: [
-                                // Handle
-                                Center(
-                                  child: Container(
-                                    width: 32,
-                                    height: 4,
-                                    margin: const EdgeInsets.only(
-                                        top: 8, bottom: 12),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant
-                                          .withOpacity(0.4),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                ),
-                                // Title
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Recent transactions',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Recent transactions',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
-                        ],
-                        body: ExpenseList(
-                          expenses: _expenses
-                              .where((expense) =>
-                                  expense.date.year == _selectedMonth.year &&
-                                  expense.date.month == _selectedMonth.month)
-                              .toList(),
-                          onDelete: _deleteExpense,
-                          onTap: _viewExpenseDetails,
-                          scrollController: scrollController,
-                          shrinkWrap: true,
-                        ),
-                      ),
-                    );
-                  },
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: ExpenseList(
+                  expenses: filteredExpenses,
+                  onDelete: _deleteExpense,
+                  onTap: _viewExpenseDetails,
                 ),
               ),
             ],
           ),
         ),
-        floatingActionButton: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          transform: Matrix4.translationValues(
-            0,
-            _showFab ? 0 : 200,
-            0,
-          ),
-          child: FloatingActionButton(
-            onPressed: _showFab ? _addExpense : null,
-            child: const Icon(Icons.add),
-          ),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addExpense,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -208,59 +133,41 @@ class _MainScreenState extends State<MainScreen>
           const SettingsScreen(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).colorScheme.surfaceVariant,
-              width: 1,
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedIndex: _selectedIndex,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(
+              Icons.receipt_outlined,
+              color: _selectedIndex == 0
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
+            selectedIcon: Icon(
+              Icons.receipt,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            label: 'Expenses',
           ),
-        ),
-        child: NavigationBar(
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedIndex: _selectedIndex,
-          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-          elevation: 0,
-          height: 80,
-          indicatorColor: Theme.of(context).colorScheme.outlineVariant,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          indicatorShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+          NavigationDestination(
+            icon: Icon(
+              Icons.settings_outlined,
+              color: _selectedIndex == 1
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              Icons.settings,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            label: 'Settings',
           ),
-          destinations: [
-            NavigationDestination(
-              icon: Icon(
-                Icons.receipt_outlined,
-                color: _selectedIndex == 0
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              selectedIcon: Icon(
-                Icons.receipt,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              label: 'Expenses',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.settings_outlined,
-                color: _selectedIndex == 1
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              selectedIcon: Icon(
-                Icons.settings,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              label: 'Settings',
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
