@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
-import '../utils/circular_reveal_route.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -39,9 +38,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _addExpense() async {
-    final screenSize = MediaQuery.of(context).size;
-    final bottomRight = Offset(screenSize.width, screenSize.height);
-
     final isFixed = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) => const ExpenseTypeSheet(),
@@ -51,9 +47,23 @@ class _MainScreenState extends State<MainScreen> {
 
     if (isFixed != null) {
       final result = await Navigator.of(context).push<Expense>(
-        CircularRevealRoute(
-          center: bottomRight,
-          child: AddExpenseDialog(isFixed: isFixed),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              AddExpenseDialog(
+            isFixed: isFixed,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
         ),
       );
 
