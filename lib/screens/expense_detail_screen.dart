@@ -3,6 +3,7 @@ import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ExpenseDetailScreen extends StatelessWidget {
   final Expense expense;
@@ -48,12 +49,15 @@ class ExpenseDetailScreen extends StatelessWidget {
   }
 
   Widget _buildDetailRow(ThemeData theme, String label, String value,
-      {IconData? icon, Color? iconColor}) {
+      {IconData? icon, Color? iconColor, Widget? customIcon}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          if (icon != null) ...[
+          if (customIcon != null) ...[
+            customIcon,
+            const SizedBox(width: 16),
+          ] else if (icon != null) ...[
             Icon(
               icon,
               size: 24,
@@ -94,6 +98,28 @@ class ExpenseDetailScreen extends StatelessWidget {
         : null;
     final account = DefaultAccounts.defaultAccounts
         .firstWhere((a) => a.id == expense.accountId);
+
+    final isFixed = expense.isFixed;
+    final expenseTypeColor =
+        isFixed ? const Color(0xFFCF5825) : const Color(0xFF8056E4);
+    final expenseTypeIcon = Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: expenseTypeColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: SvgPicture.asset(
+        isFixed
+            ? 'assets/icons/fixed_expense.svg'
+            : 'assets/icons/variable_expense.svg',
+        width: 20,
+        height: 20,
+        colorFilter: ColorFilter.mode(
+          expenseTypeColor,
+          BlendMode.srcIn,
+        ),
+      ),
+    );
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -184,7 +210,7 @@ class ExpenseDetailScreen extends StatelessWidget {
                         theme,
                         'Type',
                         expense.isFixed ? 'Fixed Expense' : 'Variable Expense',
-                        icon: expense.isFixed ? Icons.repeat : Icons.show_chart,
+                        customIcon: expenseTypeIcon,
                       ),
                     ],
                   ),
