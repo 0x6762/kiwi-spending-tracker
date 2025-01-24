@@ -5,6 +5,7 @@ import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
 import 'package:intl/intl.dart';
+import '../utils/formatters.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final bool isFixed;
@@ -447,7 +448,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            '\$${_amount}',
+                            _amount == '0' ? '\$0.00' : '\$${_amount}',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontSize: 48,
                               fontWeight: FontWeight.w600,

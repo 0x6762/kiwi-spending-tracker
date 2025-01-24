@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
+import '../utils/formatters.dart';
 
 class MonthlyExpenseChart extends StatelessWidget {
   final List<Expense> expenses;
@@ -33,11 +34,10 @@ class MonthlyExpenseChart extends StatelessWidget {
 
   String _formatAmount(double amount) {
     if (amount < 1000) {
-      return NumberFormat.currency(symbol: '\$', decimalDigits: 0)
-          .format(amount);
+      return formatCurrency(amount);
     }
-    final value = (amount / 100).floor() / 10;
-    return '\$${value.toStringAsFixed(1)}k';
+    final value = (amount / 1000).toStringAsFixed(1);
+    return '\$${value}k';
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/expense.dart';
 import 'monthly_expense_chart.dart';
+import '../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
@@ -106,7 +107,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               ),
               const SizedBox(height: 4),
               Text(
-                '\$${_monthlyTotal.toStringAsFixed(2)}',
+                formatCurrency(_monthlyTotal),
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
@@ -185,7 +186,7 @@ class _SummaryRow extends StatelessWidget {
             ),
           ),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            formatCurrency(amount),
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface,
             ),

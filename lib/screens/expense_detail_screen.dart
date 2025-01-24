@@ -4,6 +4,7 @@ import '../models/expense_category.dart';
 import '../models/account.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../utils/formatters.dart';
 
 class ExpenseDetailScreen extends StatelessWidget {
   final Expense expense;
@@ -154,7 +155,7 @@ class ExpenseDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    '\$${expense.amount.toStringAsFixed(2)}',
+                    formatCurrency(expense.amount),
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontWeight: FontWeight.w600,

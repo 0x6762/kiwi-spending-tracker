@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
+import '../utils/formatters.dart';
 
 class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
@@ -174,7 +175,7 @@ class ExpenseList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '\$${expense.amount.toStringAsFixed(2)}',
+                      formatCurrency(expense.amount),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
