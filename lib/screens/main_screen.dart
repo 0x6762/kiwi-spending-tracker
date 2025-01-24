@@ -151,12 +151,6 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addExpense,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        foregroundColor: Theme.of(context).colorScheme.primary,
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
@@ -173,11 +167,15 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == 1) {
+            _addExpense();
+          } else {
+            setState(() {
+              _selectedIndex = index > 1 ? index - 1 : index;
+            });
+          }
         },
-        selectedIndex: _selectedIndex,
+        selectedIndex: _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
         backgroundColor: Theme.of(context)
             .colorScheme
             .surfaceContainer, // Navigation bar background
@@ -196,7 +194,21 @@ class _MainScreenState extends State<MainScreen> {
               Icons.receipt,
               color: Theme.of(context).colorScheme.primary,
             ),
-            label: 'Expenses',
+            label: 'Spending',
+          ),
+          NavigationDestination(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            label: 'Add',
           ),
           NavigationDestination(
             icon: Icon(
