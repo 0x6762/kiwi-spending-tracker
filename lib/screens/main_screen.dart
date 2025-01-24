@@ -9,6 +9,7 @@ import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import 'settings_screen.dart';
+import 'expense_detail_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -79,8 +80,17 @@ class _MainScreenState extends State<MainScreen> {
     _loadExpenses();
   }
 
-  void _viewExpenseDetails(Expense expense) {
-    // TODO: Implement expense details/edit
+  void _viewExpenseDetails(Expense expense) async {
+    final shouldDelete = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExpenseDetailScreen(expense: expense),
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await _deleteExpense(expense);
+    }
   }
 
   void _onMonthSelected(DateTime month) {
