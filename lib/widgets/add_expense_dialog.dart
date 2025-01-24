@@ -355,7 +355,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       case 'backspace':
         return Icon(
           Icons.backspace_outlined,
-          color: theme.colorScheme.primary,
+          color: theme.colorScheme.onSurface,
           size: 24,
         );
       case 'date':
@@ -366,7 +366,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         );
       case 'save':
         return Text(
-          'Save',
+          'Add',
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.w600,
@@ -408,91 +408,96 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Row(
-                      children: [
-                        _buildSelectionButton(
-                          label: 'Account',
-                          icon: selectedAccount?.icon ?? Icons.account_balance,
-                          text: selectedAccount?.name ?? 'Account',
-                          iconColor: selectedAccount?.color,
-                          onTap: _showAccountSheet,
-                          hasSelection: selectedAccount != null,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildSelectionButton(
-                          label: 'Category',
-                          icon: selectedCategory?.icon ?? Icons.category,
-                          text: selectedCategory?.name ?? 'Category',
-                          onTap: _showCategorySheet,
-                          hasSelection: selectedCategory != null,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 56, 16, 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '\$${_amount}',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Row(
+                        children: [
+                          _buildSelectionButton(
+                            label: 'Account',
+                            icon:
+                                selectedAccount?.icon ?? Icons.account_balance,
+                            text: selectedAccount?.name ?? 'Account',
+                            iconColor: selectedAccount?.color,
+                            onTap: _showAccountSheet,
+                            hasSelection: selectedAccount != null,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _dateFormat.format(_selectedDate),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          const SizedBox(width: 8),
+                          _buildSelectionButton(
+                            label: 'Category',
+                            icon: selectedCategory?.icon ?? Icons.category,
+                            text: selectedCategory?.name ?? 'Category',
+                            onTap: _showCategorySheet,
+                            hasSelection: selectedCategory != null,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    color: theme.colorScheme.surface,
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                    child: Form(
-                      key: _formKey,
-                      child: TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'What was the expense?',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (_) {
-                          _formKey.currentState?.validate();
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a title';
-                          }
-                          return null;
-                        },
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 56, 16, 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            '\$${_amount}',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _dateFormat.format(_selectedDate),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      color: theme.colorScheme.surface,
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                      child: Form(
+                        key: _formKey,
+                        child: TextFormField(
+                          controller: _titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'What was the expense?',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (_) {
+                            _formKey.currentState?.validate();
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a title';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Container(
-            color: theme.colorScheme.surface,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: _buildNumberPad(),
-          ),
-        ],
+            Container(
+              color: theme.colorScheme.surface,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: _buildNumberPad(),
+            ),
+          ],
+        ),
       ),
     );
   }
