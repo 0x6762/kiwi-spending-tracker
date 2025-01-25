@@ -250,6 +250,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   Widget _buildNumberPad() {
     final theme = Theme.of(context);
+    final selectedCategory = _selectedCategory != null
+        ? ExpenseCategories.findByName(_selectedCategory!)
+        : null;
+    final selectedAccount = _selectedAccountId != null
+        ? DefaultAccounts.defaultAccounts
+            .firstWhere((account) => account.id == _selectedAccountId)
+        : null;
+
     return Column(
       children: [
         Row(
@@ -398,6 +406,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: theme.colorScheme.surface,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         title: Text(

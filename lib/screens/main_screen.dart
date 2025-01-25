@@ -62,23 +62,12 @@ class _MainScreenState extends State<MainScreen> {
 
     if (isFixed != null) {
       final result = await Navigator.of(context).push<Expense>(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              AddExpenseDialog(
+        MaterialPageRoute(
+          builder: (context) => AddExpenseDialog(
             isFixed: isFixed,
           ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(0.0, 1.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(
-              CurveTween(curve: curve),
-            );
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
+          maintainState: true,
+          fullscreenDialog: true,
         ),
       );
 
@@ -99,6 +88,7 @@ class _MainScreenState extends State<MainScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ExpenseDetailScreen(expense: expense),
+        maintainState: true,
       ),
     );
 

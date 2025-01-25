@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
@@ -124,6 +125,7 @@ class ExpenseDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         title: Text(
