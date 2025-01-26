@@ -220,17 +220,17 @@ class _MainScreenState extends State<MainScreen> {
               _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
           indicatorColor:
-              Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(1),
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
           height: 72,
           destinations: [
             NavigationDestination(
               icon: Icon(
                 Icons.wallet_outlined,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               selectedIcon: Icon(
                 Icons.wallet,
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               label: 'Spending',
             ),
@@ -238,12 +238,12 @@ class _MainScreenState extends State<MainScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  color: Theme.of(context).colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.add,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
               label: 'Add',
@@ -251,11 +251,11 @@ class _MainScreenState extends State<MainScreen> {
             NavigationDestination(
               icon: Icon(
                 Icons.category_outlined,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               selectedIcon: Icon(
                 Icons.category,
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               label: 'Categories',
             ),

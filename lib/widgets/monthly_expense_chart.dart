@@ -48,7 +48,7 @@ class MonthlyExpenseChart extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
 
     return AspectRatio(
-      aspectRatio: 2.1,
+      aspectRatio: 2.4,
       child: Padding(
         padding: const EdgeInsets.only(top: 24),
         child: BarChart(
@@ -69,8 +69,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                     width: 48,
                     color: total > 0
                         ? (isSelectedMonth
-                            ? theme
-                                .colorScheme.primary //selected month bar color
+                            ? theme.colorScheme
+                                .onSurface //selected month bar color
                             : theme.colorScheme
                                 .surfaceContainerLowest) //other months bar color
                         : theme.colorScheme
