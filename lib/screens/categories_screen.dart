@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
+import '../models/account.dart';
 import '../utils/formatters.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_category_sheet.dart';
@@ -23,6 +24,9 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   final _monthFormat = DateFormat.yMMMM();
   late DateTime _selectedMonth;
+  bool?
+      _selectedExpenseType; // null for all, true for fixed, false for variable
+  String? _selectedAccountId;
 
   @override
   void initState() {
@@ -45,17 +49,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     });
   }
 
-  List<Expense> get _monthlyExpenses {
-    return widget.expenses
-        .where((expense) =>
-            expense.date.year == _selectedMonth.year &&
-            expense.date.month == _selectedMonth.month)
-        .toList();
+  List<Expense> get _filteredExpenses {
+    return widget.expenses.where((expense) {
+      // Filter by month
+      final isMonthMatch = expense.date.year == _selectedMonth.year &&
+          expense.date.month == _selectedMonth.month;
+
+      // Filter by expense type
+      final isTypeMatch = _selectedExpenseType == null ||
+          expense.isFixed == _selectedExpenseType;
+
+      // Filter by account
+      final isAccountMatch =
+          _selectedAccountId == null || expense.accountId == _selectedAccountId;
+
+      return isMonthMatch && isTypeMatch && isAccountMatch;
+    }).toList();
   }
 
   Map<String, double> _getCategoryTotals() {
     final Map<String, double> totals = {};
-    final monthExpenses = _monthlyExpenses;
+    final monthExpenses = _filteredExpenses;
     final double totalSpent =
         monthExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
@@ -150,12 +164,189 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    IconData? trailingIcon,
+  }) {
+    final theme = Theme.of(context);
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: theme.colorScheme.surfaceContainer,
+        foregroundColor: theme.colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 10,
+          top: 8,
+          bottom: 8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          if (trailingIcon != null) ...[
+            const SizedBox(width: 4),
+            Icon(trailingIcon, size: 18),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showExpenseTypeSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              title: Text('All Types'),
+              selected: _selectedExpenseType == null,
+              onTap: () {
+                setState(() => _selectedExpenseType = null);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Fixed'),
+              selected: _selectedExpenseType == true,
+              onTap: () {
+                setState(() => _selectedExpenseType = true);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Variable'),
+              selected: _selectedExpenseType == false,
+              onTap: () {
+                setState(() => _selectedExpenseType = false);
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAccountSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              title: Text('All Accounts'),
+              selected: _selectedAccountId == null,
+              onTap: () {
+                setState(() => _selectedAccountId = null);
+                Navigator.pop(context);
+              },
+            ),
+            ...DefaultAccounts.defaultAccounts.map(
+              (account) => ListTile(
+                leading: Icon(account.icon, color: account.color),
+                title: Text(account.name),
+                selected: _selectedAccountId == account.id,
+                onTap: () {
+                  setState(() => _selectedAccountId = account.id);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterRow() {
+    String expenseTypeLabel = 'All Types';
+    if (_selectedExpenseType == true) expenseTypeLabel = 'Fixed';
+    if (_selectedExpenseType == false) expenseTypeLabel = 'Variable';
+
+    String accountLabel = 'All Accounts';
+    if (_selectedAccountId != null) {
+      accountLabel = DefaultAccounts.defaultAccounts
+          .firstWhere((a) => a.id == _selectedAccountId)
+          .name;
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Month filter
+          _buildFilterChip(
+            label: _monthFormat.format(_selectedMonth),
+            selected: true,
+            trailingIcon: Icons.keyboard_arrow_down,
+            onTap: () async {
+              final DateTime? picked = await showDialog<DateTime>(
+                context: context,
+                builder: (BuildContext context) {
+                  return MonthPickerDialog(
+                    selectedMonth: _selectedMonth,
+                    expenses: widget.expenses,
+                  );
+                },
+              );
+              if (picked != null) {
+                _onMonthSelected(picked);
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+          // Expense type filter
+          _buildFilterChip(
+            label: expenseTypeLabel,
+            selected: true,
+            trailingIcon: Icons.keyboard_arrow_down,
+            onTap: _showExpenseTypeSheet,
+          ),
+          const SizedBox(width: 8),
+          // Account filter
+          _buildFilterChip(
+            label: accountLabel,
+            selected: true,
+            trailingIcon: Icons.keyboard_arrow_down,
+            onTap: _showAccountSheet,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final categoryTotals = _getCategoryTotals();
-    final monthlyTotal =
-        _monthlyExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -185,11 +376,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ],
             ),
             SliverToBoxAdapter(
-              child: ExpenseSummary(
-                expenses: widget.expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: _onMonthSelected,
-                showChart: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  _buildFilterRow(),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
             if (categoryTotals.isEmpty)
@@ -209,7 +402,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     ...categoryTotals.entries.map((entry) {
-                      final amount = _monthlyExpenses
+                      final amount = _filteredExpenses
                           .where((e) =>
                               e.category == entry.key ||
                               (entry.key == 'Uncategorized' &&
