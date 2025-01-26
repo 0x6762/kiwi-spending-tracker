@@ -91,52 +91,49 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ? null
         : ExpenseCategories.findByName(category);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              categoryInfo?.icon ?? Icons.category_outlined,
-              size: 24,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
+          child: Icon(
+            categoryInfo?.icon ?? Icons.category_outlined,
+            size: 24,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                category,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  formatCurrency(amount),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                formatCurrency(amount),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Text(
-            '${percentage.toStringAsFixed(1)}%',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+        ),
+        Text(
+          '${percentage.toStringAsFixed(1)}%',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -211,27 +208,29 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 padding: const EdgeInsets.all(16),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: categoryTotals.entries.map((entry) {
-                            final amount = _monthlyExpenses
-                                .where((e) =>
-                                    e.category == entry.key ||
-                                    (entry.key == 'Uncategorized' &&
-                                        e.category == null))
-                                .fold(0.0, (sum, e) => sum + e.amount);
-                            return _buildCategoryRow(
+                    ...categoryTotals.entries.map((entry) {
+                      final amount = _monthlyExpenses
+                          .where((e) =>
+                              e.category == entry.key ||
+                              (entry.key == 'Uncategorized' &&
+                                  e.category == null))
+                          .fold(0.0, (sum, e) => sum + e.amount);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Card(
+                          color: theme.colorScheme.surfaceContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _buildCategoryRow(
                               context,
                               entry.key,
                               entry.value,
                               amount,
-                            );
-                          }).toList(),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    }).toList(),
                     // Add bottom padding for navigation bar
                     SizedBox(
                         height: MediaQuery.of(context).padding.bottom + 80),

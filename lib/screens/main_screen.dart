@@ -118,8 +118,8 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   IconButton(
                     icon: Icon(
-                      Icons.settings_outlined,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      Icons.more_vert,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     onPressed: () {
                       Navigator.push(
