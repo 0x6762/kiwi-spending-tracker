@@ -29,6 +29,7 @@ class ExpenseCategory {
 class ExpenseCategories {
   static const String _storageKey = 'custom_categories';
   static const String _editedDefaultsKey = 'edited_default_categories';
+  static const String uncategorized = 'Uncategorized';
   static List<ExpenseCategory> _customCategories = [];
   static Map<String, ExpenseCategory> _editedDefaultCategories = {};
 
@@ -60,6 +61,9 @@ class ExpenseCategories {
   }
 
   static ExpenseCategory? findByName(String name) {
+    if (name == uncategorized) {
+      return ExpenseCategory(name: uncategorized, icon: Icons.help_outline);
+    }
     try {
       return values.firstWhere((category) => category.name == name);
     } catch (e) {

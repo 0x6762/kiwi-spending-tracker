@@ -114,7 +114,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       title: _titleController.text.trim(),
       amount: amount,
       date: _selectedDate,
-      category: _selectedCategory?.trim(),
+      category: _selectedCategory?.trim() ?? 'Uncategorized',
       isFixed: widget.isFixed,
       accountId: _selectedAccountId!,
       createdAt: DateTime.now(),
