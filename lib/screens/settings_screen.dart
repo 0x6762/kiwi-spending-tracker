@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      extendBody: true,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -19,9 +24,9 @@ class SettingsScreen extends StatelessWidget {
                   // Theme settings
                   Text(
                     'Appearance',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Card(
@@ -43,9 +48,9 @@ class SettingsScreen extends StatelessWidget {
                   // Account settings
                   Text(
                     'Accounts',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Card(
@@ -67,9 +72,9 @@ class SettingsScreen extends StatelessWidget {
                   // Data settings
                   Text(
                     'Data',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Card(
@@ -87,8 +92,8 @@ class SettingsScreen extends StatelessWidget {
                           leading: const Icon(Icons.delete_outline),
                           title: const Text('Clear Data'),
                           subtitle: const Text('Delete all expenses'),
-                          textColor: Theme.of(context).colorScheme.error,
-                          iconColor: Theme.of(context).colorScheme.error,
+                          textColor: theme.colorScheme.error,
+                          iconColor: theme.colorScheme.error,
                           onTap: () {
                             // TODO: Implement clear data
                           },

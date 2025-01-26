@@ -30,20 +30,6 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _loadExpenses();
-    // Set system UI overlay style
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
-    // Enable transparency
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
   }
 
   Future<void> _loadExpenses() async {
@@ -113,72 +99,70 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Kiwi',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                  16, MediaQuery.of(context).padding.top + 8, 8, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Kiwi',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.settings_outlined,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-              ExpenseSummary(
-                expenses: _expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: _onMonthSelected,
+            ),
+            ExpenseSummary(
+              expenses: _expenses,
+              selectedMonth: _selectedMonth,
+              onMonthSelected: _onMonthSelected,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent transactions',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Recent transactions',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: ExpenseList(
-                  expenses: filteredExpenses,
-                  onDelete: _deleteExpense,
-                  onTap: _viewExpenseDetails,
-                ),
+              child: ExpenseList(
+                expenses: filteredExpenses,
+                onDelete: _deleteExpense,
+                onTap: _viewExpenseDetails,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -186,90 +170,82 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildExpensesScreen(),
+          CategoriesScreen(
+            expenses: _expenses,
+          ),
+        ],
       ),
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        extendBody: true,
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: [
-            _buildExpensesScreen(),
-            CategoriesScreen(
-              expenses: _expenses,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 1,
+            ),
+          ),
+        ),
+        child: NavigationBar(
+          onDestinationSelected: (index) {
+            if (index == 1) {
+              _addExpense();
+            } else {
+              setState(() {
+                _selectedIndex = index > 1 ? index - 1 : index;
+              });
+            }
+          },
+          selectedIndex:
+              _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+          indicatorColor:
+              Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(1),
+          height: 72,
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.wallet_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              selectedIcon: Icon(
+                Icons.wallet,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: 'Spending',
+            ),
+            NavigationDestination(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.add,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              label: 'Add',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.category_outlined,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              selectedIcon: Icon(
+                Icons.category,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: 'Categories',
             ),
           ],
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 1,
-              ),
-            ),
-          ),
-          child: NavigationBar(
-            onDestinationSelected: (index) {
-              if (index == 1) {
-                _addExpense();
-              } else {
-                setState(() {
-                  _selectedIndex = index > 1 ? index - 1 : index;
-                });
-              }
-            },
-            selectedIndex:
-                _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-            indicatorColor: Theme.of(context)
-                .colorScheme
-                .surfaceContainerLow
-                .withOpacity(1),
-            height: 72,
-            destinations: [
-              NavigationDestination(
-                icon: Icon(
-                  Icons.wallet_outlined,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                selectedIcon: Icon(
-                  Icons.wallet,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                label: 'Spending',
-              ),
-              NavigationDestination(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                label: 'Add',
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.category_outlined,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                selectedIcon: Icon(
-                  Icons.category,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                label: 'Categories',
-              ),
-            ],
-          ),
         ),
       ),
     );
