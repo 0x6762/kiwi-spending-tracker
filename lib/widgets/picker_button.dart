@@ -40,7 +40,13 @@ class PickerButton extends StatelessWidget {
             ),
             const SizedBox(width: 8),
           ],
-          Text(label),
+          Expanded(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
           const SizedBox(width: 4),
           const Icon(Icons.keyboard_arrow_down, size: 18),
         ],
