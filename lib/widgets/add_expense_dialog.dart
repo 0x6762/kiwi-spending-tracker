@@ -164,43 +164,55 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            TextFormField(
-                              controller: _titleController,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Expense Name',
-                                hintStyle: theme.textTheme.titleLarge?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                            Container(
+                              width: double.infinity,
+                              alignment: Alignment.center,
+                              child: TextFormField(
+                                controller: _titleController,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedErrorBorder: InputBorder.none,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                errorStyle:
-                                    theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.error,
-                                  height: 0.5,
+                                decoration: InputDecoration(
+                                  hintText: 'Expense Name',
+                                  hintStyle:
+                                      theme.textTheme.titleLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  focusedErrorBorder: InputBorder.none,
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  errorStyle:
+                                      theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.error,
+                                    height: 0.5,
+                                    fontSize: 12,
+                                  ),
+                                  errorMaxLines: 1,
+                                  alignLabelWithHint: true,
+                                  errorText:
+                                      _formKey.currentState?.validate() == false
+                                          ? 'Please enter a expense title'
+                                          : null,
                                 ),
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.never,
+                                onChanged: (_) {
+                                  setState(() {
+                                    // Trigger rebuild to update error text
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return ''; // Return empty string to show error but use our custom error text
+                                  }
+                                  return null;
+                                },
                               ),
-                              onChanged: (_) {
-                                _formKey.currentState?.validate();
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a title';
-                                }
-                                return null;
-                              },
                             ),
                           ],
                         ),
