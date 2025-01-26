@@ -21,15 +21,38 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   List<Expense> _expenses = [];
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  late AnimationController _arrowAnimationController;
+  late Animation<double> _arrowAnimation;
 
   @override
   void initState() {
     super.initState();
+    _arrowAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    _arrowAnimation = Tween<double>(
+      begin: 0.0,
+      end: 12.0,
+    ).animate(CurvedAnimation(
+      parent: _arrowAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _arrowAnimationController.repeat(reverse: true);
     _loadExpenses();
+  }
+
+  @override
+  void dispose() {
+    _arrowAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadExpenses() async {
@@ -157,33 +180,67 @@ class _MainScreenState extends State<MainScreen> {
                 selectedMonth: _selectedMonth,
                 onMonthSelected: _onMonthSelected,
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Recent transactions',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
+              if (filteredExpenses.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 32),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Start by adding an expense',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      AnimatedBuilder(
+                        animation: _arrowAnimation,
+                        builder: (context, child) {
+                          return Transform.translate(
+                            offset: Offset(0, _arrowAnimation.value),
+                            child: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              else ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recent transactions',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: ExpenseList(
+                    expenses: filteredExpenses,
+                    onDelete: _deleteExpense,
+                    onTap: _viewExpenseDetails,
+                  ),
                 ),
-                child: ExpenseList(
-                  expenses: filteredExpenses,
-                  onDelete: _deleteExpense,
-                  onTap: _viewExpenseDetails,
-                ),
-              ),
+              ],
             ],
           ),
         ),
