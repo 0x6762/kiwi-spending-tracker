@@ -9,12 +9,14 @@ class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
   final void Function(DateTime selectedMonth) onMonthSelected;
   final DateTime selectedMonth;
+  final bool showChart;
 
   const ExpenseSummary({
     super.key,
     required this.expenses,
     required this.onMonthSelected,
     required this.selectedMonth,
+    this.showChart = true,
   });
 
   @override
@@ -95,46 +97,48 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total Spent',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+          if (widget.showChart) ...[
+            const SizedBox(height: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total Spent',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                formatCurrency(_monthlyTotal),
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
+                const SizedBox(height: 4),
+                Text(
+                  formatCurrency(_monthlyTotal),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          MonthlyExpenseChart(
-            expenses: widget.expenses,
-            selectedMonth: widget.selectedMonth,
-            onMonthSelected: widget.onMonthSelected,
-          ),
-          const SizedBox(height: 32),
-          _SummaryRow(
-            label: 'Fixed Expenses',
-            amount: _fixedTotal,
-            context: context,
-            iconAsset: 'assets/icons/fixed_expense.svg',
-          ),
-          const SizedBox(height: 16),
-          _SummaryRow(
-            label: 'Variable Expenses',
-            amount: _variableTotal,
-            context: context,
-            iconAsset: 'assets/icons/variable_expense.svg',
-          ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            MonthlyExpenseChart(
+              expenses: widget.expenses,
+              selectedMonth: widget.selectedMonth,
+              onMonthSelected: widget.onMonthSelected,
+            ),
+            const SizedBox(height: 32),
+            _SummaryRow(
+              label: 'Fixed Expenses',
+              amount: _fixedTotal,
+              context: context,
+              iconAsset: 'assets/icons/fixed_expense.svg',
+            ),
+            const SizedBox(height: 16),
+            _SummaryRow(
+              label: 'Variable Expenses',
+              amount: _variableTotal,
+              context: context,
+              iconAsset: 'assets/icons/variable_expense.svg',
+            ),
+          ],
         ],
       ),
     );

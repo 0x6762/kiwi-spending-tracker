@@ -2,24 +2,42 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../utils/formatters.dart';
+import '../widgets/expense_summary.dart';
 import 'package:intl/intl.dart';
 
-class InsightsScreen extends StatelessWidget {
+class CategoriesScreen extends StatefulWidget {
   final List<Expense> expenses;
-  final DateTime selectedMonth;
-  final _monthFormat = DateFormat.yMMMM();
 
-  InsightsScreen({
+  const CategoriesScreen({
     super.key,
     required this.expenses,
-    required this.selectedMonth,
   });
 
+  @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  final _monthFormat = DateFormat.yMMMM();
+  late DateTime _selectedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  }
+
+  void _onMonthSelected(DateTime month) {
+    setState(() {
+      _selectedMonth = month;
+    });
+  }
+
   List<Expense> get _monthlyExpenses {
-    return expenses
+    return widget.expenses
         .where((expense) =>
-            expense.date.year == selectedMonth.year &&
-            expense.date.month == selectedMonth.month)
+            expense.date.year == _selectedMonth.year &&
+            expense.date.month == _selectedMonth.month)
         .toList();
   }
 
@@ -122,69 +140,85 @@ class InsightsScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverAppBar.medium(
-              title: Text(_monthFormat.format(selectedMonth)),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: theme.colorScheme.surface,
+              expandedHeight: 140,
+              flexibleSpace: FlexibleSpaceBar(
+                expandedTitleScale: 1.0,
+                titlePadding: EdgeInsets.zero,
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      color: theme.colorScheme.surface,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Total Spent',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Categories',
+                                  style: theme.textTheme.titleLarge,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            formatCurrency(monthlyTotal),
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          ExpenseSummary(
+                            expenses: widget.expenses,
+                            selectedMonth: _selectedMonth,
+                            onMonthSelected: _onMonthSelected,
+                            showChart: false,
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Spending by Category',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                  ],
+                ),
+              ),
+            ),
+            if (categoryTotals.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'No expenses this month',
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: categoryTotals.entries.map((entry) {
-                          final amount = _monthlyExpenses
-                              .where((e) =>
-                                  e.category == entry.key ||
-                                  (entry.key == 'Uncategorized' &&
-                                      e.category == null))
-                              .fold(0.0, (sum, e) => sum + e.amount);
-                          return _buildCategoryRow(
-                            context,
-                            entry.key,
-                            entry.value,
-                            amount,
-                          );
-                        }).toList(),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: categoryTotals.entries.map((entry) {
+                            final amount = _monthlyExpenses
+                                .where((e) =>
+                                    e.category == entry.key ||
+                                    (entry.key == 'Uncategorized' &&
+                                        e.category == null))
+                                .fold(0.0, (sum, e) => sum + e.amount);
+                            return _buildCategoryRow(
+                              context,
+                              entry.key,
+                              entry.value,
+                              amount,
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
-                  ),
-                ]),
+                  ]),
+                ),
               ),
-            ),
           ],
         ),
       ),

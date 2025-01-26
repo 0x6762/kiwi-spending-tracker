@@ -10,7 +10,7 @@ import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
-import 'insights_screen.dart';
+import 'categories_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -112,12 +112,39 @@ class _MainScreenState extends State<MainScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor:
-          Theme.of(context).colorScheme.surface, //main screen background
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Kiwi',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
               ExpenseSummary(
                 expenses: _expenses,
                 selectedMonth: _selectedMonth,
@@ -140,9 +167,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surface, //expenses list background
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(16)),
                 ),
@@ -174,11 +199,9 @@ class _MainScreenState extends State<MainScreen> {
           index: _selectedIndex,
           children: [
             _buildExpensesScreen(),
-            InsightsScreen(
+            CategoriesScreen(
               expenses: _expenses,
-              selectedMonth: _selectedMonth,
             ),
-            const SettingsScreen(),
           ],
         ),
         bottomNavigationBar: Container(
@@ -192,16 +215,16 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: NavigationBar(
             onDestinationSelected: (index) {
-              if (index == 2) {
+              if (index == 1) {
                 _addExpense();
               } else {
                 setState(() {
-                  _selectedIndex = index > 2 ? index - 1 : index;
+                  _selectedIndex = index > 1 ? index - 1 : index;
                 });
               }
             },
             selectedIndex:
-                _selectedIndex > 1 ? _selectedIndex + 1 : _selectedIndex,
+                _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             indicatorColor: Theme.of(context)
                 .colorScheme
@@ -221,17 +244,6 @@ class _MainScreenState extends State<MainScreen> {
                 label: 'Spending',
               ),
               NavigationDestination(
-                icon: Icon(
-                  Icons.insights_outlined,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                selectedIcon: Icon(
-                  Icons.insights,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                label: 'Insights',
-              ),
-              NavigationDestination(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -247,14 +259,14 @@ class _MainScreenState extends State<MainScreen> {
               ),
               NavigationDestination(
                 icon: Icon(
-                  Icons.settings_outlined,
+                  Icons.category_outlined,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 selectedIcon: Icon(
-                  Icons.settings,
+                  Icons.category,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                label: 'Settings',
+                label: 'Categories',
               ),
             ],
           ),
