@@ -69,7 +69,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     return Container(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: theme.colorScheme.surfaceContainer,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(28),
         ),

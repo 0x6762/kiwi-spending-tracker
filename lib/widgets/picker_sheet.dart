@@ -29,26 +29,35 @@ class PickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final maxHeight = MediaQuery.of(context).size.height * 0.7;
+
     return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(16),
             child: Text(
               title,
               style: theme.textTheme.titleMedium,
             ),
           ),
-          const SizedBox(height: 8),
-          ...children,
-          const SizedBox(height: 16),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                child: Column(
+                  children: children,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

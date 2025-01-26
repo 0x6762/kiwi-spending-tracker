@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../utils/formatters.dart';
 import 'picker_button.dart';
 import 'picker_sheet.dart';
+import 'add_category_sheet.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final bool isFixed;
@@ -232,7 +233,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'What was the expense?',
+                            hintText: 'Expense Name',
                             hintStyle: theme.textTheme.titleLarge?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w500,
@@ -291,21 +292,91 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                 PickerSheet.show(
                                   context: context,
                                   title: 'Select Category',
-                                  children: ExpenseCategories.values
-                                      .map(
-                                        (category) => ListTile(
-                                          leading: Icon(category.icon),
-                                          title: Text(category.name),
-                                          selected: _selectedCategory ==
-                                              category.name,
-                                          onTap: () {
-                                            setState(() => _selectedCategory =
-                                                category.name);
-                                            Navigator.pop(context);
-                                          },
+                                  children: [
+                                    ListTile(
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primary
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                      )
-                                      .toList(),
+                                        child: Icon(
+                                          Icons.add,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        'Create Category',
+                                        style: TextStyle(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      onTap: () async {
+                                        Navigator.pop(
+                                            context); // Close picker sheet
+                                        await showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              AddCategorySheet(
+                                            onCategoryAdded: () {
+                                              setState(() {});
+                                            },
+                                          ),
+                                        );
+                                        // Show picker sheet again after category is added
+                                        if (mounted) {
+                                          final sortedCategories = [
+                                            ...ExpenseCategories.values
+                                          ]..sort((a, b) =>
+                                              a.name.compareTo(b.name));
+                                          PickerSheet.show(
+                                            context: context,
+                                            title: 'Select Category',
+                                            children: sortedCategories
+                                                .map(
+                                                  (category) => ListTile(
+                                                    leading:
+                                                        Icon(category.icon),
+                                                    title: Text(category.name),
+                                                    selected:
+                                                        _selectedCategory ==
+                                                            category.name,
+                                                    onTap: () {
+                                                      setState(() =>
+                                                          _selectedCategory =
+                                                              category.name);
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                )
+                                                .toList(),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    ...([
+                                      ...ExpenseCategories.values
+                                    ]..sort((a, b) => a.name.compareTo(b.name)))
+                                        .map(
+                                          (category) => ListTile(
+                                            leading: Icon(category.icon),
+                                            title: Text(category.name),
+                                            selected: _selectedCategory ==
+                                                category.name,
+                                            onTap: () {
+                                              setState(() => _selectedCategory =
+                                                  category.name);
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        )
+                                        .toList(),
+                                  ],
                                 );
                               },
                             ),

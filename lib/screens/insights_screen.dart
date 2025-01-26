@@ -337,18 +337,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 'Insights',
                 style: theme.textTheme.titleLarge,
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.add,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    onPressed: _showAddCategorySheet,
-                  ),
-                ),
-              ],
             ),
             SliverToBoxAdapter(
               child: Column(
