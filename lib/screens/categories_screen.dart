@@ -232,6 +232,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ),
                       ),
                     ),
+                    // Add bottom padding for navigation bar
+                    SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 80),
                   ]),
                 ),
               ),

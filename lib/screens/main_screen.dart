@@ -100,6 +100,8 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 80),
         child: Column(
           children: [
             Padding(
