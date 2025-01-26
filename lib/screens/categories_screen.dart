@@ -6,6 +6,8 @@ import '../models/account.dart';
 import '../utils/formatters.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_category_sheet.dart';
+import '../widgets/picker_button.dart';
+import '../widgets/picker_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -197,91 +199,63 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showExpenseTypeSheet() {
-    showModalBottomSheet(
+    PickerSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      title: 'Select Type',
+      children: [
+        ListTile(
+          title: Text('All Types'),
+          selected: _selectedExpenseType == null,
+          onTap: () {
+            setState(() => _selectedExpenseType = null);
+            Navigator.pop(context);
+          },
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 8),
-            ListTile(
-              title: Text('All Types'),
-              selected: _selectedExpenseType == null,
-              onTap: () {
-                setState(() => _selectedExpenseType = null);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Fixed'),
-              selected: _selectedExpenseType == true,
-              onTap: () {
-                setState(() => _selectedExpenseType = true);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Variable'),
-              selected: _selectedExpenseType == false,
-              onTap: () {
-                setState(() => _selectedExpenseType = false);
-                Navigator.pop(context);
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
+        ListTile(
+          title: Text('Fixed'),
+          selected: _selectedExpenseType == true,
+          onTap: () {
+            setState(() => _selectedExpenseType = true);
+            Navigator.pop(context);
+          },
         ),
-      ),
+        ListTile(
+          title: Text('Variable'),
+          selected: _selectedExpenseType == false,
+          onTap: () {
+            setState(() => _selectedExpenseType = false);
+            Navigator.pop(context);
+          },
+        ),
+      ],
     );
   }
 
   void _showAccountSheet() {
-    showModalBottomSheet(
+    PickerSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      title: 'Select Account',
+      children: [
+        ListTile(
+          title: Text('All Accounts'),
+          selected: _selectedAccountId == null,
+          onTap: () {
+            setState(() => _selectedAccountId = null);
+            Navigator.pop(context);
+          },
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 8),
-            ListTile(
-              title: Text('All Accounts'),
-              selected: _selectedAccountId == null,
-              onTap: () {
-                setState(() => _selectedAccountId = null);
-                Navigator.pop(context);
-              },
-            ),
-            ...DefaultAccounts.defaultAccounts.map(
-              (account) => ListTile(
-                leading: Icon(account.icon, color: account.color),
-                title: Text(account.name),
-                selected: _selectedAccountId == account.id,
-                onTap: () {
-                  setState(() => _selectedAccountId = account.id);
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
+        ...DefaultAccounts.defaultAccounts.map(
+          (account) => ListTile(
+            leading: Icon(account.icon, color: account.color),
+            title: Text(account.name),
+            selected: _selectedAccountId == account.id,
+            onTap: () {
+              setState(() => _selectedAccountId = account.id);
+              Navigator.pop(context);
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 

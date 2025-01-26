@@ -6,6 +6,8 @@ import '../models/expense_category.dart';
 import '../models/account.dart';
 import 'package:intl/intl.dart';
 import '../utils/formatters.dart';
+import 'picker_button.dart';
+import 'picker_sheet.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final bool isFixed;
@@ -95,157 +97,92 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  Widget _buildSelectionButton({
-    required String label,
-    required IconData icon,
-    required String text,
-    Color? iconColor,
-    required VoidCallback onTap,
-    required bool hasSelection,
-  }) {
+  Widget _buildAccountPicker() {
     final theme = Theme.of(context);
-    return Expanded(
-      child: Material(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(32),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(32),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                if (hasSelection) ...[
-                  Icon(
-                    icon,
-                    size: 20,
-                    color: iconColor ?? theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: Text(
-                    hasSelection ? text : label,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (!hasSelection)
-                  Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 20,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-              ],
-            ),
+    final selectedAccount = _selectedAccountId != null
+        ? DefaultAccounts.defaultAccounts
+            .firstWhere((account) => account.id == _selectedAccountId)
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Account',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        PickerButton(
+          label: selectedAccount?.name ?? 'Select Account',
+          icon: selectedAccount?.icon,
+          iconColor: selectedAccount?.color,
+          onTap: () {
+            PickerSheet.show(
+              context: context,
+              title: 'Select Account',
+              children: DefaultAccounts.defaultAccounts
+                  .map(
+                    (account) => ListTile(
+                      leading: Icon(account.icon, color: account.color),
+                      title: Text(account.name),
+                      selected: _selectedAccountId == account.id,
+                      onTap: () {
+                        setState(() => _selectedAccountId = account.id);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
+      ],
     );
   }
 
-  Future<void> _showCategorySheet() async {
+  Widget _buildCategoryPicker() {
     final theme = Theme.of(context);
-    final selected = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+    final selectedCategory = _selectedCategory != null
+        ? ExpenseCategories.findByName(_selectedCategory!)
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Category',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Select Category',
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            const Divider(),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: ExpenseCategories.values.map((category) {
-                    return ListTile(
+        const SizedBox(height: 8),
+        PickerButton(
+          label: selectedCategory?.name ?? 'Select Category',
+          icon: selectedCategory?.icon,
+          onTap: () {
+            PickerSheet.show(
+              context: context,
+              title: 'Select Category',
+              children: ExpenseCategories.values
+                  .map(
+                    (category) => ListTile(
                       leading: Icon(category.icon),
                       title: Text(category.name),
-                      onTap: () => Navigator.pop(context, category.name),
-                      selected: category.name == _selectedCategory,
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
+                      selected: _selectedCategory == category.name,
+                      onTap: () {
+                        setState(() => _selectedCategory = category.name);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  )
+                  .toList(),
+            );
+          },
         ),
-      ),
+      ],
     );
-
-    if (selected != null) {
-      setState(() {
-        _selectedCategory = selected;
-      });
-    }
-  }
-
-  Future<void> _showAccountSheet() async {
-    final theme = Theme.of(context);
-    final selected = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Select Account',
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            const Divider(),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: DefaultAccounts.defaultAccounts.map((account) {
-                    return ListTile(
-                      leading: Icon(
-                        account.icon,
-                        color: account.color,
-                      ),
-                      title: Text(account.name),
-                      onTap: () => Navigator.pop(context, account.id),
-                      selected: account.id == _selectedAccountId,
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-
-    if (selected != null) {
-      setState(() {
-        _selectedAccountId = selected;
-      });
-    }
   }
 
   Widget _buildNumberPad() {
@@ -395,13 +332,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selectedCategory = _selectedCategory != null
-        ? ExpenseCategories.findByName(_selectedCategory!)
-        : null;
-    final selectedAccount = _selectedAccountId != null
-        ? DefaultAccounts.defaultAccounts
-            .firstWhere((account) => account.id == _selectedAccountId)
-        : null;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -427,27 +357,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: Row(
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildSelectionButton(
-                            label: 'Account',
-                            icon:
-                                selectedAccount?.icon ?? Icons.account_balance,
-                            text: selectedAccount?.name ?? 'Account',
-                            iconColor: selectedAccount?.color,
-                            onTap: _showAccountSheet,
-                            hasSelection: selectedAccount != null,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildSelectionButton(
-                            label: 'Category',
-                            icon: selectedCategory?.icon ?? Icons.category,
-                            text: selectedCategory?.name ?? 'Category',
-                            onTap: _showCategorySheet,
-                            hasSelection: selectedCategory != null,
-                          ),
+                          _buildAccountPicker(),
+                          const SizedBox(height: 16),
+                          _buildCategoryPicker(),
                         ],
                       ),
                     ),
