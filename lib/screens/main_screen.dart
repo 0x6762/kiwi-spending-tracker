@@ -93,6 +93,10 @@ class _MainScreenState extends State<MainScreen> {
 
     if (shouldDelete == true) {
       await _deleteExpense(expense);
+    } else {
+      // Refresh expenses when returning from detail screen
+      // to ensure category changes are reflected
+      await _loadExpenses();
     }
   }
 
@@ -111,72 +115,77 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SingleChildScrollView(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 80),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                  16, MediaQuery.of(context).padding.top + 8, 8, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Kiwi',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.settings_outlined,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      body: RefreshIndicator(
+        onRefresh: _loadExpenses,
+        color: Theme.of(context).colorScheme.primary,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 80),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    16, MediaQuery.of(context).padding.top + 8, 8, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Kiwi',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                    IconButton(
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            ExpenseSummary(
-              expenses: _expenses,
-              selectedMonth: _selectedMonth,
-              onMonthSelected: _onMonthSelected,
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Recent transactions',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ],
+              ExpenseSummary(
+                expenses: _expenses,
+                selectedMonth: _selectedMonth,
+                onMonthSelected: _onMonthSelected,
               ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Recent transactions',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
               ),
-              child: ExpenseList(
-                expenses: filteredExpenses,
-                onDelete: _deleteExpense,
-                onTap: _viewExpenseDetails,
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: ExpenseList(
+                  expenses: filteredExpenses,
+                  onDelete: _deleteExpense,
+                  onTap: _viewExpenseDetails,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -214,6 +223,11 @@ class _MainScreenState extends State<MainScreen> {
               setState(() {
                 _selectedIndex = index > 1 ? index - 1 : index;
               });
+
+              // Refresh expenses when returning to main screen
+              if (index == 0) {
+                _loadExpenses();
+              }
             }
           },
           selectedIndex:

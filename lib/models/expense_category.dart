@@ -90,17 +90,17 @@ class ExpenseCategories {
     ExpenseCategory newCategory,
     SharedPreferences prefs,
   ) async {
-    // Check if it's a default category
-    final isDefault =
-        _defaultCategories.any((cat) => cat.name == oldCategory.name);
-
-    if (isDefault) {
-      // Store in edited defaults
+    // First update the category itself
+    if (isDefaultCategory(oldCategory.name)) {
+      // Update edited default category
       _editedDefaultCategories[oldCategory.name] = newCategory;
       await prefs.setStringList(
         _editedDefaultsKey,
-        _editedDefaultCategories.values
-            .map((cat) => jsonEncode(cat.toJson()))
+        _editedDefaultCategories.entries
+            .map((e) => jsonEncode({
+                  'originalName': e.key,
+                  'category': e.value.toJson(),
+                }))
             .toList(),
       );
     } else {
@@ -113,6 +113,24 @@ class ExpenseCategories {
           _storageKey,
           _customCategories.map((cat) => jsonEncode(cat.toJson())).toList(),
         );
+      }
+    }
+
+    // Now update all expenses that use this category
+    final expensesJson = prefs.getString('expenses');
+    if (expensesJson != null) {
+      final List<dynamic> expenses = json.decode(expensesJson);
+      bool hasChanges = false;
+
+      for (var i = 0; i < expenses.length; i++) {
+        if (expenses[i]['category'] == oldCategory.name) {
+          expenses[i]['category'] = newCategory.name;
+          hasChanges = true;
+        }
+      }
+
+      if (hasChanges) {
+        await prefs.setString('expenses', json.encode(expenses));
       }
     }
   }
