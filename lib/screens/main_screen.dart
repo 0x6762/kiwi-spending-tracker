@@ -10,6 +10,7 @@ import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
+import 'insights_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -173,6 +174,10 @@ class _MainScreenState extends State<MainScreen> {
           index: _selectedIndex,
           children: [
             _buildExpensesScreen(),
+            InsightsScreen(
+              expenses: _expenses,
+              selectedMonth: _selectedMonth,
+            ),
             const SettingsScreen(),
           ],
         ),
@@ -187,22 +192,20 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: NavigationBar(
             onDestinationSelected: (index) {
-              if (index == 1) {
+              if (index == 2) {
                 _addExpense();
               } else {
                 setState(() {
-                  _selectedIndex = index > 1 ? index - 1 : index;
+                  _selectedIndex = index > 2 ? index - 1 : index;
                 });
               }
             },
             selectedIndex:
-                _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
-            backgroundColor: Theme.of(context)
-                .colorScheme
-                .surfaceContainer, // Navigation bar background
+                _selectedIndex > 1 ? _selectedIndex + 1 : _selectedIndex,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             indicatorColor: Theme.of(context)
                 .colorScheme
-                .surfaceContainerLow //Navigation bar background indicator
+                .surfaceContainerLow
                 .withOpacity(1),
             height: 72,
             destinations: [
@@ -216,6 +219,17 @@ class _MainScreenState extends State<MainScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 label: 'Spending',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.insights_outlined,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                selectedIcon: Icon(
+                  Icons.insights,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                label: 'Insights',
               ),
               NavigationDestination(
                 icon: Container(
