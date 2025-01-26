@@ -3,7 +3,9 @@ import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../utils/formatters.dart';
 import '../widgets/expense_summary.dart';
+import '../widgets/add_category_sheet.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoriesScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -25,6 +27,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+    _loadCustomCategories();
+  }
+
+  Future<void> _loadCustomCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    await ExpenseCategories.loadCustomCategories(prefs);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _onMonthSelected(DateTime month) {
@@ -128,6 +139,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
+  void _showAddCategorySheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddCategorySheet(
+        onCategoryAdded: () {
+          setState(() {});
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -143,40 +167,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             SliverAppBar(
               pinned: true,
               backgroundColor: theme.colorScheme.surface,
-              expandedHeight: 140,
-              flexibleSpace: FlexibleSpaceBar(
-                expandedTitleScale: 1.0,
-                titlePadding: EdgeInsets.zero,
-                title: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      color: theme.colorScheme.surface,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Categories',
-                                  style: theme.textTheme.titleLarge,
-                                ),
-                              ],
-                            ),
-                          ),
-                          ExpenseSummary(
-                            expenses: widget.expenses,
-                            selectedMonth: _selectedMonth,
-                            onMonthSelected: _onMonthSelected,
-                            showChart: false,
-                          ),
-                        ],
-                      ),
+              centerTitle: false,
+              titleSpacing: 16,
+              title: Text(
+                'Categories',
+                style: theme.textTheme.titleLarge,
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.add,
+                      color: theme.colorScheme.onSurface,
                     ),
-                  ],
+                    onPressed: _showAddCategorySheet,
+                  ),
                 ),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: ExpenseSummary(
+                expenses: widget.expenses,
+                selectedMonth: _selectedMonth,
+                onMonthSelected: _onMonthSelected,
+                showChart: false,
               ),
             ),
             if (categoryTotals.isEmpty)
