@@ -66,44 +66,61 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     });
   }
 
-  void _submit() {
-    final isFormValid = _formKey.currentState?.validate() ?? false;
+  void _submit() async {
+    final hasTitle = _titleController.text.trim().isNotEmpty;
     final hasAccount = _selectedAccountId != null;
     final hasAmount = _amount != '0';
 
+    if (!hasTitle) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an expense name'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     if (!hasAccount) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an account')),
+        const SnackBar(
+          content: Text('Please select an account'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     if (!hasAmount) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an amount')),
+        const SnackBar(
+          content: Text('Please enter an amount'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
-    if (isFormValid && hasAccount && hasAmount) {
-      // Format amount to have 2 decimal places if needed
-      final amount = _amount.contains('.')
-          ? double.parse(_amount)
-          : double.parse('$_amount.00');
-
-      final expense = Expense(
-        id: const Uuid().v4(),
-        title: _titleController.text,
-        amount: amount,
-        date: _selectedDate,
-        category: _selectedCategory?.trim(),
-        isFixed: widget.isFixed,
-        accountId: _selectedAccountId!,
-        createdAt: DateTime.now(),
-      );
-
-      Navigator.of(context).pop(expense);
+    // Format amount to have two decimal places if needed
+    double amount;
+    if (_amount.contains('.')) {
+      amount = double.parse(_amount);
+    } else {
+      amount = double.parse('$_amount.00');
     }
+
+    final expense = Expense(
+      id: const Uuid().v4(),
+      title: _titleController.text.trim(),
+      amount: amount,
+      date: _selectedDate,
+      category: _selectedCategory?.trim(),
+      isFixed: widget.isFixed,
+      accountId: _selectedAccountId!,
+      createdAt: DateTime.now(),
+    );
+
+    Navigator.of(context).pop(expense);
   }
 
   Future<void> _selectDate() async {
@@ -204,63 +221,30 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     Container(
                       color: theme.colorScheme.surface,
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: Form(
-                        key: _formKey,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              alignment: Alignment.center,
-                              child: TextFormField(
-                                controller: _titleController,
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Expense Name',
-                                  hintStyle:
-                                      theme.textTheme.titleLarge?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
-                                  focusedErrorBorder: InputBorder.none,
-                                  contentPadding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  errorStyle:
-                                      theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.error,
-                                    height: 0.5,
-                                    fontSize: 12,
-                                  ),
-                                  errorMaxLines: 1,
-                                  alignLabelWithHint: true,
-                                  errorText:
-                                      _formKey.currentState?.validate() == false
-                                          ? 'Please enter a expense title'
-                                          : null,
-                                ),
-                                onChanged: (_) {
-                                  setState(() {
-                                    // Trigger rebuild to update error text
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return ''; // Return empty string to show error but use our custom error text
-                                  }
-                                  return null;
-                                },
-                              ),
+                      child: Container(
+                        width: double.infinity,
+                        alignment: Alignment.center,
+                        child: TextFormField(
+                          controller: _titleController,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'What was the expense?',
+                            hintStyle: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                          ),
                         ),
                       ),
                     ),
