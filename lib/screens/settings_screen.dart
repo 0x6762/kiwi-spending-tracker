@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'category_management_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -45,9 +46,9 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Account settings
+                  // User settings
                   Text(
-                    'Accounts',
+                    'Preferences',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -62,6 +63,20 @@ class SettingsScreen extends StatelessWidget {
                           subtitle: const Text('Add or edit your accounts'),
                           onTap: () {
                             // TODO: Implement account management
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.category_outlined),
+                          title: const Text('Categories'),
+                          subtitle: const Text('Manage expense categories'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const CategoryManagementScreen(),
+                              ),
+                            );
                           },
                         ),
                       ],

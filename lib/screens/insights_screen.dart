@@ -10,6 +10,7 @@ import '../widgets/picker_button.dart';
 import '../widgets/picker_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'category_management_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -123,31 +124,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                category,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                formatCurrency(amount),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+          child: Text(
+            category,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
-        Text(
-          '${percentage.toStringAsFixed(1)}%',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${percentage.toStringAsFixed(1)}%',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              formatCurrency(amount),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -333,7 +334,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               centerTitle: false,
               titleSpacing: 16,
               title: Text(
-                'Categories',
+                'Insights',
                 style: theme.textTheme.titleLarge,
               ),
               actions: [

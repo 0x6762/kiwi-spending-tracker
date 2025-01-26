@@ -10,7 +10,7 @@ import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
-import 'categories_screen.dart';
+import 'insights_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   IconButton(
                     icon: Icon(
-                      Icons.more_vert,
+                      Icons.settings_outlined,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     onPressed: () {
@@ -250,14 +250,14 @@ class _MainScreenState extends State<MainScreen> {
             ),
             NavigationDestination(
               icon: Icon(
-                Icons.category_outlined,
+                Icons.insights_outlined,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               selectedIcon: Icon(
-                Icons.category,
+                Icons.insights,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
-              label: 'Categories',
+              label: 'Insights',
             ),
           ],
         ),

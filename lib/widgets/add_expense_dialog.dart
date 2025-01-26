@@ -67,13 +67,36 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }
 
   void _submit() {
-    if (_formKey.currentState!.validate() && _selectedAccountId != null) {
+    final isFormValid = _formKey.currentState?.validate() ?? false;
+    final hasAccount = _selectedAccountId != null;
+    final hasAmount = _amount != '0';
+
+    if (!hasAccount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an account')),
+      );
+      return;
+    }
+
+    if (!hasAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an amount')),
+      );
+      return;
+    }
+
+    if (isFormValid && hasAccount && hasAmount) {
+      // Format amount to have 2 decimal places if needed
+      final amount = _amount.contains('.')
+          ? double.parse(_amount)
+          : double.parse('$_amount.00');
+
       final expense = Expense(
         id: const Uuid().v4(),
         title: _titleController.text,
-        amount: double.parse(_amount),
+        amount: amount,
         date: _selectedDate,
-        category: _selectedCategory,
+        category: _selectedCategory?.trim(),
         isFixed: widget.isFixed,
         accountId: _selectedAccountId!,
         createdAt: DateTime.now(),
@@ -104,9 +127,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ? DefaultAccounts.defaultAccounts
             .firstWhere((account) => account.id == _selectedAccountId)
         : null;
-    final selectedCategory = _selectedCategory != null
-        ? ExpenseCategories.findByName(_selectedCategory!)
-        : null;
+    ExpenseCategory? selectedCategory;
+    if (_selectedCategory != null) {
+      selectedCategory = ExpenseCategories.findByName(_selectedCategory!);
+      if (selectedCategory == null) {
+        // If category not found, clear the selection
+        _selectedCategory = null;
+      }
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,

@@ -28,7 +28,9 @@ class ExpenseCategory {
 
 class ExpenseCategories {
   static const String _storageKey = 'custom_categories';
+  static const String _editedDefaultsKey = 'edited_default_categories';
   static List<ExpenseCategory> _customCategories = [];
+  static Map<String, ExpenseCategory> _editedDefaultCategories = {};
 
   static final List<ExpenseCategory> _defaultCategories = [
     ExpenseCategory(name: 'Food & Dining', icon: Icons.restaurant),
@@ -42,8 +44,20 @@ class ExpenseCategories {
     ExpenseCategory(name: 'Other', icon: Icons.more_horiz),
   ];
 
-  static List<ExpenseCategory> get values =>
-      [..._defaultCategories, ..._customCategories];
+  static List<ExpenseCategory> get values {
+    final categories = <ExpenseCategory>[];
+
+    // Add default categories (or their edited versions if they exist)
+    for (final defaultCategory in _defaultCategories) {
+      categories.add(
+          _editedDefaultCategories[defaultCategory.name] ?? defaultCategory);
+    }
+
+    // Add custom categories
+    categories.addAll(_customCategories);
+
+    return categories;
+  }
 
   static ExpenseCategory? findByName(String name) {
     try {
@@ -54,11 +68,52 @@ class ExpenseCategories {
   }
 
   static Future<void> loadCustomCategories(SharedPreferences prefs) async {
+    // Load custom categories
     final categoriesJson = prefs.getStringList(_storageKey);
     if (categoriesJson != null) {
       _customCategories = categoriesJson
           .map((json) => ExpenseCategory.fromJson(jsonDecode(json)))
           .toList();
+    }
+
+    // Load edited default categories
+    final editedDefaultsJson = prefs.getStringList(_editedDefaultsKey);
+    if (editedDefaultsJson != null) {
+      _editedDefaultCategories = Map.fromEntries(editedDefaultsJson
+          .map((json) => ExpenseCategory.fromJson(jsonDecode(json)))
+          .map((category) => MapEntry(category.name, category)));
+    }
+  }
+
+  static Future<void> updateCategory(
+    ExpenseCategory oldCategory,
+    ExpenseCategory newCategory,
+    SharedPreferences prefs,
+  ) async {
+    // Check if it's a default category
+    final isDefault =
+        _defaultCategories.any((cat) => cat.name == oldCategory.name);
+
+    if (isDefault) {
+      // Store in edited defaults
+      _editedDefaultCategories[oldCategory.name] = newCategory;
+      await prefs.setStringList(
+        _editedDefaultsKey,
+        _editedDefaultCategories.values
+            .map((cat) => jsonEncode(cat.toJson()))
+            .toList(),
+      );
+    } else {
+      // Update custom category
+      final index =
+          _customCategories.indexWhere((cat) => cat.name == oldCategory.name);
+      if (index != -1) {
+        _customCategories[index] = newCategory;
+        await prefs.setStringList(
+          _storageKey,
+          _customCategories.map((cat) => jsonEncode(cat.toJson())).toList(),
+        );
+      }
     }
   }
 
@@ -70,11 +125,10 @@ class ExpenseCategories {
     }
 
     _customCategories.add(category);
-
-    // Save to storage
-    final categoriesJson =
-        _customCategories.map((cat) => jsonEncode(cat.toJson())).toList();
-    await prefs.setStringList(_storageKey, categoriesJson);
+    await prefs.setStringList(
+      _storageKey,
+      _customCategories.map((cat) => jsonEncode(cat.toJson())).toList(),
+    );
   }
 
   static bool isDefaultCategory(String name) {
