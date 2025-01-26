@@ -115,19 +115,14 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               children: [
                 Text(
                   'New Category',
-                  style: theme.textTheme.titleLarge,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
+                  style: theme.textTheme.titleMedium,
                 ),
               ],
             ),
           ),
-          const Divider(),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -154,7 +149,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -187,6 +182,13 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 24,
+                        ),
+                      ),
                       onPressed: _isLoading ? null : _createCategory,
                       child: _isLoading
                           ? const SizedBox(
@@ -196,9 +198,14 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('Create Category'),
+                          : Text(
+                              'Create Category',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
