@@ -49,10 +49,22 @@ class _MainScreenState extends State<MainScreen> {
 
     if (isFixed != null) {
       final result = await Navigator.of(context).push<Expense>(
-        MaterialPageRoute(
-          builder: (context) => AddExpenseDialog(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              AddExpenseDialog(
             isFixed: isFixed,
           ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
           maintainState: true,
           fullscreenDialog: true,
         ),
