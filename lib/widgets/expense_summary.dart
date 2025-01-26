@@ -48,6 +48,57 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
 
   double get _monthlyTotal => _fixedTotal + _variableTotal;
 
+  double get _previousMonthTotal {
+    final previousMonth =
+        DateTime(widget.selectedMonth.year, widget.selectedMonth.month - 1);
+    return widget.expenses
+        .where((expense) =>
+            expense.date.year == previousMonth.year &&
+            expense.date.month == previousMonth.month)
+        .fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  Widget _buildMonthComparison(BuildContext context) {
+    final previousTotal = _previousMonthTotal;
+    if (previousTotal == 0) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final difference = _monthlyTotal - previousTotal;
+    final percentageChange =
+        (difference / previousTotal * 100).abs().toStringAsFixed(1);
+    final isIncrease = difference > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          Icon(
+            isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
+            size: 16,
+            color: isIncrease
+                ? theme.colorScheme.error
+                : theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${percentageChange}%',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: isIncrease
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.primary,
+            ),
+          ),
+          Text(
+            ' ${isIncrease ? 'more' : 'less'} than last month',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showMonthPicker() async {
     final DateTime? picked = await showDialog<DateTime>(
       context: context,
@@ -116,6 +167,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
+                _buildMonthComparison(context),
               ],
             ),
             const SizedBox(height: 32),
