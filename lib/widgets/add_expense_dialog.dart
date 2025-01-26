@@ -137,13 +137,31 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            _amount == '0' ? '\$0.00' : '\$${_amount}',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Text(
+                                  '\$',
+                                  style:
+                                      theme.textTheme.headlineMedium?.copyWith(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                _amount == '0' ? '0.00' : _amount,
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -393,7 +411,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           child: Material(
             color: text == 'save'
                 ? theme.colorScheme.primary
-                : isAction
+                : text == 'date'
                     ? theme.colorScheme.primary.withOpacity(0.1)
                     : theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(24),
@@ -429,7 +447,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           'Add',
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w800,
           ),
         );
       default:
