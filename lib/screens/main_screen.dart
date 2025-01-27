@@ -153,7 +153,7 @@ class _MainScreenState extends State<MainScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Kiwi',
+                      'Kiwi Spending',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
