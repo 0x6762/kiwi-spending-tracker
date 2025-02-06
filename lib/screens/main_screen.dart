@@ -28,25 +28,25 @@ class _MainScreenState extends State<MainScreen>
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
+  final _monthFormat = DateFormat.yMMMM();
 
   @override
   void initState() {
     super.initState();
+    _loadExpenses();
+
     _arrowAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    );
+    )..repeat(reverse: true);
 
     _arrowAnimation = Tween<double>(
       begin: 0.0,
-      end: 12.0,
+      end: 10.0,
     ).animate(CurvedAnimation(
       parent: _arrowAnimationController,
       curve: Curves.easeInOut,
     ));
-
-    _arrowAnimationController.repeat(reverse: true);
-    _loadExpenses();
   }
 
   @override
@@ -62,41 +62,50 @@ class _MainScreenState extends State<MainScreen>
     });
   }
 
-  Future<void> _addExpense() async {
-    final isFixed = await showModalBottomSheet<bool>(
+  void _showMonthPicker() async {
+    final DateTime? picked = await showDialog<DateTime>(
       context: context,
-      builder: (context) => const ExpenseTypeSheet(),
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return MonthPickerDialog(
+          selectedMonth: _selectedMonth,
+          expenses: _expenses,
+        );
+      },
     );
 
-    if (isFixed != null) {
-      final result = await Navigator.of(context).push<Expense>(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              AddExpenseDialog(
-            isFixed: isFixed,
-          ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(0.0, 1.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
-            var tween =
-                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-          maintainState: true,
-          fullscreenDialog: true,
-        ),
-      );
+    if (picked != null) {
+      setState(() {
+        _selectedMonth = picked;
+      });
+    }
+  }
 
-      if (result != null) {
-        await widget.repository.addExpense(result);
-        _loadExpenses();
-      }
+  Future<void> _addExpense(bool isFixed) async {
+    final result = await Navigator.push<Expense>(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
+          isFixed: isFixed,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOutCubic;
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        maintainState: true,
+        fullscreenDialog: true,
+      ),
+    );
+
+    if (result != null) {
+      await widget.repository.addExpense(result);
+      _loadExpenses();
     }
   }
 
@@ -117,16 +126,8 @@ class _MainScreenState extends State<MainScreen>
     if (shouldDelete == true) {
       await _deleteExpense(expense);
     } else {
-      // Refresh expenses when returning from detail screen
-      // to ensure category changes are reflected
       await _loadExpenses();
     }
-  }
-
-  void _onMonthSelected(DateTime month) {
-    setState(() {
-      _selectedMonth = month;
-    });
   }
 
   Widget _buildExpensesScreen() {
@@ -138,6 +139,7 @@ class _MainScreenState extends State<MainScreen>
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+      extendBody: true,
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
         color: Theme.of(context).colorScheme.primary,
@@ -152,11 +154,26 @@ class _MainScreenState extends State<MainScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Kiwi Spending',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                    TextButton(
+                      onPressed: _showMonthPicker,
+                      style: TextButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                        padding: const EdgeInsets.only(
+                          left: 16,
+                          right: 10,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_monthFormat.format(_selectedMonth)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down),
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: Icon(
@@ -178,7 +195,11 @@ class _MainScreenState extends State<MainScreen>
               ExpenseSummary(
                 expenses: _expenses,
                 selectedMonth: _selectedMonth,
-                onMonthSelected: _onMonthSelected,
+                onMonthSelected: (month) {
+                  setState(() {
+                    _selectedMonth = month;
+                  });
+                },
               ),
               if (filteredExpenses.isEmpty)
                 Padding(
@@ -236,8 +257,8 @@ class _MainScreenState extends State<MainScreen>
                   ),
                   child: ExpenseList(
                     expenses: filteredExpenses,
-                    onDelete: _deleteExpense,
                     onTap: _viewExpenseDetails,
+                    onDelete: _deleteExpense,
                   ),
                 ),
               ],
@@ -251,16 +272,11 @@ class _MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      extendBody: true,
-      extendBodyBehindAppBar: true,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           _buildExpensesScreen(),
-          CategoriesScreen(
-            expenses: _expenses,
-          ),
+          InsightsScreen(expenses: _expenses),
         ],
       ),
       bottomNavigationBar: Container(
@@ -275,23 +291,34 @@ class _MainScreenState extends State<MainScreen>
         child: NavigationBar(
           onDestinationSelected: (index) {
             if (index == 1) {
-              _addExpense();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => ExpenseTypeSheet(
+                  onFixedSelected: () {
+                    Navigator.pop(context);
+                    _addExpense(true);
+                  },
+                  onVariableSelected: () {
+                    Navigator.pop(context);
+                    _addExpense(false);
+                  },
+                ),
+              );
             } else {
               setState(() {
                 _selectedIndex = index > 1 ? index - 1 : index;
               });
 
-              // Refresh expenses when returning to main screen
               if (index == 0) {
                 _loadExpenses();
               }
             }
           },
-          selectedIndex:
-              _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
+          selectedIndex: _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          indicatorColor:
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
           height: 72,
           destinations: [
             NavigationDestination(
@@ -329,6 +356,80 @@ class _MainScreenState extends State<MainScreen>
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               label: 'Insights',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MonthPickerDialog extends StatelessWidget {
+  final DateTime selectedMonth;
+  final List<Expense> expenses;
+
+  const MonthPickerDialog({
+    super.key,
+    required this.selectedMonth,
+    required this.expenses,
+  });
+
+  List<DateTime> get _availableMonths {
+    final months = expenses
+        .map((e) => DateTime(e.date.year, e.date.month))
+        .toSet()
+        .toList();
+    months.sort((a, b) => b.compareTo(a)); // Most recent first
+    return months;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthFormat = DateFormat.yMMMM();
+    final months = _availableMonths;
+    final theme = Theme.of(context);
+
+    return Dialog(
+      backgroundColor: theme.colorScheme.surfaceContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Month',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: months.length,
+                itemBuilder: (context, index) {
+                  final month = months[index];
+                  final isSelected = month.year == selectedMonth.year &&
+                      month.month == selectedMonth.month;
+
+                  return ListTile(
+                    title: Text(monthFormat.format(month)),
+                    selected: isSelected,
+                    onTap: () => Navigator.pop(context, month),
+                  );
+                },
+              ),
             ),
           ],
         ),
