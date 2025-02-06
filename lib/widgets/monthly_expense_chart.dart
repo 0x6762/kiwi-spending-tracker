@@ -37,7 +37,9 @@ class MonthlyExpenseChart extends StatelessWidget {
       return formatCurrency(amount);
     }
     final value = (amount / 1000).toStringAsFixed(1);
-    return '\$${value}k';
+    // Remove the currency symbol from the formatted string and add 'k' suffix
+    final formatted = formatCurrency(1000).replaceAll(RegExp(r'[0-9.,]+'), '');
+    return '$formatted${value}k';
   }
 
   @override
@@ -45,7 +47,6 @@ class MonthlyExpenseChart extends StatelessWidget {
     final theme = Theme.of(context);
     final months = _getLast6Months();
     final monthFormat = DateFormat.MMM();
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
 
     return AspectRatio(
       aspectRatio: 2.4,
@@ -69,17 +70,14 @@ class MonthlyExpenseChart extends StatelessWidget {
                     width: 48,
                     color: total > 0
                         ? (isSelectedMonth
-                            ? theme.colorScheme
-                                .onSurface //selected month bar color
+                            ? theme.colorScheme.onSurface //selected month bar color
                             : theme.colorScheme
                                 .surfaceContainerLowest) //other months bar color
-                        : theme.colorScheme
-                            .surfaceContainer, //no expenses bar color
+                        : theme.colorScheme.surfaceContainer, //no expenses bar color
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,
-                      color:
-                          theme.colorScheme.primaryContainer.withOpacity(0.2),
+                      color: theme.colorScheme.primaryContainer.withOpacity(0.2),
                     ),
                     rodStackItems: [
                       BarChartRodStackItem(

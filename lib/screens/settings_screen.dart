@@ -1,13 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'category_management_screen.dart';
+import '../models/currency_settings.dart';
+import '../utils/formatters.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _selectedCurrency = 'USD';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentCurrency();
+  }
+
+  Future<void> _loadCurrentCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedCurrency = prefs.getString(CurrencySettings.prefsKey) ?? 'USD';
+    });
+  }
+
+  Future<void> _changeCurrency(String currencyCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(CurrencySettings.prefsKey, currencyCode);
+    await initializeFormatter(); // Reinitialize formatter with new currency
+    setState(() {
+      _selectedCurrency = currencyCode;
+    });
+  }
+
+  void _showCurrencyPicker() {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Text(
+                    'Select Currency',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...CurrencySettings.availableCurrencies.entries.map(
+              (entry) => ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    entry.value.symbol,
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                title: Text(entry.value.name),
+                subtitle: Text(entry.value.code),
+                selected: _selectedCurrency == entry.key,
+                onTap: () async {
+                  await _changeCurrency(entry.key);
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectedCurrency = CurrencySettings.availableCurrencies[_selectedCurrency]!;
 
     return Scaffold(
       extendBody: true,
@@ -57,6 +151,25 @@ class SettingsScreen extends StatelessWidget {
                   Card(
                     child: Column(
                       children: [
+                        ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              selectedCurrency.symbol,
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          title: const Text('Currency'),
+                          subtitle: Text(selectedCurrency.name),
+                          onTap: _showCurrencyPicker,
+                        ),
                         ListTile(
                           leading: const Icon(Icons.account_balance_outlined),
                           title: const Text('Manage Accounts'),

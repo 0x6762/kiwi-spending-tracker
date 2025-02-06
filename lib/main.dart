@@ -4,10 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_screen.dart';
 import 'repositories/expense_repository.dart';
 import 'theme/theme.dart';
+import 'utils/formatters.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+
+  // Initialize currency formatter
+  await initializeFormatter();
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
