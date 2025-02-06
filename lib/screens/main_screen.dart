@@ -186,13 +186,13 @@ class _MainScreenState extends State<MainScreen>
     final theme = Theme.of(context);
     
     return Card(
-      color: theme.colorScheme.surface,
+      color: theme.colorScheme.surfaceContainer,
       shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
-          bottomLeft: Radius.circular(0),
-          bottomRight: Radius.circular(0),
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
 
       ),
@@ -234,9 +234,9 @@ class _MainScreenState extends State<MainScreen>
         color: Theme.of(context).colorScheme.primary,
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
-            left: 8,
-            right: 8,
-            bottom: 92, // navigation bar height + small buffer
+            left: 0,
+            right: 0,
+            bottom: 100, // navigation bar height + small buffer
           ),
           clipBehavior: Clip.none,
           physics: const AlwaysScrollableScrollPhysics(),

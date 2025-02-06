@@ -71,8 +71,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                     color: total > 0
                         ? (isSelectedMonth
                             ? theme.colorScheme.onSurface //selected month bar color
-                            : theme.colorScheme.onSurface.withOpacity(0.3)) //other months bar color
-                        : theme.colorScheme.onSurface.withOpacity(0.1), //no expenses bar color
+                            : theme.colorScheme.onSurface.withOpacity(0.2)) //other months bar color
+                        : theme.colorScheme.onSurface.withOpacity(0.07), //no expenses bar color
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,

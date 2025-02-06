@@ -40,7 +40,7 @@ class AppTheme {
       // Used for dates, account names, and secondary text
       bodySmall: GoogleFonts.inter(
         textStyle: base.bodySmall?.copyWith(
-          fontSize: 12,
+          fontSize: 14,
           height: 1.4,
           fontWeight: FontWeight.w400,
         ),
