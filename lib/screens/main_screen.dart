@@ -34,7 +34,10 @@ class _MainScreenState extends State<MainScreen>
   void initState() {
     super.initState();
     _loadExpenses();
+    _initializeAnimation();
+  }
 
+  void _initializeAnimation() {
     _arrowAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -130,6 +133,83 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
+  Widget _buildHeader() {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 16,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _MonthPickerButton(
+            selectedMonth: _selectedMonth,
+            monthFormat: _monthFormat,
+            onPressed: _showMonthPicker,
+          ),
+          _SettingsButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Column(
+        children: [
+          Text(
+            'Start by adding an expense',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 8),
+          AnimatedBuilder(
+            animation: _arrowAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, _arrowAnimation.value),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpenseList(List<Expense> filteredExpenses) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 24, 8, 16),
+          child: Text(
+            'Recent transactions',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: ExpenseList(
+            expenses: filteredExpenses,
+            onTap: _viewExpenseDetails,
+            onDelete: _deleteExpense,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildExpensesScreen() {
     final filteredExpenses = _expenses
         .where((expense) =>
@@ -144,54 +224,10 @@ class _MainScreenState extends State<MainScreen>
         onRefresh: _loadExpenses,
         color: Theme.of(context).colorScheme.primary,
         child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).padding.bottom + 80),
+          padding: const EdgeInsets.only(left: 8, right: 8, bottom: 80),
           child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                    16, MediaQuery.of(context).padding.top + 8, 8, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: _showMonthPicker,
-                      style: TextButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                        padding: const EdgeInsets.only(
-                          left: 16,
-                          right: 10,
-                          top: 8,
-                          bottom: 8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(_monthFormat.format(_selectedMonth)),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.settings_outlined,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              _buildHeader(),
               ExpenseSummary(
                 expenses: _expenses,
                 selectedMonth: _selectedMonth,
@@ -202,66 +238,9 @@ class _MainScreenState extends State<MainScreen>
                 },
               ),
               if (filteredExpenses.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 32),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Start by adding an expense',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      AnimatedBuilder(
-                        animation: _arrowAnimation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, _arrowAnimation.value),
-                            child: Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                )
-              else ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Recent transactions',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: ExpenseList(
-                    expenses: filteredExpenses,
-                    onTap: _viewExpenseDetails,
-                    onDelete: _deleteExpense,
-                  ),
-                ),
-              ],
+                _buildEmptyState()
+              else
+                _buildExpenseList(filteredExpenses),
             ],
           ),
         ),
@@ -279,86 +258,167 @@ class _MainScreenState extends State<MainScreen>
           InsightsScreen(expenses: _expenses),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).colorScheme.outlineVariant,
-              width: 1,
-            ),
+      bottomNavigationBar: _BottomNavBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          if (index == 1) {
+            _showExpenseTypeSheet();
+          } else {
+            setState(() {
+              _selectedIndex = index > 1 ? index - 1 : index;
+            });
+
+            if (index == 0) {
+              _loadExpenses();
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void _showExpenseTypeSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ExpenseTypeSheet(
+        onFixedSelected: () {
+          Navigator.pop(context);
+          _addExpense(true);
+        },
+        onVariableSelected: () {
+          Navigator.pop(context);
+          _addExpense(false);
+        },
+      ),
+    );
+  }
+}
+
+class _MonthPickerButton extends StatelessWidget {
+  final DateTime selectedMonth;
+  final DateFormat monthFormat;
+  final VoidCallback onPressed;
+
+  const _MonthPickerButton({
+    required this.selectedMonth,
+    required this.monthFormat,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 10,
+          top: 8,
+          bottom: 8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(monthFormat.format(selectedMonth)),
+          const SizedBox(width: 4),
+          const Icon(Icons.keyboard_arrow_down),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        Icons.settings_outlined,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SettingsScreen(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  const _BottomNavBar({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 1,
           ),
         ),
-        child: NavigationBar(
-          onDestinationSelected: (index) {
-            if (index == 1) {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => ExpenseTypeSheet(
-                  onFixedSelected: () {
-                    Navigator.pop(context);
-                    _addExpense(true);
-                  },
-                  onVariableSelected: () {
-                    Navigator.pop(context);
-                    _addExpense(false);
-                  },
-                ),
-              );
-            } else {
-              setState(() {
-                _selectedIndex = index > 1 ? index - 1 : index;
-              });
-
-              if (index == 0) {
-                _loadExpenses();
-              }
-            }
-          },
-          selectedIndex: _selectedIndex > 0 ? _selectedIndex + 1 : _selectedIndex,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          height: 72,
-          destinations: [
-            NavigationDestination(
-              icon: Icon(
-                Icons.wallet_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              selectedIcon: Icon(
-                Icons.wallet,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              label: 'Spending',
+      ),
+      child: NavigationBar(
+        onDestinationSelected: onDestinationSelected,
+        selectedIndex: selectedIndex > 0 ? selectedIndex + 1 : selectedIndex,
+        backgroundColor: theme.colorScheme.surfaceContainer,
+        indicatorColor: theme.colorScheme.primary.withOpacity(0.1),
+        height: 72,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(
+              Icons.wallet_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            NavigationDestination(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-              ),
-              label: 'Add',
+            selectedIcon: Icon(
+              Icons.wallet,
+              color: theme.colorScheme.onSurface,
             ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.insights_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            label: 'Spending',
+          ),
+          NavigationDestination(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                shape: BoxShape.circle,
               ),
-              selectedIcon: Icon(
-                Icons.insights,
-                color: Theme.of(context).colorScheme.onSurface,
+              child: Icon(
+                Icons.add,
+                color: theme.colorScheme.surface,
               ),
-              label: 'Insights',
             ),
-          ],
-        ),
+            label: 'Add',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.insights_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            selectedIcon: Icon(
+              Icons.insights,
+              color: theme.colorScheme.onSurface,
+            ),
+            label: 'Insights',
+          ),
+        ],
       ),
     );
   }

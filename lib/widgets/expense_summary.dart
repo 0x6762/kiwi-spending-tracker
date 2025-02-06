@@ -104,50 +104,75 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (widget.showChart) ...[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Spent',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+            Card(
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Spent',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formatCurrency(_monthlyTotal),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    _buildMonthComparison(context),
+                    const SizedBox(height: 32),
+                    MonthlyExpenseChart(
+                      expenses: widget.expenses,
+                      selectedMonth: widget.selectedMonth,
+                      onMonthSelected: widget.onMonthSelected,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  formatCurrency(_monthlyTotal),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                _buildMonthComparison(context),
-              ],
-            ),
-            const SizedBox(height: 32),
-            MonthlyExpenseChart(
-              expenses: widget.expenses,
-              selectedMonth: widget.selectedMonth,
-              onMonthSelected: widget.onMonthSelected,
-            ),
-            const SizedBox(height: 32),
-            _SummaryRow(
-              label: 'Fixed Expenses',
-              amount: _fixedTotal,
-              context: context,
-              iconAsset: 'assets/icons/fixed_expense.svg',
+              ),
             ),
             const SizedBox(height: 16),
-            _SummaryRow(
-              label: 'Variable Expenses',
-              amount: _variableTotal,
-              context: context,
-              iconAsset: 'assets/icons/variable_expense.svg',
+            Card(
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _SummaryRow(
+                      label: 'Fixed Expenses',
+                      amount: _fixedTotal,
+                      context: context,
+                      iconAsset: 'assets/icons/fixed_expense.svg',
+                    ),
+                    const SizedBox(height: 16),
+                    _SummaryRow(
+                      label: 'Variable Expenses',
+                      amount: _variableTotal,
+                      context: context,
+                      iconAsset: 'assets/icons/variable_expense.svg',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ],
