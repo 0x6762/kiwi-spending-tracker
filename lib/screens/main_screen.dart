@@ -183,30 +183,39 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _buildExpenseList(List<Expense> filteredExpenses) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 24, 8, 16),
-          child: Text(
-            'Recent transactions',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
+    final theme = Theme.of(context);
+    
+    return Card(
+      color: theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+          bottomLeft: Radius.circular(0),
+          bottomRight: Radius.circular(0),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+
+      ),
+      elevation: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: Text(
+              'Recent transactions',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
-          child: ExpenseList(
+          ExpenseList(
             expenses: filteredExpenses,
             onTap: _viewExpenseDetails,
             onDelete: _deleteExpense,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -224,8 +233,15 @@ class _MainScreenState extends State<MainScreen>
         onRefresh: _loadExpenses,
         color: Theme.of(context).colorScheme.primary,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 8, right: 8, bottom: 80),
+          padding: const EdgeInsets.only(
+            left: 8,
+            right: 8,
+            bottom: 92, // navigation bar height + small buffer
+          ),
+          clipBehavior: Clip.none,
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               _buildHeader(),
               ExpenseSummary(
@@ -251,6 +267,8 @@ class _MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      resizeToAvoidBottomInset: false,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -367,15 +385,9 @@ class _BottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
+      margin: EdgeInsets.zero,
       child: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: onDestinationSelected,
         selectedIndex: selectedIndex > 0 ? selectedIndex + 1 : selectedIndex,
         backgroundColor: theme.colorScheme.surfaceContainer,

@@ -110,13 +110,13 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
         children: [
           if (widget.showChart) ...[
             Card(
-              color: theme.colorScheme.surfaceContainer,
+              color: theme.colorScheme.surfaceContainerLowest,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
               elevation: 0,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -145,7 +145,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 0),
             Card(
               color: theme.colorScheme.surfaceContainer,
               shape: RoundedRectangleBorder(

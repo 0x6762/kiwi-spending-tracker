@@ -49,9 +49,9 @@ class MonthlyExpenseChart extends StatelessWidget {
     final monthFormat = DateFormat.MMM();
 
     return AspectRatio(
-      aspectRatio: 2.4,
+      aspectRatio: 2.5,
       child: Padding(
-        padding: const EdgeInsets.only(top: 24),
+        padding: const EdgeInsets.only(top: 24, bottom: 0),
         child: BarChart(
           BarChartData(
             alignment: BarChartAlignment.spaceBetween,
@@ -71,9 +71,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                     color: total > 0
                         ? (isSelectedMonth
                             ? theme.colorScheme.onSurface //selected month bar color
-                            : theme.colorScheme
-                                .surfaceContainerLowest) //other months bar color
-                        : theme.colorScheme.surfaceContainer, //no expenses bar color
+                            : theme.colorScheme.onSurface.withOpacity(0.3)) //other months bar color
+                        : theme.colorScheme.onSurface.withOpacity(0.1), //no expenses bar color
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
                       toY: expenses.isEmpty ? 100 : null,
@@ -108,7 +107,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                 }
               },
               touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: theme.colorScheme.surfaceContainer,
+                tooltipBgColor: theme.colorScheme.surfaceContainerLowest,
                 tooltipPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                 tooltipMargin: 8,
                 tooltipRoundedRadius: 16,
@@ -153,7 +152,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                       ),
                     );
                   },
-                  reservedSize: 32,
+                  reservedSize: 24,
                 ),
               ),
               leftTitles: const AxisTitles(
