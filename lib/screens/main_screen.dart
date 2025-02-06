@@ -134,21 +134,24 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _MonthPickerButton(
-            selectedMonth: _selectedMonth,
-            monthFormat: _monthFormat,
-            onPressed: _showMonthPicker,
+    return Column(
+      children: [
+        SizedBox(height: MediaQuery.of(context).padding.top),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _MonthPickerButton(
+                selectedMonth: _selectedMonth,
+                monthFormat: _monthFormat,
+                onPressed: _showMonthPicker,
+              ),
+              _SettingsButton(),
+            ],
           ),
-          _SettingsButton(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -186,6 +189,7 @@ class _MainScreenState extends State<MainScreen>
     final theme = Theme.of(context);
     
     return Card(
+      margin: EdgeInsets.zero,
       color: theme.colorScheme.surfaceContainer,
       shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.only(
@@ -194,14 +198,13 @@ class _MainScreenState extends State<MainScreen>
           bottomLeft: Radius.circular(28),
           bottomRight: Radius.circular(28),
         ),
-
       ),
       elevation: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             child: Text(
               'Recent transactions',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -236,7 +239,7 @@ class _MainScreenState extends State<MainScreen>
           padding: const EdgeInsets.only(
             left: 0,
             right: 0,
-            bottom: 100, // navigation bar height + small buffer
+            bottom: 104, // navigation bar height + small buffer
           ),
           clipBehavior: Clip.none,
           physics: const AlwaysScrollableScrollPhysics(),
@@ -256,7 +259,10 @@ class _MainScreenState extends State<MainScreen>
               if (filteredExpenses.isEmpty)
                 _buildEmptyState()
               else
-                _buildExpenseList(filteredExpenses),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _buildExpenseList(filteredExpenses),
+                ),
             ],
           ),
         ),
@@ -330,7 +336,7 @@ class _MonthPickerButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
         padding: const EdgeInsets.only(
           left: 16,
@@ -344,7 +350,10 @@ class _MonthPickerButton extends StatelessWidget {
         children: [
           Text(monthFormat.format(selectedMonth)),
           const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down),
+          Icon(
+            Icons.keyboard_arrow_down,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -386,11 +395,18 @@ class _BottomNavBar extends StatelessWidget {
     
     return Container(
       margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+      ),
       child: NavigationBar(
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: onDestinationSelected,
         selectedIndex: selectedIndex > 0 ? selectedIndex + 1 : selectedIndex,
-        backgroundColor: theme.colorScheme.surfaceContainer,
+        backgroundColor: Colors.transparent,
         indicatorColor: theme.colorScheme.primary.withOpacity(0.1),
         height: 72,
         destinations: [

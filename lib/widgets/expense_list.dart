@@ -162,10 +162,13 @@ class ExpenseList extends StatelessWidget {
   Widget build(BuildContext context) {
     final sortedExpenses = _sortedExpenses;
 
-    return Column(
-      children: sortedExpenses
-          .map((expense) => _buildExpenseItem(context, expense))
-          .toList(),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        children: sortedExpenses
+            .map((expense) => _buildExpenseItem(context, expense))
+            .toList(),
+      ),
     );
   }
 }

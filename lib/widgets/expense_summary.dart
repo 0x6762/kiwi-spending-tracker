@@ -110,6 +110,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
         children: [
           if (widget.showChart) ...[
             Card(
+              margin: EdgeInsets.zero,
               color: theme.colorScheme.surfaceContainerLowest,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
@@ -145,8 +146,9 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 ),
               ),
             ),
-            const SizedBox(height: 0),
+            const SizedBox(height: 8),
             Card(
+              margin: EdgeInsets.zero,
               color: theme.colorScheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
@@ -163,7 +165,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                       context: context,
                       iconAsset: 'assets/icons/fixed_expense.svg',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 0),
                     _SummaryRow(
                       label: 'Variable Expenses',
                       amount: _variableTotal,
@@ -216,7 +218,7 @@ class _SummaryRow extends StatelessWidget {
               BlendMode.srcIn,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               label,
