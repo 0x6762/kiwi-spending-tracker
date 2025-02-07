@@ -235,10 +235,12 @@ class _MainScreenState extends State<MainScreen>
         color: Theme.of(context).colorScheme.primary,
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
-            left: 0,
-            right: 0,
+            left: 8, // main padding left
+            right: 8, // main padding right
             bottom: 104, // navigation bar height + small buffer
           ),
+
+
           clipBehavior: Clip.none,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -363,7 +365,7 @@ class _SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(
-        Icons.menu,
+        Icons.more_horiz,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       onPressed: () {
@@ -394,10 +396,10 @@ class _BottomNavBar extends StatelessWidget {
     return Container(
       margin: EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
+        color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
+          topLeft: Radius.circular(0),
+          topRight: Radius.circular(0),
         ),
       ),
       child: Padding(

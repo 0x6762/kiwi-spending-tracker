@@ -103,7 +103,7 @@ class ExpenseList extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: onTap != null ? () => onTap!(expense) : null,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 CircleAvatar(
@@ -163,7 +163,7 @@ class ExpenseList extends StatelessWidget {
     final sortedExpenses = _sortedExpenses;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Column(
         children: sortedExpenses
             .map((expense) => _buildExpenseItem(context, expense))

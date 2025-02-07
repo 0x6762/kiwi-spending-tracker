@@ -146,7 +146,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8), // spacing between chart and summary
             Card(
               margin: EdgeInsets.zero,
               color: theme.colorScheme.surfaceContainer,

@@ -8,6 +8,7 @@ import '../models/account.dart';
 import '../utils/formatters.dart';
 import '../widgets/picker_sheet.dart';
 import '../widgets/add_category_sheet.dart';
+import '../screens/settings_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -198,10 +199,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
   void _showExpenseTypeSheet() {
     PickerSheet.show(
       context: context,
-      title: 'Select Type',
+      title: 'Expense Type',
       children: [
         ListTile(
-          title: const Text('All Types'),
+          title: const Text('All'),
           selected: _selectedExpenseType == null,
           onTap: () {
             setState(() => _selectedExpenseType = null);
@@ -270,7 +271,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
           // Month filter
@@ -314,6 +315,43 @@ class _InsightsScreenState extends State<InsightsScreen> {
     );
   }
 
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        SizedBox(height: MediaQuery.of(context).padding.top),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Text(
+                  'Insights',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -321,68 +359,70 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar.medium(
-              title: const Text('Insights'),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _buildHeader(),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildFilterRow(),
+                const SizedBox(height: 16),
+              ],
             ),
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  _buildFilterRow(),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            if (categoryTotals.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    'No expenses this month',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+          ),
+          if (categoryTotals.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  'No expenses this month',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    ...categoryTotals.entries.map((entry) {
-                      final amount = _filteredExpenses
-                          .where((e) =>
-                              e.category == entry.key ||
-                              (entry.key == 'Uncategorized' &&
-                                  e.category == null))
-                          .fold(0.0, (sum, e) => sum + e.amount);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Card(
-                          color: theme.colorScheme.surfaceContainer,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: _buildCategoryRow(
-                              context,
-                              entry.key,
-                              entry.value,
-                              amount,
-                            ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  ...categoryTotals.entries.map((entry) {
+                    final amount = _filteredExpenses
+                        .where((e) =>
+                            e.category == entry.key ||
+                            (entry.key == 'Uncategorized' &&
+                                e.category == null))
+                        .fold(0.0, (sum, e) => sum + e.amount);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        color: theme.colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: _buildCategoryRow(
+                            context,
+                            entry.key,
+                            entry.value,
+                            amount,
                           ),
                         ),
-                      );
-                    }).toList(),
-                    // Add bottom padding for navigation bar
-                    SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-                  ]),
-                ),
+                      ),
+                    );
+                  }).toList(),
+                  // Add bottom padding for navigation bar
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
+                ]),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
