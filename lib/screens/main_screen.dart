@@ -400,51 +400,54 @@ class _BottomNavBar extends StatelessWidget {
           topRight: Radius.circular(28),
         ),
       ),
-      child: NavigationBar(
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: onDestinationSelected,
-        selectedIndex: selectedIndex > 0 ? selectedIndex + 1 : selectedIndex,
-        backgroundColor: Colors.transparent,
-        indicatorColor: theme.colorScheme.primary.withOpacity(0.1),
-        height: 72,
-        destinations: [
-          NavigationDestination(
-            icon: Icon(
-              Icons.wallet_outlined,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            selectedIcon: Icon(
-              Icons.wallet,
-              color: theme.colorScheme.onSurface,
-            ),
-            label: 'Spending',
-          ),
-          NavigationDestination(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: NavigationBar(
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          onDestinationSelected: onDestinationSelected,
+          selectedIndex: selectedIndex > 0 ? selectedIndex + 1 : selectedIndex,
+          backgroundColor: Colors.transparent,
+          indicatorColor: theme.colorScheme.primary.withOpacity(0.1),
+          height: 72,
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.wallet_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-              child: Icon(
-                Icons.add,
-                color: theme.colorScheme.surface,
+              selectedIcon: Icon(
+                Icons.wallet,
+                color: theme.colorScheme.onSurface,
               ),
+              label: '',
             ),
-            label: 'Add',
-          ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.insights_outlined,
-              color: theme.colorScheme.onSurfaceVariant,
+            NavigationDestination(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.add,
+                  color: theme.colorScheme.surface,
+                ),
+              ),
+              label: '',
             ),
-            selectedIcon: Icon(
-              Icons.insights,
-              color: theme.colorScheme.onSurface,
+            NavigationDestination(
+              icon: Icon(
+                Icons.insights_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              selectedIcon: Icon(
+                Icons.insights,
+                color: theme.colorScheme.onSurface,
+              ),
+              label: '',
             ),
-            label: 'Insights',
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
