@@ -363,7 +363,7 @@ class _SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(
-        Icons.settings_outlined,
+        Icons.menu,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       onPressed: () {
