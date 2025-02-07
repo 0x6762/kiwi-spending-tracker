@@ -188,37 +188,32 @@ class _MainScreenState extends State<MainScreen>
   Widget _buildExpenseList(List<Expense> filteredExpenses) {
     final theme = Theme.of(context);
     
-    return Card(
-      margin: EdgeInsets.zero,
-      color: theme.colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      elevation: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-            child: Text(
-              'Recent transactions',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+          child: Text(
+            'Recent transactions',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          ExpenseList(
+        ),
+        Card(
+          margin: EdgeInsets.zero,
+          color: theme.colorScheme.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          elevation: 0,
+          child: ExpenseList(
             expenses: filteredExpenses,
             onTap: _viewExpenseDetails,
             onDelete: _deleteExpense,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
