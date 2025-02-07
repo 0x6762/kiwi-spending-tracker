@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
@@ -60,6 +61,8 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _loadExpenses() async {
     final expenses = await widget.repository.getAllExpenses();
+    final prefs = await SharedPreferences.getInstance();
+    await ExpenseCategories.loadCustomCategories(prefs);
     setState(() {
       _expenses = expenses;
     });

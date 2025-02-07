@@ -5,6 +5,7 @@ import 'screens/main_screen.dart';
 import 'repositories/expense_repository.dart';
 import 'theme/theme.dart';
 import 'utils/formatters.dart';
+import 'models/expense_category.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,9 @@ void main() async {
 
   // Initialize currency formatter
   await initializeFormatter();
+
+  // Initialize categories
+  await ExpenseCategories.loadCustomCategories(prefs);
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(

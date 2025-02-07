@@ -29,16 +29,38 @@ class ExpenseCategory {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'icon': icon.codePoint,
+      'icon': {
+        'codePoint': icon.codePoint,
+        'fontFamily': icon.fontFamily,
+        'fontPackage': icon.fontPackage,
+        'matchTextDirection': icon.matchTextDirection,
+      },
     };
   }
 
   factory ExpenseCategory.fromJson(Map<String, dynamic> json) {
-    final iconCodePoint = json['icon'] as int;
+    final iconData = json['icon'];
+    IconData icon;
+    
+    if (iconData is Map) {
+      // New format with full icon data
+      icon = IconData(
+        iconData['codePoint'],
+        fontFamily: iconData['fontFamily'],
+        fontPackage: iconData['fontPackage'],
+        matchTextDirection: iconData['matchTextDirection'] ?? false,
+      );
+    } else {
+      // Legacy format with just codePoint
+      icon = IconData(
+        iconData as int,
+        fontFamily: 'MaterialIcons',
+      );
+    }
+
     return ExpenseCategory(
       name: json['name'],
-      icon: _iconMap[iconCodePoint] ??
-          _iconMap[0xe318]!, // Default to category icon if not found
+      icon: icon,
     );
   }
 
