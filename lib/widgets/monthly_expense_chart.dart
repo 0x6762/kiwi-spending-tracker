@@ -18,10 +18,10 @@ class MonthlyExpenseChart extends StatelessWidget {
 
   List<DateTime> _getLast6Months() {
     final now = DateTime.now();
-    return List.generate(6, (index) {
+    return List.generate(5, (index) {
       return DateTime(
         now.year,
-        now.month - (5 - index), // Start from 5 months ago
+        now.month - (4 - index), // Start from 5 months ago
       );
     });
   }
@@ -67,7 +67,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                 barRods: [
                   BarChartRodData(
                     toY: total > 0 ? total : 100,
-                    width: 48,
+                    width: MediaQuery.of(context).size.width * 0.15, // 15% of screen width
                     color: total > 0
                         ? (isSelectedMonth
                             ? theme.colorScheme.onSurface //selected month bar color
@@ -107,7 +107,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                 }
               },
               touchTooltipData: BarTouchTooltipData(
-                tooltipBgColor: theme.colorScheme.surfaceContainerLowest,
+                tooltipBgColor: theme.colorScheme.onSurface.withOpacity(0.1),
                 tooltipPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                 tooltipMargin: 8,
                 tooltipRoundedRadius: 16,
@@ -120,8 +120,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                       month.month == selectedMonth.month;
                   return BarTooltipItem(
                     _formatAmount(total),
-                    theme.textTheme.bodySmall!.copyWith(
-                      fontWeight: FontWeight.bold,
+                    theme.textTheme.labelSmall!.copyWith(
+                      // fontWeight: FontWeight.bold,
                       color: isSelectedMonth
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurfaceVariant.withOpacity(1),
@@ -145,12 +145,13 @@ class MonthlyExpenseChart extends StatelessWidget {
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
-                        monthFormat.format(month),
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        monthFormat.format(month).toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     );
+
                   },
                   reservedSize: 24,
                 ),

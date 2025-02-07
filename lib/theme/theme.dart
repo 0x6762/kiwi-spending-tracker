@@ -39,8 +39,16 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w400,
       ),
+      labelSmall: base.labelSmall?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 12,
+        height: 1.4,
+        fontWeight: FontWeight.w500,
+      ),
+
     );
   }
+
 
   static final textTheme = _buildTextTheme(
     ThemeData.light().textTheme,
