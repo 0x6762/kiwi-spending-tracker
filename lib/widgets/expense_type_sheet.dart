@@ -23,6 +23,7 @@ class ExpenseTypeSheet extends StatelessWidget {
           iconAsset: 'assets/icons/fixed_expense.svg',
           iconColor: const Color(0xFFCF5825),
           onTap: onFixedSelected,
+
         ),
         const SizedBox(height: 8),
         _ExpenseTypeButton(
@@ -68,7 +69,7 @@ class _ExpenseTypeButton extends StatelessWidget {
             children: [
               Container(
 
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -97,7 +98,7 @@ class _ExpenseTypeButton extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
 
@@ -105,6 +106,7 @@ class _ExpenseTypeButton extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 16),
               Icon(
                 Icons.chevron_right,
                 color: theme.colorScheme.onSurfaceVariant,
