@@ -99,96 +99,82 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
     );
   }
 
-  void _showMonthPicker() async {
-    final DateTime? picked = await showDialog<DateTime>(
-      context: context,
-      builder: (BuildContext context) {
-        return MonthPickerDialog(
-          selectedMonth: widget.selectedMonth,
-          expenses: widget.expenses,
-        );
-      },
-    );
-
-    if (picked != null) {
-      widget.onMonthSelected(picked);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: _showMonthPicker,
-              style: TextButton.styleFrom(
-                backgroundColor: theme.colorScheme.surfaceContainer,
-                foregroundColor: theme.colorScheme.onSurfaceVariant,
-                padding: const EdgeInsets.only(
-                  left: 16,
-                  right: 10,
-                  top: 8,
-                  bottom: 8,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_monthFormat.format(widget.selectedMonth)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down),
-                ],
-              ),
-            ),
-          ),
           if (widget.showChart) ...[
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Spent',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainerLowest,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Spent',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formatCurrency(_monthlyTotal),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    _buildMonthComparison(context),
+                    const SizedBox(height: 32),
+                    MonthlyExpenseChart(
+                      expenses: widget.expenses,
+                      selectedMonth: widget.selectedMonth,
+                      onMonthSelected: widget.onMonthSelected,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  formatCurrency(_monthlyTotal),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _SummaryRow(
+                      label: 'Fixed Expenses',
+                      amount: _fixedTotal,
+                      context: context,
+                      iconAsset: 'assets/icons/fixed_expense.svg',
+                    ),
+                    const SizedBox(height: 0),
+                    _SummaryRow(
+                      label: 'Variable Expenses',
+                      amount: _variableTotal,
+                      context: context,
+                      iconAsset: 'assets/icons/variable_expense.svg',
+                    ),
+                  ],
                 ),
-                _buildMonthComparison(context),
-              ],
-            ),
-            const SizedBox(height: 32),
-            MonthlyExpenseChart(
-              expenses: widget.expenses,
-              selectedMonth: widget.selectedMonth,
-              onMonthSelected: widget.onMonthSelected,
-            ),
-            const SizedBox(height: 32),
-            _SummaryRow(
-              label: 'Fixed Expenses',
-              amount: _fixedTotal,
-              context: context,
-              iconAsset: 'assets/icons/fixed_expense.svg',
-            ),
-            const SizedBox(height: 16),
-            _SummaryRow(
-              label: 'Variable Expenses',
-              amount: _variableTotal,
-              context: context,
-              iconAsset: 'assets/icons/variable_expense.svg',
+              ),
             ),
           ],
         ],
@@ -232,7 +218,7 @@ class _SummaryRow extends StatelessWidget {
               BlendMode.srcIn,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               label,
@@ -248,81 +234,6 @@ class _SummaryRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class MonthPickerDialog extends StatelessWidget {
-  final DateTime selectedMonth;
-  final List<Expense> expenses;
-
-  const MonthPickerDialog({
-    super.key,
-    required this.selectedMonth,
-    required this.expenses,
-  });
-
-  List<DateTime> get _availableMonths {
-    final months = expenses
-        .map((e) => DateTime(e.date.year, e.date.month))
-        .toSet()
-        .toList();
-    months.sort((a, b) => b.compareTo(a)); // Most recent first
-    return months;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final monthFormat = DateFormat.yMMMM();
-    final months = _availableMonths;
-
-    return Dialog(
-      backgroundColor: Theme.of(context)
-          .colorScheme
-          .surfaceContainer, //select month top picker background color
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Month',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: months.length,
-                itemBuilder: (context, index) {
-                  final month = months[index];
-                  final isSelected = month.year == selectedMonth.year &&
-                      month.month == selectedMonth.month;
-
-                  return ListTile(
-                    title: Text(monthFormat.format(month)),
-                    selected: isSelected,
-                    onTap: () => Navigator.pop(context, month),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

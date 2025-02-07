@@ -1,49 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'bottom_sheet.dart';
 
 class ExpenseTypeSheet extends StatelessWidget {
-  const ExpenseTypeSheet({super.key});
+  final VoidCallback onFixedSelected;
+  final VoidCallback onVariableSelected;
+
+  const ExpenseTypeSheet({
+    super.key,
+    required this.onFixedSelected,
+    required this.onVariableSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 8),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: 24, top: 4),
-          //   child: Text(
-          //     'Expense Type',
-          //     style: theme.textTheme.titleMedium,
-          //   ),
-          // ),
-          _ExpenseTypeButton(
-            title: 'Fixed Expense',
-            subtitle: 'Recurring expenses like rent, bills, subscriptions',
-            iconAsset: 'assets/icons/fixed_expense.svg',
-            iconColor: const Color(0xFFCF5825),
-            onTap: () => Navigator.pop(context, true),
-          ),
-          const SizedBox(height: 24),
-          _ExpenseTypeButton(
-            title: 'Variable Expense',
-            subtitle: 'One-time expenses like groceries, shopping',
-            iconAsset: 'assets/icons/variable_expense.svg',
-            iconColor: const Color(0xFF8056E4),
-            onTap: () => Navigator.pop(context, false),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+    return AppBottomSheet(
+      contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+      children: [
+        _ExpenseTypeButton(
+          title: 'Fixed Expense',
+          subtitle: 'Recurring expenses like rent, bills, subscriptions',
+          iconAsset: 'assets/icons/fixed_expense.svg',
+          iconColor: const Color(0xFFCF5825),
+          onTap: onFixedSelected,
+        ),
+        const SizedBox(height: 8),
+        _ExpenseTypeButton(
+          title: 'Variable Expense',
+          subtitle: 'One-time expenses like groceries, shopping',
+          iconAsset: 'assets/icons/variable_expense.svg',
+          iconColor: const Color(0xFF8056E4),
+          onTap: onVariableSelected,
+        ),
+      ],
     );
   }
 }
@@ -68,16 +57,17 @@ class _ExpenseTypeButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surfaceContainer, //Button background color
+      color: theme.colorScheme.surfaceContainer,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(0),
+          padding: const EdgeInsets.only(bottom: 16),
           child: Row(
             children: [
               Container(
+
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
@@ -107,9 +97,10 @@ class _ExpenseTypeButton extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
+
                     ),
                   ],
                 ),

@@ -1,52 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static TextTheme _buildTextTheme(TextTheme base) {
-    return GoogleFonts.interTextTheme(base).copyWith(
+    return base.copyWith(
       // Used for the total amount in expense summary (largest text)
-      headlineMedium: GoogleFonts.inter(
-        textStyle: base.headlineMedium?.copyWith(
-          fontSize: 32,
-          height: 1.2,
-          fontWeight: FontWeight.w600,
-        ),
+      headlineMedium: base.headlineMedium?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 32,
+        height: 1.2,
+        fontWeight: FontWeight.w600,
       ),
       // Used for dialog titles and main headings
-      titleLarge: GoogleFonts.inter(
-        textStyle: base.titleLarge?.copyWith(
-          fontSize: 22,
-          height: 1.2,
-          fontWeight: FontWeight.w600,
-        ),
+      titleLarge: base.titleLarge?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 22,
+        height: 1.2,
+        fontWeight: FontWeight.w600,
       ),
       // Used for section titles and expense amounts
-      titleMedium: GoogleFonts.inter(
-        textStyle: base.titleMedium?.copyWith(
-          fontSize: 16,
-          height: 1.4,
-          fontWeight: FontWeight.w500,
-        ),
+      titleMedium: base.titleMedium?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        height: 1.4,
+        fontWeight: FontWeight.w500,
       ),
       // Used for expense titles and primary labels
-      bodyLarge: GoogleFonts.inter(
-        textStyle: base.bodyLarge?.copyWith(
-          fontSize: 16,
-          height: 1.4,
-          fontWeight: FontWeight.w400,
-        ),
+      bodyLarge: base.bodyLarge?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 16,
+        height: 1.4,
+        fontWeight: FontWeight.w400,
       ),
       // Used for dates, account names, and secondary text
-      bodySmall: GoogleFonts.inter(
-        textStyle: base.bodySmall?.copyWith(
-          fontSize: 12,
-          height: 1.4,
-          fontWeight: FontWeight.w400,
-        ),
+      bodySmall: base.bodySmall?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        height: 1.4,
+        fontWeight: FontWeight.w400,
       ),
+      labelSmall: base.labelSmall?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 12,
+        height: 1.4,
+        fontWeight: FontWeight.w500,
+      ),
+
     );
   }
+
 
   static final textTheme = _buildTextTheme(
     ThemeData.light().textTheme,

@@ -1,34 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
 import '../utils/formatters.dart';
-import '../widgets/expense_summary.dart';
-import '../widgets/add_category_sheet.dart';
-import '../widgets/picker_button.dart';
 import '../widgets/picker_sheet.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'category_management_screen.dart';
+import '../widgets/add_category_sheet.dart';
 
-class CategoriesScreen extends StatefulWidget {
+class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
 
-  const CategoriesScreen({
+  const InsightsScreen({
     super.key,
     required this.expenses,
   });
 
   @override
-  State<CategoriesScreen> createState() => _CategoriesScreenState();
+  State<InsightsScreen> createState() => _InsightsScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> {
+class _InsightsScreenState extends State<InsightsScreen> {
   final _monthFormat = DateFormat.yMMMM();
   late DateTime _selectedMonth;
-  bool?
-      _selectedExpenseType; // null for all, true for fixed, false for variable
+  bool? _selectedExpenseType; // null for all, true for fixed, false for variable
   String? _selectedAccountId;
 
   @override
@@ -205,7 +201,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       title: 'Select Type',
       children: [
         ListTile(
-          title: Text('All Types'),
+          title: const Text('All Types'),
           selected: _selectedExpenseType == null,
           onTap: () {
             setState(() => _selectedExpenseType = null);
@@ -213,7 +209,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           },
         ),
         ListTile(
-          title: Text('Fixed'),
+          title: const Text('Fixed'),
           selected: _selectedExpenseType == true,
           onTap: () {
             setState(() => _selectedExpenseType = true);
@@ -221,7 +217,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           },
         ),
         ListTile(
-          title: Text('Variable'),
+          title: const Text('Variable'),
           selected: _selectedExpenseType == false,
           onTap: () {
             setState(() => _selectedExpenseType = false);
@@ -238,7 +234,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       title: 'Select Account',
       children: [
         ListTile(
-          title: Text('All Accounts'),
+          title: const Text('All Accounts'),
           selected: _selectedAccountId == null,
           onTap: () {
             setState(() => _selectedAccountId = null);
@@ -328,15 +324,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: theme.colorScheme.surface,
-              centerTitle: false,
-              titleSpacing: 16,
-              title: Text(
-                'Insights',
-                style: theme.textTheme.titleLarge,
-              ),
+            SliverAppBar.medium(
+              title: const Text('Insights'),
             ),
             SliverToBoxAdapter(
               child: Column(
@@ -388,11 +377,84 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       );
                     }).toList(),
                     // Add bottom padding for navigation bar
-                    SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 80),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
                   ]),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MonthPickerDialog extends StatelessWidget {
+  final DateTime selectedMonth;
+  final List<Expense> expenses;
+
+  const MonthPickerDialog({
+    super.key,
+    required this.selectedMonth,
+    required this.expenses,
+  });
+
+  List<DateTime> get _availableMonths {
+    final months = expenses
+        .map((e) => DateTime(e.date.year, e.date.month))
+        .toSet()
+        .toList();
+    months.sort((a, b) => b.compareTo(a)); // Most recent first
+    return months;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthFormat = DateFormat.yMMMM();
+    final months = _availableMonths;
+    final theme = Theme.of(context);
+
+    return Dialog(
+      backgroundColor: theme.colorScheme.surfaceContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Month',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: months.length,
+                itemBuilder: (context, index) {
+                  final month = months[index];
+                  final isSelected = month.year == selectedMonth.year &&
+                      month.month == selectedMonth.month;
+
+                  return ListTile(
+                    title: Text(monthFormat.format(month)),
+                    selected: isSelected,
+                    onTap: () => Navigator.pop(context, month),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
