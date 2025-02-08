@@ -135,7 +135,7 @@ class MonthlyExpenseChart extends StatelessWidget {
               },
               touchTooltipData: BarTouchTooltipData(
                 tooltipBgColor: theme.colorScheme.onSurface.withOpacity(0.1),
-                tooltipPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                tooltipPadding: const EdgeInsets.fromLTRB(8, 8, 8, 3),
                 tooltipMargin: 8,
                 tooltipRoundedRadius: 16,
                 fitInsideHorizontally: false,
