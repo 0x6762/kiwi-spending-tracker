@@ -54,7 +54,10 @@ class ExpenseList extends StatelessWidget {
         ? ExpenseCategories.findByName(expense.category!)
         : null;
     final account = DefaultAccounts.defaultAccounts
-        .firstWhere((a) => a.id == expense.accountId);
+        .firstWhere(
+          (a) => a.id == expense.accountId,
+          orElse: () => DefaultAccounts.checking,
+        );
 
     return Dismissible(
       key: Key(expense.id),

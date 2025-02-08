@@ -9,6 +9,7 @@ import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
+import '../widgets/voice_input_button.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -282,6 +283,13 @@ class _MainScreenState extends State<MainScreen>
           InsightsScreen(expenses: _expenses),
         ],
       ),
+      floatingActionButton: _selectedIndex == 0 ? VoiceInputButton(
+        repository: widget.repository,
+        onExpenseAdded: () {
+          _loadExpenses();
+        },
+      ) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _BottomNavBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
