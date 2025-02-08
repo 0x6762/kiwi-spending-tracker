@@ -32,6 +32,31 @@ class MonthlyExpenseChart extends StatelessWidget {
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
+  double _calculateBarHeight(double total, List<DateTime> months) {
+    if (total <= 0) return 8; // Minimum height for empty months
+    
+    // Find the maximum value to calculate proportions
+    final maxTotal = months
+        .map((month) => _getMonthlyTotal(month))
+        .reduce((max, value) => value > max ? value : max);
+    
+    // Calculate height with a minimum of 10% of max value for non-zero values
+    final minHeight = maxTotal * 0.1;
+    return total < minHeight ? minHeight : total;
+  }
+
+  double _calculateBorderRadius(double total, List<DateTime> months) {
+    if (total <= 0) return 4; // Minimum radius for empty months
+    
+    // Find the maximum value to calculate proportion
+    final maxTotal = months
+        .map((month) => _getMonthlyTotal(month))
+        .reduce((max, value) => value > max ? value : max);
+    
+    // Interpolate between 6 and 16 based on the proportion of max value
+    return 4 + (total / maxTotal) * 12;
+  }
+
   String _formatAmount(double amount) {
     if (amount < 1000) {
       return formatCurrency(amount);
@@ -55,6 +80,10 @@ class MonthlyExpenseChart extends StatelessWidget {
         child: BarChart(
           BarChartData(
             alignment: BarChartAlignment.spaceBetween,
+            minY: 0,
+            maxY: months
+                .map((month) => _getMonthlyTotal(month))
+                .reduce((max, value) => value > max ? value : max),
             barGroups: months.asMap().entries.map((entry) {
               final index = entry.key;
               final month = entry.value;
@@ -66,7 +95,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                 x: index,
                 barRods: [
                   BarChartRodData(
-                    toY: total > 0 ? total : 100,
+                    toY: _calculateBarHeight(total, months),
                     width: MediaQuery.of(context).size.width * 0.15, // 15% of screen width
                     color: total > 0
                         ? (isSelectedMonth
@@ -74,19 +103,14 @@ class MonthlyExpenseChart extends StatelessWidget {
                             : theme.colorScheme.onSurface.withOpacity(0.2)) //other months bar color
                         : theme.colorScheme.onSurface.withOpacity(0.07), //no expenses bar color
                     backDrawRodData: BackgroundBarChartRodData(
-                      show: true,
-                      toY: expenses.isEmpty ? 100 : null,
+                      show: false,
                       color: theme.colorScheme.primaryContainer.withOpacity(0.2),
                     ),
-                    rodStackItems: [
-                      BarChartRodStackItem(
-                        0,
-                        total > 0 ? total : 100, // Match the full height
-                        Colors.transparent,
-                        BorderSide.none,
-                      ),
-                    ],
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(_calculateBorderRadius(total, months))
+                    ),
+                    rodStackItems: [],
+                    fromY: 0,
                   ),
                 ],
                 showingTooltipIndicators: total > 0 ? [0] : [],
