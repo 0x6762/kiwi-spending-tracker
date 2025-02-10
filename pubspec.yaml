@@ -39,6 +39,8 @@ dependencies:
   intl: ^0.18.1
   flutter_svg: ^2.0.17
   fl_chart: ^0.63.0
+  speech_to_text: ^6.6.0
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_test:

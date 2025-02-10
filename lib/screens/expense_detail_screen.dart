@@ -99,7 +99,10 @@ class ExpenseDetailScreen extends StatelessWidget {
         ? ExpenseCategories.findByName(expense.category!)
         : null;
     final account = DefaultAccounts.defaultAccounts
-        .firstWhere((a) => a.id == expense.accountId);
+        .firstWhere(
+          (a) => a.id == expense.accountId,
+          orElse: () => DefaultAccounts.checking,
+        );
 
     final isFixed = expense.isFixed;
     final expenseTypeColor =
