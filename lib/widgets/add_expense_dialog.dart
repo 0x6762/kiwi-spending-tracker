@@ -148,7 +148,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
     final amount = double.parse(_amountController.text);
     final expense = Expense(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: const Uuid().v4(),
       title: _titleController.text.trim().isNotEmpty 
         ? _titleController.text.trim()
         : _selectedCategoryInfo!.name,

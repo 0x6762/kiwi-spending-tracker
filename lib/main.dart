@@ -6,6 +6,7 @@ import 'repositories/expense_repository.dart';
 import 'repositories/category_repository.dart';
 import 'theme/theme.dart';
 import 'utils/formatters.dart';
+import 'utils/category_migration.dart';
 import 'models/expense_category.dart';
 import 'providers/category_provider.dart';
 
@@ -18,6 +19,9 @@ void main() async {
 
   // Initialize repositories
   final categoryRepo = await CategoryProvider.getInstance();
+
+  // Run category migration
+  await CategoryMigration.migrateToIds(prefs, categoryRepo);
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(

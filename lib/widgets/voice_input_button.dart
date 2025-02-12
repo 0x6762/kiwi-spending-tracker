@@ -143,9 +143,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       title: description,
       amount: amount,
       date: DateTime.now(),
-      categoryId: 'other', // Default category
+      categoryId: 'other', // Default category ID
       createdAt: DateTime.now(),
-      accountId: 'default',
+      accountId: 'checking', // Default account
       isFixed: false,
     );
 

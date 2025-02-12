@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../models/expense_category.dart';
 import '../providers/category_provider.dart';
 import '../repositories/category_repository.dart';
@@ -23,6 +24,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   final _nameController = TextEditingController();
   IconData _selectedIcon = Icons.category_outlined;
   late Future<CategoryRepository> _categoryRepoFuture;
+  static final _uuid = const Uuid();
 
   @override
   void initState() {
@@ -40,11 +42,19 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     super.dispose();
   }
 
+  String _generateCategoryId() {
+    if (widget.categoryToEdit != null) {
+      return widget.categoryToEdit!.id;
+    }
+    // Generate a unique ID for new categories
+    return 'cat_${_uuid.v4()}';
+  }
+
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       final repo = await _categoryRepoFuture;
       final newCategory = ExpenseCategory(
-        id: widget.categoryToEdit?.id ?? _nameController.text.trim().toLowerCase().replaceAll(' ', '_'),
+        id: _generateCategoryId(),
         name: _nameController.text.trim(),
         icon: _selectedIcon,
       );
@@ -92,6 +102,12 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter a category name';
+                }
+                if (value.trim().length < 2) {
+                  return 'Category name must be at least 2 characters';
+                }
+                if (value.trim().length > 30) {
+                  return 'Category name must be less than 30 characters';
                 }
                 return null;
               },
