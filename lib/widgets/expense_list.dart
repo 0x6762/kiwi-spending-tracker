@@ -123,17 +123,17 @@ class _ExpenseListState extends State<ExpenseList> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            title: Text(expense.title),
+            title: Text(expense.title, style: Theme.of(context).textTheme.titleMedium),
             subtitle: Text(
-              '${_formatDate(expense.date)} • ${account.name}',
+              _formatDate(expense.date),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             trailing: Text(
               formatCurrency(expense.amount),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
@@ -160,7 +160,7 @@ class _ExpenseListState extends State<ExpenseList> {
       controller: widget.scrollController,
       shrinkWrap: true, // This ensures the list takes only the space it needs
       physics: const NeverScrollableScrollPhysics(), // Disable scrolling within the list
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       itemCount: expenses.length,
       itemBuilder: (context, index) {
         final expense = expenses[index];
@@ -171,27 +171,26 @@ class _ExpenseListState extends State<ExpenseList> {
           previousDate == null || 
           !isSameDay(expense.date, previousDate);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showDateHeader) ...[
-              if (!isFirstItem) const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 8),
-                child: Text(
-                  _formatDate(expense.date),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showDateHeader) ...[
+                if (!isFirstItem) const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.only(left: 24, bottom: 8),
+                  child: Text(
+                    _formatDate(expense.date),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              ),
+              ],
+              _buildExpenseItem(context, expense)
             ],
-            Card(
-              margin: EdgeInsets.zero,
-              child: _buildExpenseItem(context, expense),
-            ),
-            if (!isLastItem) const SizedBox(height: 8),
-          ],
+          ),
         );
       },
     );
