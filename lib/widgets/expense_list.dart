@@ -110,31 +110,52 @@ class _ExpenseListState extends State<ExpenseList> {
               widget.onDelete!(expense);
             }
           },
-          child: ListTile(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: widget.onTap != null ? () => widget.onTap!(expense) : null,
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                category?.icon ?? Icons.category_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            title: Text(expense.title, style: Theme.of(context).textTheme.titleMedium),
-            subtitle: Text(
-              _formatDate(expense.date),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            trailing: Text(
-              formatCurrency(expense.amount),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                
-                color: Theme.of(context).colorScheme.onSurface,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      category?.icon ?? Icons.category_outlined,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith( 
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(expense.date),
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    formatCurrency(expense.amount),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -160,45 +181,12 @@ class _ExpenseListState extends State<ExpenseList> {
       controller: widget.scrollController,
       shrinkWrap: true, // This ensures the list takes only the space it needs
       physics: const NeverScrollableScrollPhysics(), // Disable scrolling within the list
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: expenses.length,
       itemBuilder: (context, index) {
         final expense = expenses[index];
-        final isFirstItem = index == 0;
-        final isLastItem = index == expenses.length - 1;
-        final previousDate = !isFirstItem ? expenses[index - 1].date : null;
-        final showDateHeader = isFirstItem || 
-          previousDate == null || 
-          !isSameDay(expense.date, previousDate);
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showDateHeader) ...[
-                if (!isFirstItem) const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.only(left: 24, bottom: 8),
-                  child: Text(
-                    _formatDate(expense.date),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-              _buildExpenseItem(context, expense)
-            ],
-          ),
-        );
+        return _buildExpenseItem(context, expense);
       },
     );
-  }
-
-  bool isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year && 
-           date1.month == date2.month && 
-           date1.day == date2.day;
   }
 }
