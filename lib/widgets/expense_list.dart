@@ -4,11 +4,11 @@ import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
 import '../utils/formatters.dart';
-import '../providers/category_provider.dart';
 import '../repositories/category_repository.dart';
 
 class ExpenseList extends StatefulWidget {
   final List<Expense> expenses;
+  final CategoryRepository categoryRepo;
   final void Function(Expense expense)? onTap;
   final void Function(Expense expense)? onDelete;
   final ScrollController? scrollController;
@@ -17,6 +17,7 @@ class ExpenseList extends StatefulWidget {
   const ExpenseList({
     super.key,
     required this.expenses,
+    required this.categoryRepo,
     this.onTap,
     this.onDelete,
     this.scrollController,
@@ -29,13 +30,6 @@ class ExpenseList extends StatefulWidget {
 
 class _ExpenseListState extends State<ExpenseList> {
   final _dateFormat = DateFormat.yMMMd();
-  late Future<CategoryRepository> _categoryRepoFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _categoryRepoFuture = CategoryProvider.getInstance();
-  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -66,9 +60,7 @@ class _ExpenseListState extends State<ExpenseList> {
 
   Widget _buildExpenseItem(BuildContext context, Expense expense) {
     return FutureBuilder<ExpenseCategory?>(
-      future: _categoryRepoFuture.then((repo) =>
-        expense.categoryId != null ? repo.findCategoryById(expense.categoryId!) : null
-      ),
+      future: widget.categoryRepo.findCategoryById(expense.categoryId ?? CategoryRepository.uncategorizedId),
       builder: (context, snapshot) {
         final category = snapshot.data;
         final account = DefaultAccounts.defaultAccounts

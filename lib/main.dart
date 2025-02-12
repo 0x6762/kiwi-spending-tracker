@@ -8,7 +8,6 @@ import 'theme/theme.dart';
 import 'utils/formatters.dart';
 import 'utils/category_migration.dart';
 import 'models/expense_category.dart';
-import 'providers/category_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +17,8 @@ void main() async {
   await initializeFormatter();
 
   // Initialize repositories
-  final categoryRepo = await CategoryProvider.getInstance();
+  final categoryRepo = SharedPrefsCategoryRepository(prefs);
+  await categoryRepo.loadCategories();
 
   // Run category migration
   await CategoryMigration.migrateToIds(prefs, categoryRepo);
@@ -73,6 +73,7 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.dark,
         home: MainScreen(
           repository: LocalStorageExpenseRepository(prefs),
+          categoryRepo: categoryRepo,
         ),
       ),
     );

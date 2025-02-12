@@ -9,17 +9,18 @@ import '../utils/formatters.dart';
 import 'picker_button.dart';
 import 'picker_sheet.dart';
 import 'add_category_sheet.dart';
-import '../providers/category_provider.dart';
 import '../repositories/category_repository.dart';
 import 'bottom_sheet.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final bool isFixed;
+  final CategoryRepository categoryRepo;
   final void Function(Expense expense) onExpenseAdded;
 
   const AddExpenseDialog({
     super.key,
     required this.isFixed,
+    required this.categoryRepo,
     required this.onExpenseAdded,
   });
 
@@ -36,14 +37,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   String? _selectedCategory;
   String _selectedAccountId = DefaultAccounts.checking.id;
   bool _isFixed = false;
-  late Future<CategoryRepository> _categoryRepoFuture;
   ExpenseCategory? _selectedCategoryInfo;
   final _dateFormat = DateFormat.yMMMd();
 
   @override
   void initState() {
     super.initState();
-    _categoryRepoFuture = CategoryProvider.getInstance();
+    _isFixed = widget.isFixed;
   }
 
   @override
@@ -56,7 +56,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   Future<void> _updateSelectedCategoryInfo() async {
     if (_selectedCategory != null) {
-      final repo = await _categoryRepoFuture;
+      final repo = widget.categoryRepo;
       final category = await repo.findCategoryByName(_selectedCategory!);
       setState(() {
         _selectedCategoryInfo = category;
@@ -69,7 +69,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }
 
   void _showCategoryPicker() async {
-    final repo = await _categoryRepoFuture;
+    final repo = widget.categoryRepo;
     final categories = await repo.getAllCategories();
     categories.sort((a, b) => a.name.compareTo(b.name));
 
@@ -105,6 +105,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (context) => AddCategorySheet(
+                categoryRepo: widget.categoryRepo,
                 onCategoryAdded: () {
                   // Will refresh categories when picker is shown again
                 },
@@ -238,152 +239,142 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: FutureBuilder<CategoryRepository>(
-        future: _categoryRepoFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            behavior: HitTestBehavior.translucent,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 56, 16, 56),
-                          child: Column(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 56, 16, 56),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: Text(
-                                      '\$',
-                                      style:
-                                          theme.textTheme.headlineMedium?.copyWith(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w500,
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Text(
+                                  '\$',
+                                  style:
+                                      theme.textTheme.headlineMedium?.copyWith(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w500,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
-                                  Text(
-                                    _amountController.text == '0' ? '0.00' : _amountController.text,
-                                    style: theme.textTheme.headlineMedium?.copyWith(
-                                      fontSize: 48,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                              const SizedBox(height: 8),
                               Text(
-                                _dateFormat.format(_selectedDate),
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                _amountController.text == '0' ? '0.00' : _amountController.text,
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Container(
-                          color: theme.colorScheme.surface,
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                          child: Container(
-                            width: double.infinity,
-                            alignment: Alignment.center,
-                            child: TextFormField(
-                              controller: _titleController,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Expense Name',
-                                hintStyle: theme.textTheme.titleLarge?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedErrorBorder: InputBorder.none,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                              ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _dateFormat.format(_selectedDate),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: PickerButton(
-                                  label: selectedAccount?.name ?? 'Select Account',
-                                  icon: selectedAccount?.icon,
-                                  iconColor: selectedAccount?.color,
-                                  onTap: () {
-                                    PickerSheet.show(
-                                      context: context,
-                                      title: 'Select Account',
-                                      children: DefaultAccounts.defaultAccounts
-                                          .map(
-                                            (account) => ListTile(
-                                              leading: Icon(account.icon,
-                                                  color: account.color),
-                                              title: Text(account.name),
-                                              selected:
-                                                  _selectedAccountId == account.id,
-                                              onTap: () {
-                                                setState(() => _selectedAccountId =
-                                                    account.id);
-                                                Navigator.pop(context);
-                                              },
-                                            ),
-                                          )
-                                          .toList(),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: PickerButton(
-                                  label:
-                                      _selectedCategoryInfo?.name ?? 'Select Category',
-                                  icon: _selectedCategoryInfo?.icon,
-                                  onTap: _showCategoryPicker,
-                                ),
-                              ),
-                            ],
+                        ],
+                      ),
+                    ),
+                    Container(
+                      color: theme.colorScheme.surface,
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: Container(
+                        width: double.infinity,
+                        alignment: Alignment.center,
+                        child: TextFormField(
+                          controller: _titleController,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Expense Name',
+                            hintStyle: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: PickerButton(
+                              label: selectedAccount?.name ?? 'Select Account',
+                              icon: selectedAccount?.icon,
+                              iconColor: selectedAccount?.color,
+                              onTap: () {
+                                PickerSheet.show(
+                                  context: context,
+                                  title: 'Select Account',
+                                  children: DefaultAccounts.defaultAccounts
+                                      .map(
+                                        (account) => ListTile(
+                                          leading: Icon(account.icon,
+                                              color: account.color),
+                                          title: Text(account.name),
+                                          selected:
+                                              _selectedAccountId == account.id,
+                                          onTap: () {
+                                            setState(() => _selectedAccountId =
+                                                account.id);
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: PickerButton(
+                              label:
+                                  _selectedCategoryInfo?.name ?? 'Select Category',
+                              icon: _selectedCategoryInfo?.icon,
+                              onTap: _showCategoryPicker,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
-                  color: theme.colorScheme.surface,
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                  child: _buildNumberPad(),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+            Container(
+              color: theme.colorScheme.surface,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              child: _buildNumberPad(),
+            ),
+          ],
+        ),
       ),
     );
   }

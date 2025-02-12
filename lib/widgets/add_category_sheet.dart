@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense_category.dart';
-import '../providers/category_provider.dart';
 import '../repositories/category_repository.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {
   final VoidCallback onCategoryAdded;
   final ExpenseCategory? categoryToEdit;
+  final CategoryRepository categoryRepo;
 
   const AddCategorySheet({
     super.key,
     required this.onCategoryAdded,
+    required this.categoryRepo,
     this.categoryToEdit,
   });
 
@@ -23,13 +24,11 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   IconData _selectedIcon = Icons.category_outlined;
-  late Future<CategoryRepository> _categoryRepoFuture;
   static final _uuid = const Uuid();
 
   @override
   void initState() {
     super.initState();
-    _categoryRepoFuture = CategoryProvider.getInstance();
     if (widget.categoryToEdit != null) {
       _nameController.text = widget.categoryToEdit!.name;
       _selectedIcon = widget.categoryToEdit!.icon;
@@ -52,7 +51,6 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final repo = await _categoryRepoFuture;
       final newCategory = ExpenseCategory(
         id: _generateCategoryId(),
         name: _nameController.text.trim(),
@@ -61,9 +59,9 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
 
       try {
         if (widget.categoryToEdit != null) {
-          await repo.updateCategory(widget.categoryToEdit!, newCategory);
+          await widget.categoryRepo.updateCategory(widget.categoryToEdit!, newCategory);
         } else {
-          await repo.addCategory(newCategory);
+          await widget.categoryRepo.addCategory(newCategory);
         }
 
         widget.onCategoryAdded();

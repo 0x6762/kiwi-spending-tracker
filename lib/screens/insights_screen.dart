@@ -9,15 +9,16 @@ import '../utils/formatters.dart';
 import '../widgets/picker_sheet.dart';
 import '../widgets/add_category_sheet.dart';
 import '../screens/settings_screen.dart';
-import '../providers/category_provider.dart';
 import '../repositories/category_repository.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
+  final CategoryRepository categoryRepo;
 
   const InsightsScreen({
     super.key,
     required this.expenses,
+    required this.categoryRepo,
   });
 
   @override
@@ -29,13 +30,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
   late DateTime _selectedMonth;
   bool? _selectedExpenseType; // null for all, true for fixed, false for variable
   String? _selectedAccountId;
-  late Future<CategoryRepository> _categoryRepoFuture;
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-    _categoryRepoFuture = CategoryProvider.getInstance();
   }
 
   List<Expense> get _filteredExpenses {
@@ -92,9 +91,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final theme = Theme.of(context);
     
     return FutureBuilder<ExpenseCategory?>(
-      future: _categoryRepoFuture.then((repo) => 
-        categoryId == 'uncategorized' ? null : repo.findCategoryById(categoryId)
-      ),
+      future: widget.categoryRepo.findCategoryById(categoryId),
       builder: (context, snapshot) {
         final categoryInfo = snapshot.data;
         final categoryName = categoryInfo?.name ?? 'Uncategorized';
@@ -159,6 +156,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddCategorySheet(
+        categoryRepo: widget.categoryRepo,
         onCategoryAdded: () {
           setState(() {});
         },
@@ -342,7 +340,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
+                      builder: (context) => SettingsScreen(
+                        categoryRepo: widget.categoryRepo,
+                      ),
                     ),
                   );
                 },

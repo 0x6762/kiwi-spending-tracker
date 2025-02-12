@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
+import '../repositories/category_repository.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -13,12 +14,16 @@ import '../widgets/voice_input_button.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
-import '../providers/category_provider.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
+  final CategoryRepository categoryRepo;
 
-  const MainScreen({super.key, required this.repository});
+  const MainScreen({
+    super.key, 
+    required this.repository,
+    required this.categoryRepo,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -63,9 +68,6 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _loadExpenses() async {
     final expenses = await widget.repository.getAllExpenses();
-    final prefs = await SharedPreferences.getInstance();
-    final categoryRepo = await CategoryProvider.getInstance();
-    await categoryRepo.loadCategories();
     setState(() {
       _expenses = expenses;
     });
@@ -98,6 +100,7 @@ class _MainScreenState extends State<MainScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
         isFixed: isFixed,
+        categoryRepo: widget.categoryRepo,
         onExpenseAdded: (expense) async {
           await widget.repository.addExpense(expense);
           _loadExpenses();
@@ -124,7 +127,10 @@ class _MainScreenState extends State<MainScreen>
     final shouldDelete = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (context) => ExpenseDetailScreen(expense: expense),
+        builder: (context) => ExpenseDetailScreen(
+          expense: expense,
+          categoryRepo: widget.categoryRepo,
+        ),
         maintainState: true,
       ),
     );
@@ -150,7 +156,9 @@ class _MainScreenState extends State<MainScreen>
                 monthFormat: _monthFormat,
                 onPressed: _showMonthPicker,
               ),
-              _SettingsButton(),
+              _SettingsButton(
+                categoryRepo: widget.categoryRepo,
+              ),
             ],
           ),
         ),
@@ -212,6 +220,7 @@ class _MainScreenState extends State<MainScreen>
           elevation: 0,
           child: ExpenseList(
             expenses: filteredExpenses,
+            categoryRepo: widget.categoryRepo,
             onTap: _viewExpenseDetails,
             onDelete: _deleteExpense,
           ),
@@ -279,11 +288,15 @@ class _MainScreenState extends State<MainScreen>
         index: _selectedIndex,
         children: [
           _buildExpensesScreen(),
-          InsightsScreen(expenses: _expenses),
+          InsightsScreen(
+            expenses: _expenses,
+            categoryRepo: widget.categoryRepo,
+          ),
         ],
       ),
       floatingActionButton: _selectedIndex == 0 ? VoiceInputButton(
         repository: widget.repository,
+        categoryRepo: widget.categoryRepo,
         onExpenseAdded: () {
           _loadExpenses();
         },
@@ -368,6 +381,12 @@ class _MonthPickerButton extends StatelessWidget {
 }
 
 class _SettingsButton extends StatelessWidget {
+  final CategoryRepository categoryRepo;
+
+  const _SettingsButton({
+    required this.categoryRepo,
+  });
+
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -379,7 +398,9 @@ class _SettingsButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const SettingsScreen(),
+            builder: (context) => SettingsScreen(
+              categoryRepo: categoryRepo,
+            ),
           ),
         );
       },
