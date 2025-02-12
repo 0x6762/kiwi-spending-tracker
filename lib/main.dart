@@ -7,7 +7,6 @@ import 'repositories/category_repository.dart';
 import 'theme/theme.dart';
 import 'utils/formatters.dart';
 import 'utils/category_migration.dart';
-import 'models/expense_category.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

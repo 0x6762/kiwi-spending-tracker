@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/expense_category.dart';
 import '../repositories/category_repository.dart';
 
 class CategoryMigration {
