@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense_category.dart';
+import '../providers/category_provider.dart';
+import '../repositories/category_repository.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {
@@ -21,10 +22,12 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   IconData _selectedIcon = Icons.category_outlined;
+  late Future<CategoryRepository> _categoryRepoFuture;
 
   @override
   void initState() {
     super.initState();
+    _categoryRepoFuture = CategoryProvider.getInstance();
     if (widget.categoryToEdit != null) {
       _nameController.text = widget.categoryToEdit!.name;
       _selectedIcon = widget.categoryToEdit!.icon;
@@ -37,27 +40,31 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     super.dispose();
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
+      final repo = await _categoryRepoFuture;
       final newCategory = ExpenseCategory(
         name: _nameController.text.trim(),
         icon: _selectedIcon,
       );
 
-      if (widget.categoryToEdit != null) {
-        await ExpenseCategories.updateCategory(
-          widget.categoryToEdit!,
-          newCategory,
-          prefs,
-        );
-      } else {
-        await ExpenseCategories.addCategory(newCategory, prefs);
-      }
+      try {
+        if (widget.categoryToEdit != null) {
+          await repo.updateCategory(widget.categoryToEdit!, newCategory);
+        } else {
+          await repo.addCategory(newCategory);
+        }
 
-      widget.onCategoryAdded();
-      if (mounted) {
-        Navigator.pop(context);
+        widget.onCategoryAdded();
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
       }
     }
   }

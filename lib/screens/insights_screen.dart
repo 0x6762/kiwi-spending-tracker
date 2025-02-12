@@ -9,6 +9,8 @@ import '../utils/formatters.dart';
 import '../widgets/picker_sheet.dart';
 import '../widgets/add_category_sheet.dart';
 import '../screens/settings_screen.dart';
+import '../providers/category_provider.dart';
+import '../repositories/category_repository.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -27,26 +29,13 @@ class _InsightsScreenState extends State<InsightsScreen> {
   late DateTime _selectedMonth;
   bool? _selectedExpenseType; // null for all, true for fixed, false for variable
   String? _selectedAccountId;
+  late Future<CategoryRepository> _categoryRepoFuture;
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-    _loadCustomCategories();
-  }
-
-  Future<void> _loadCustomCategories() async {
-    final prefs = await SharedPreferences.getInstance();
-    await ExpenseCategories.loadCustomCategories(prefs);
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _onMonthSelected(DateTime month) {
-    setState(() {
-      _selectedMonth = month;
-    });
+    _categoryRepoFuture = CategoryProvider.getInstance();
   }
 
   List<Expense> get _filteredExpenses {
@@ -101,54 +90,66 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Widget _buildCategoryRow(
       BuildContext context, String category, double percentage, double amount) {
     final theme = Theme.of(context);
-    final categoryInfo = category == 'Uncategorized'
-        ? null
-        : ExpenseCategories.findByName(category);
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            categoryInfo?.icon ?? Icons.category_outlined,
-            size: 24,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            category,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+    
+    return FutureBuilder<ExpenseCategory?>(
+      future: _categoryRepoFuture.then((repo) => 
+        category == 'Uncategorized' ? null : repo.findCategoryByName(category)
+      ),
+      builder: (context, snapshot) {
+        final categoryInfo = snapshot.data;
+        
+        return Row(
           children: [
-            Text(
-              '${percentage.toStringAsFixed(1)}%',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              formatCurrency(amount),
-              style: theme.textTheme.bodySmall?.copyWith(
+              child: Icon(
+                categoryInfo?.icon ?? Icons.category_outlined,
+                size: 24,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                category,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  formatCurrency(amount),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  void _onMonthSelected(DateTime month) {
+    setState(() {
+      _selectedMonth = month;
+    });
   }
 
   void _showAddCategorySheet() {
