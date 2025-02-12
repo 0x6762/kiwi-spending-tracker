@@ -192,7 +192,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Icon(
-                              category?.icon ?? Icons.category_outlined,
+                              category?.icon ?? CategoryRepository.uncategorizedCategory.icon,
                               size: 48,
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -218,8 +218,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                     const SizedBox(height: 32),
                     _buildDetailRow(
                       'Category',
-                      category?.name ?? 'Uncategorized',
-                      Icons.category_outlined,
+                      category?.name ?? CategoryRepository.uncategorizedCategory.name,
+                      category?.icon ?? CategoryRepository.uncategorizedCategory.icon,
                     ),
                     _buildDetailRow(
                       'Account',

@@ -5,6 +5,25 @@ import '../models/expense_category.dart';
 
 /// Abstract interface for category operations
 abstract class CategoryRepository {
+  static const String uncategorizedId = 'uncategorized';
+  static final ExpenseCategory uncategorizedCategory = ExpenseCategory(
+    id: uncategorizedId,
+    name: 'Uncategorized',
+    icon: Icons.help_outline,
+  );
+
+  static final List<ExpenseCategory> defaultCategories = [
+    ExpenseCategory(id: 'food_dining', name: 'Food & Dining', icon: Icons.restaurant),
+    ExpenseCategory(id: 'transportation', name: 'Transportation', icon: Icons.directions_car),
+    ExpenseCategory(id: 'shopping', name: 'Shopping', icon: Icons.shopping_bag),
+    ExpenseCategory(id: 'entertainment', name: 'Entertainment', icon: Icons.movie),
+    ExpenseCategory(id: 'bills_utilities', name: 'Bills & Utilities', icon: Icons.receipt),
+    ExpenseCategory(id: 'health', name: 'Health', icon: Icons.medical_services),
+    ExpenseCategory(id: 'travel', name: 'Travel', icon: Icons.flight),
+    ExpenseCategory(id: 'education', name: 'Education', icon: Icons.school),
+    ExpenseCategory(id: 'other', name: 'Other', icon: Icons.more_horiz),
+  ];
+
   /// Get all available categories (both default and custom)
   Future<List<ExpenseCategory>> getAllCategories();
   
@@ -35,18 +54,6 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
   
   List<ExpenseCategory> _customCategories = [];
   Map<String, ExpenseCategory> _editedDefaultCategories = {};
-  
-  final List<ExpenseCategory> _defaultCategories = [
-    ExpenseCategory(id: 'food_dining', name: 'Food & Dining', icon: Icons.restaurant),
-    ExpenseCategory(id: 'transportation', name: 'Transportation', icon: Icons.directions_car),
-    ExpenseCategory(id: 'shopping', name: 'Shopping', icon: Icons.shopping_bag),
-    ExpenseCategory(id: 'entertainment', name: 'Entertainment', icon: Icons.movie),
-    ExpenseCategory(id: 'bills_utilities', name: 'Bills & Utilities', icon: Icons.receipt),
-    ExpenseCategory(id: 'health', name: 'Health', icon: Icons.medical_services),
-    ExpenseCategory(id: 'travel', name: 'Travel', icon: Icons.flight),
-    ExpenseCategory(id: 'education', name: 'Education', icon: Icons.school),
-    ExpenseCategory(id: 'other', name: 'Other', icon: Icons.more_horiz),
-  ];
 
   SharedPrefsCategoryRepository(this._prefs);
 
@@ -55,7 +62,7 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
     final categories = <ExpenseCategory>[];
     
     // Add default categories (or their edited versions if they exist)
-    for (final defaultCategory in _defaultCategories) {
+    for (final defaultCategory in CategoryRepository.defaultCategories) {
       categories.add(
           _editedDefaultCategories[defaultCategory.id] ?? defaultCategory);
     }
@@ -68,12 +75,8 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
 
   @override
   Future<ExpenseCategory?> findCategoryById(String id) async {
-    if (id == 'uncategorized') {
-      return ExpenseCategory(
-        id: 'uncategorized',
-        name: 'Uncategorized',
-        icon: Icons.help_outline
-      );
+    if (id == CategoryRepository.uncategorizedId) {
+      return CategoryRepository.uncategorizedCategory;
     }
     
     final categories = await getAllCategories();
@@ -87,11 +90,7 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
   @override
   Future<ExpenseCategory?> findCategoryByName(String name) async {
     if (name == 'Uncategorized') {
-      return ExpenseCategory(
-        id: 'uncategorized',
-        name: 'Uncategorized',
-        icon: Icons.help_outline
-      );
+      return CategoryRepository.uncategorizedCategory;
     }
     
     final categories = await getAllCategories();
@@ -144,7 +143,7 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
 
   @override
   Future<bool> isDefaultCategory(String id) async {
-    return _defaultCategories.any((category) => category.id == id);
+    return CategoryRepository.defaultCategories.any((category) => category.id == id);
   }
 
   @override

@@ -13,6 +13,7 @@ import '../widgets/voice_input_button.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
+import '../providers/category_provider.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -63,7 +64,8 @@ class _MainScreenState extends State<MainScreen>
   Future<void> _loadExpenses() async {
     final expenses = await widget.repository.getAllExpenses();
     final prefs = await SharedPreferences.getInstance();
-    await ExpenseCategories.loadCustomCategories(prefs);
+    final categoryRepo = await CategoryProvider.getInstance();
+    await categoryRepo.loadCategories();
     setState(() {
       _expenses = expenses;
     });
