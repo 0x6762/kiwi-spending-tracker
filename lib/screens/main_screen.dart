@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
+import '../repositories/category_repository.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -16,8 +17,13 @@ import 'insights_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
+  final CategoryRepository categoryRepo;
 
-  const MainScreen({super.key, required this.repository});
+  const MainScreen({
+    super.key, 
+    required this.repository,
+    required this.categoryRepo,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -62,8 +68,6 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _loadExpenses() async {
     final expenses = await widget.repository.getAllExpenses();
-    final prefs = await SharedPreferences.getInstance();
-    await ExpenseCategories.loadCustomCategories(prefs);
     setState(() {
       _expenses = expenses;
     });
@@ -87,33 +91,31 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  Future<void> _addExpense(bool isFixed) async {
-    final result = await Navigator.push<Expense>(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
-          isFixed: isFixed,
-        ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOutCubic;
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
+  void _showAddExpenseDialog({bool isFixed = false}) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
+        isFixed: isFixed,
+        categoryRepo: widget.categoryRepo,
+        onExpenseAdded: (expense) async {
+          await widget.repository.addExpense(expense);
+          _loadExpenses();
         },
-        maintainState: true,
-        fullscreenDialog: true,
       ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
     );
-
-    if (result != null) {
-      await widget.repository.addExpense(result);
-      _loadExpenses();
-    }
   }
 
   Future<void> _deleteExpense(Expense expense) async {
@@ -125,7 +127,10 @@ class _MainScreenState extends State<MainScreen>
     final shouldDelete = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (context) => ExpenseDetailScreen(expense: expense),
+        builder: (context) => ExpenseDetailScreen(
+          expense: expense,
+          categoryRepo: widget.categoryRepo,
+        ),
         maintainState: true,
       ),
     );
@@ -151,7 +156,9 @@ class _MainScreenState extends State<MainScreen>
                 monthFormat: _monthFormat,
                 onPressed: _showMonthPicker,
               ),
-              _SettingsButton(),
+              _SettingsButton(
+                categoryRepo: widget.categoryRepo,
+              ),
             ],
           ),
         ),
@@ -213,6 +220,7 @@ class _MainScreenState extends State<MainScreen>
           elevation: 0,
           child: ExpenseList(
             expenses: filteredExpenses,
+            categoryRepo: widget.categoryRepo,
             onTap: _viewExpenseDetails,
             onDelete: _deleteExpense,
           ),
@@ -280,11 +288,15 @@ class _MainScreenState extends State<MainScreen>
         index: _selectedIndex,
         children: [
           _buildExpensesScreen(),
-          InsightsScreen(expenses: _expenses),
+          InsightsScreen(
+            expenses: _expenses,
+            categoryRepo: widget.categoryRepo,
+          ),
         ],
       ),
       floatingActionButton: _selectedIndex == 0 ? VoiceInputButton(
         repository: widget.repository,
+        categoryRepo: widget.categoryRepo,
         onExpenseAdded: () {
           _loadExpenses();
         },
@@ -317,11 +329,11 @@ class _MainScreenState extends State<MainScreen>
       builder: (context) => ExpenseTypeSheet(
         onFixedSelected: () {
           Navigator.pop(context);
-          _addExpense(true);
+          _showAddExpenseDialog(isFixed: true);
         },
         onVariableSelected: () {
           Navigator.pop(context);
-          _addExpense(false);
+          _showAddExpenseDialog(isFixed: false);
         },
       ),
     );
@@ -369,6 +381,12 @@ class _MonthPickerButton extends StatelessWidget {
 }
 
 class _SettingsButton extends StatelessWidget {
+  final CategoryRepository categoryRepo;
+
+  const _SettingsButton({
+    required this.categoryRepo,
+  });
+
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -380,7 +398,9 @@ class _SettingsButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const SettingsScreen(),
+            builder: (context) => SettingsScreen(
+              categoryRepo: categoryRepo,
+            ),
           ),
         );
       },

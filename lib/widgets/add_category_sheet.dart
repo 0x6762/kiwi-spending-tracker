@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../models/expense_category.dart';
+import '../repositories/category_repository.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {
   final VoidCallback onCategoryAdded;
   final ExpenseCategory? categoryToEdit;
+  final CategoryRepository categoryRepo;
 
   const AddCategorySheet({
     super.key,
     required this.onCategoryAdded,
+    required this.categoryRepo,
     this.categoryToEdit,
   });
 
@@ -21,6 +24,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   IconData _selectedIcon = Icons.category_outlined;
+  static final _uuid = const Uuid();
 
   @override
   void initState() {
@@ -37,27 +41,39 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     super.dispose();
   }
 
-  void _submit() async {
+  String _generateCategoryId() {
+    if (widget.categoryToEdit != null) {
+      return widget.categoryToEdit!.id;
+    }
+    // Generate a unique ID for new categories
+    return 'cat_${_uuid.v4()}';
+  }
+
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
       final newCategory = ExpenseCategory(
+        id: _generateCategoryId(),
         name: _nameController.text.trim(),
         icon: _selectedIcon,
       );
 
-      if (widget.categoryToEdit != null) {
-        await ExpenseCategories.updateCategory(
-          widget.categoryToEdit!,
-          newCategory,
-          prefs,
-        );
-      } else {
-        await ExpenseCategories.addCategory(newCategory, prefs);
-      }
+      try {
+        if (widget.categoryToEdit != null) {
+          await widget.categoryRepo.updateCategory(widget.categoryToEdit!, newCategory);
+        } else {
+          await widget.categoryRepo.addCategory(newCategory);
+        }
 
-      widget.onCategoryAdded();
-      if (mounted) {
-        Navigator.pop(context);
+        widget.onCategoryAdded();
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
       }
     }
   }
@@ -84,6 +100,12 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter a category name';
+                }
+                if (value.trim().length < 2) {
+                  return 'Category name must be at least 2 characters';
+                }
+                if (value.trim().length > 30) {
+                  return 'Category name must be less than 30 characters';
                 }
                 return null;
               },

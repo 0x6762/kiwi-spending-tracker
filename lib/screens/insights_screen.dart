@@ -9,13 +9,16 @@ import '../utils/formatters.dart';
 import '../widgets/picker_sheet.dart';
 import '../widgets/add_category_sheet.dart';
 import '../screens/settings_screen.dart';
+import '../repositories/category_repository.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
+  final CategoryRepository categoryRepo;
 
   const InsightsScreen({
     super.key,
     required this.expenses,
+    required this.categoryRepo,
   });
 
   @override
@@ -32,21 +35,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-    _loadCustomCategories();
-  }
-
-  Future<void> _loadCustomCategories() async {
-    final prefs = await SharedPreferences.getInstance();
-    await ExpenseCategories.loadCustomCategories(prefs);
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _onMonthSelected(DateTime month) {
-    setState(() {
-      _selectedMonth = month;
-    });
   }
 
   List<Expense> get _filteredExpenses {
@@ -75,12 +63,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     // First calculate raw totals
     for (final expense in monthExpenses) {
-      if (expense.category != null) {
-        totals[expense.category!] =
-            (totals[expense.category!] ?? 0.0) + expense.amount;
+      if (expense.categoryId != null) {
+        totals[expense.categoryId!] =
+            (totals[expense.categoryId!] ?? 0.0) + expense.amount;
       } else {
-        totals['Uncategorized'] =
-            (totals['Uncategorized'] ?? 0.0) + expense.amount;
+        totals['uncategorized'] =
+            (totals['uncategorized'] ?? 0.0) + expense.amount;
       }
     }
 
@@ -99,56 +87,67 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   Widget _buildCategoryRow(
-      BuildContext context, String category, double percentage, double amount) {
+      BuildContext context, String categoryId, double percentage, double amount) {
     final theme = Theme.of(context);
-    final categoryInfo = category == 'Uncategorized'
-        ? null
-        : ExpenseCategories.findByName(category);
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            categoryInfo?.icon ?? Icons.category_outlined,
-            size: 24,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            category,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+    
+    return FutureBuilder<ExpenseCategory?>(
+      future: widget.categoryRepo.findCategoryById(categoryId),
+      builder: (context, snapshot) {
+        final categoryInfo = snapshot.data;
+        final categoryName = categoryInfo?.name ?? 'Uncategorized';
+        
+        return Row(
           children: [
-            Text(
-              '${percentage.toStringAsFixed(1)}%',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              formatCurrency(amount),
-              style: theme.textTheme.bodySmall?.copyWith(
+              child: Icon(
+                categoryInfo?.icon ?? Icons.category_outlined,
+                size: 24,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                categoryName,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  formatCurrency(amount),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  void _onMonthSelected(DateTime month) {
+    setState(() {
+      _selectedMonth = month;
+    });
   }
 
   void _showAddCategorySheet() {
@@ -157,6 +156,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddCategorySheet(
+        categoryRepo: widget.categoryRepo,
         onCategoryAdded: () {
           setState(() {});
         },
@@ -340,7 +340,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
+                      builder: (context) => SettingsScreen(
+                        categoryRepo: widget.categoryRepo,
+                      ),
                     ),
                   );
                 },
@@ -392,9 +394,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ...categoryTotals.entries.map((entry) {
                     final amount = _filteredExpenses
                         .where((e) =>
-                            e.category == entry.key ||
-                            (entry.key == 'Uncategorized' &&
-                                e.category == null))
+                            e.categoryId == entry.key ||
+                            (entry.key == 'uncategorized' &&
+                                e.categoryId == null))
                         .fold(0.0, (sum, e) => sum + e.amount);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),

@@ -4,16 +4,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
+import '../repositories/category_repository.dart';
 import '../utils/formatters.dart';
 import 'package:intl/intl.dart';
 
 class VoiceInputButton extends StatefulWidget {
   final ExpenseRepository repository;
+  final CategoryRepository categoryRepo;
   final Function()? onExpenseAdded;
 
   const VoiceInputButton({
     super.key,
     required this.repository,
+    required this.categoryRepo,
     this.onExpenseAdded,
   });
 
@@ -143,9 +146,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       title: description,
       amount: amount,
       date: DateTime.now(),
-      category: 'Other', // Default category
+      categoryId: 'other', // Default category ID
       createdAt: DateTime.now(),
-      accountId: 'default',
+      accountId: 'checking', // Default account
       isFixed: false,
     );
 

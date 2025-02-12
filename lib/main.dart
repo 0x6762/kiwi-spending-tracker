@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_screen.dart';
 import 'repositories/expense_repository.dart';
+import 'repositories/category_repository.dart';
 import 'theme/theme.dart';
 import 'utils/formatters.dart';
+import 'utils/category_migration.dart';
 import 'models/expense_category.dart';
 
 void main() async {
@@ -14,8 +16,12 @@ void main() async {
   // Initialize currency formatter
   await initializeFormatter();
 
-  // Initialize categories
-  await ExpenseCategories.loadCustomCategories(prefs);
+  // Initialize repositories
+  final categoryRepo = SharedPrefsCategoryRepository(prefs);
+  await categoryRepo.loadCategories();
+
+  // Run category migration
+  await CategoryMigration.migrateToIds(prefs, categoryRepo);
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
@@ -33,13 +39,21 @@ void main() async {
     SystemUiMode.edgeToEdge,
   );
 
-  runApp(MyApp(prefs: prefs));
+  runApp(MyApp(
+    prefs: prefs,
+    categoryRepo: categoryRepo,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+  final CategoryRepository categoryRepo;
 
-  const MyApp({super.key, required this.prefs});
+  const MyApp({
+    super.key, 
+    required this.prefs,
+    required this.categoryRepo,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +73,7 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.dark,
         home: MainScreen(
           repository: LocalStorageExpenseRepository(prefs),
+          categoryRepo: categoryRepo,
         ),
       ),
     );

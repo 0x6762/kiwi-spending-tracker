@@ -4,9 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'category_management_screen.dart';
 import '../models/currency_settings.dart';
 import '../utils/formatters.dart';
+import '../repositories/category_repository.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final CategoryRepository categoryRepo;
+
+  const SettingsScreen({
+    super.key,
+    required this.categoryRepo,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -186,8 +192,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const CategoryManagementScreen(),
+                                builder: (context) => CategoryManagementScreen(
+                                  categoryRepo: widget.categoryRepo,
+                                ),
                               ),
                             );
                           },

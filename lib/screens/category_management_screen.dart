@@ -1,32 +1,45 @@
 import 'package:flutter/material.dart';
 import '../models/expense_category.dart';
 import '../widgets/add_category_sheet.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../repositories/category_repository.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
-  const CategoryManagementScreen({super.key});
+  final CategoryRepository categoryRepo;
+
+  const CategoryManagementScreen({
+    super.key,
+    required this.categoryRepo,
+  });
 
   @override
-  State<CategoryManagementScreen> createState() =>
-      _CategoryManagementScreenState();
+  State<CategoryManagementScreen> createState() => _CategoryManagementScreenState();
 }
 
 class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
-  List<ExpenseCategory> get _sortedCategories {
-    final categories = ExpenseCategories.values.toList();
-    categories.sort((a, b) => a.name.compareTo(b.name));
-    return categories;
+  List<ExpenseCategory> _categories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
   }
 
-  void _showAddCategorySheet() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _loadCategories() async {
+    final categories = await widget.categoryRepo.getAllCategories();
+    setState(() {
+      _categories = categories..sort((a, b) => a.name.compareTo(b.name));
+    });
+  }
+
+  void _showAddCategorySheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddCategorySheet(
+        categoryRepo: widget.categoryRepo,
         onCategoryAdded: () {
-          setState(() {});
+          _loadCategories();
         },
       ),
     );
@@ -35,7 +48,6 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final categories = _sortedCategories;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -48,7 +60,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        itemCount: categories.length + 1, // +1 for create item
+        itemCount: _categories.length + 1, // +1 for create item
         itemBuilder: (context, index) {
           if (index == 0) {
             // Create category item
@@ -80,7 +92,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
             );
           }
 
-          final category = categories[index - 1];
+          final category = _categories[index - 1];
           return Card(
             color: theme.colorScheme.surfaceContainer,
             child: ListTile(
@@ -90,9 +102,10 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => AddCategorySheet(
+                    categoryRepo: widget.categoryRepo,
                     categoryToEdit: category,
                     onCategoryAdded: () {
-                      setState(() {});
+                      _loadCategories();
                     },
                   ),
                 );
