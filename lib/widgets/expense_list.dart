@@ -156,23 +156,58 @@ class _ExpenseListState extends State<ExpenseList> {
     final expenses = _sortedExpenses;
 
     if (expenses.isEmpty) {
-      return const SizedBox(
-        height: 200,
+      return const Padding(
+        padding: EdgeInsets.all(16),
         child: Center(
           child: Text('No expenses yet'),
         ),
       );
     }
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: ListView.builder(
-        controller: widget.scrollController,
-        shrinkWrap: widget.shrinkWrap,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        itemCount: expenses.length,
-        itemBuilder: (context, index) => _buildExpenseItem(context, expenses[index]),
-      ),
+    return ListView.builder(
+      controller: widget.scrollController,
+      shrinkWrap: true, // This ensures the list takes only the space it needs
+      physics: const NeverScrollableScrollPhysics(), // Disable scrolling within the list
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      itemCount: expenses.length,
+      itemBuilder: (context, index) {
+        final expense = expenses[index];
+        final isFirstItem = index == 0;
+        final isLastItem = index == expenses.length - 1;
+        final previousDate = !isFirstItem ? expenses[index - 1].date : null;
+        final showDateHeader = isFirstItem || 
+          previousDate == null || 
+          !isSameDay(expense.date, previousDate);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showDateHeader) ...[
+              if (!isFirstItem) const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                child: Text(
+                  _formatDate(expense.date),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+            Card(
+              margin: EdgeInsets.zero,
+              child: _buildExpenseItem(context, expense),
+            ),
+            if (!isLastItem) const SizedBox(height: 8),
+          ],
+        );
+      },
     );
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year && 
+           date1.month == date2.month && 
+           date1.day == date2.day;
   }
 }
