@@ -5,21 +5,6 @@ class ExpenseCategory {
   final String name;
   final IconData icon;
 
-  // Map of const IconData instances
-  static const Map<int, IconData> _iconMap = {
-    0xe318: IconData(0xe318, fontFamily: 'MaterialIcons'), // restaurant
-    0xe1d5: IconData(0xe1d5, fontFamily: 'MaterialIcons'), // directions_car
-    0xe59c: IconData(0xe59c, fontFamily: 'MaterialIcons'), // shopping_bag
-    0xe40c: IconData(0xe40c, fontFamily: 'MaterialIcons'), // movie
-    0xe4d3: IconData(0xe4d3, fontFamily: 'MaterialIcons'), // receipt
-    0xe3a4: IconData(0xe3a4, fontFamily: 'MaterialIcons'), // medical_services
-    0xe1d8: IconData(0xe1d8, fontFamily: 'MaterialIcons'), // flight
-    0xe559: IconData(0xe559, fontFamily: 'MaterialIcons'), // school
-    0xe3dc: IconData(0xe3dc, fontFamily: 'MaterialIcons'), // more_horiz
-    0xe33b: IconData(0xe33b, fontFamily: 'MaterialIcons'), // help_outline
-    0xe1c4: IconData(0xe1c4, fontFamily: 'MaterialIcons'), // category_outlined
-  };
-
   const ExpenseCategory({
     required this.id,
     required this.name,
@@ -69,10 +54,6 @@ class ExpenseCategory {
     );
   }
 
-  static IconData iconFromCodePoint(int codePoint) {
-    return IconData(codePoint, fontFamily: 'MaterialIcons');
-  }
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -83,7 +64,6 @@ class ExpenseCategory {
   @override
   int get hashCode => id.hashCode;
 
-  // Create a copy of this category with some fields replaced
   ExpenseCategory copyWith({
     String? id,
     String? name,
