@@ -44,6 +44,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     if (_formKey.currentState!.validate()) {
       final repo = await _categoryRepoFuture;
       final newCategory = ExpenseCategory(
+        id: widget.categoryToEdit?.id ?? _nameController.text.trim().toLowerCase().replaceAll(' ', '_'),
         name: _nameController.text.trim(),
         icon: _selectedIcon,
       );

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class ExpenseCategory {
+  final String id;
   final String name;
   final IconData icon;
 
@@ -22,12 +23,14 @@ class ExpenseCategory {
   };
 
   const ExpenseCategory({
+    required this.id,
     required this.name,
     required this.icon,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'icon': {
         'codePoint': icon.codePoint,
@@ -58,7 +61,11 @@ class ExpenseCategory {
       );
     }
 
+    // For backward compatibility, if no ID is present, use name as ID
+    final id = json['id'] ?? json['name'];
+
     return ExpenseCategory(
+      id: id,
       name: json['name'],
       icon: icon,
     );
@@ -73,30 +80,42 @@ class ExpenseCategory {
       identical(this, other) ||
       other is ExpenseCategory &&
           runtimeType == other.runtimeType &&
-          name == other.name &&
-          icon.codePoint == other.icon.codePoint;
+          id == other.id;
 
   @override
-  int get hashCode => name.hashCode ^ icon.codePoint.hashCode;
+  int get hashCode => id.hashCode;
+
+  // Create a copy of this category with some fields replaced
+  ExpenseCategory copyWith({
+    String? id,
+    String? name,
+    IconData? icon,
+  }) {
+    return ExpenseCategory(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+    );
+  }
 }
 
 class ExpenseCategories {
   static const String _storageKey = 'custom_categories';
   static const String _editedDefaultsKey = 'edited_default_categories';
-  static const String uncategorized = 'Uncategorized';
+  static const String uncategorizedId = 'uncategorized';
   static List<ExpenseCategory> _customCategories = [];
   static Map<String, ExpenseCategory> _editedDefaultCategories = {};
 
   static final List<ExpenseCategory> _defaultCategories = [
-    ExpenseCategory(name: 'Food & Dining', icon: Icons.restaurant),
-    ExpenseCategory(name: 'Transportation', icon: Icons.directions_car),
-    ExpenseCategory(name: 'Shopping', icon: Icons.shopping_bag),
-    ExpenseCategory(name: 'Entertainment', icon: Icons.movie),
-    ExpenseCategory(name: 'Bills & Utilities', icon: Icons.receipt),
-    ExpenseCategory(name: 'Health', icon: Icons.medical_services),
-    ExpenseCategory(name: 'Travel', icon: Icons.flight),
-    ExpenseCategory(name: 'Education', icon: Icons.school),
-    ExpenseCategory(name: 'Other', icon: Icons.more_horiz),
+    ExpenseCategory(id: 'food_dining', name: 'Food & Dining', icon: Icons.restaurant),
+    ExpenseCategory(id: 'transportation', name: 'Transportation', icon: Icons.directions_car),
+    ExpenseCategory(id: 'shopping', name: 'Shopping', icon: Icons.shopping_bag),
+    ExpenseCategory(id: 'entertainment', name: 'Entertainment', icon: Icons.movie),
+    ExpenseCategory(id: 'bills_utilities', name: 'Bills & Utilities', icon: Icons.receipt),
+    ExpenseCategory(id: 'health', name: 'Health', icon: Icons.medical_services),
+    ExpenseCategory(id: 'travel', name: 'Travel', icon: Icons.flight),
+    ExpenseCategory(id: 'education', name: 'Education', icon: Icons.school),
+    ExpenseCategory(id: 'other', name: 'Other', icon: Icons.more_horiz),
   ];
 
   static List<ExpenseCategory> get values {
@@ -115,8 +134,8 @@ class ExpenseCategories {
   }
 
   static ExpenseCategory? findByName(String name) {
-    if (name == uncategorized) {
-      return ExpenseCategory(name: uncategorized, icon: Icons.help_outline);
+    if (name == uncategorizedId) {
+      return ExpenseCategory(id: uncategorizedId, name: uncategorizedId, icon: Icons.help_outline);
     }
     try {
       return values.firstWhere((category) => category.name == name);

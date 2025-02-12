@@ -67,7 +67,7 @@ class _ExpenseListState extends State<ExpenseList> {
   Widget _buildExpenseItem(BuildContext context, Expense expense) {
     return FutureBuilder<ExpenseCategory?>(
       future: _categoryRepoFuture.then((repo) =>
-        expense.category != null ? repo.findCategoryByName(expense.category!) : null
+        expense.categoryId != null ? repo.findCategoryById(expense.categoryId!) : null
       ),
       builder: (context, snapshot) {
         final category = snapshot.data;

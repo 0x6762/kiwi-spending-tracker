@@ -87,33 +87,30 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  Future<void> _addExpense(bool isFixed) async {
-    final result = await Navigator.push<Expense>(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
-          isFixed: isFixed,
-        ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOutCubic;
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
+  void _showAddExpenseDialog({bool isFixed = false}) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
+        isFixed: isFixed,
+        onExpenseAdded: (expense) async {
+          await widget.repository.addExpense(expense);
+          _loadExpenses();
         },
-        maintainState: true,
-        fullscreenDialog: true,
       ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
     );
-
-    if (result != null) {
-      await widget.repository.addExpense(result);
-      _loadExpenses();
-    }
   }
 
   Future<void> _deleteExpense(Expense expense) async {
@@ -317,11 +314,11 @@ class _MainScreenState extends State<MainScreen>
       builder: (context) => ExpenseTypeSheet(
         onFixedSelected: () {
           Navigator.pop(context);
-          _addExpense(true);
+          _showAddExpenseDialog(isFixed: true);
         },
         onVariableSelected: () {
           Navigator.pop(context);
-          _addExpense(false);
+          _showAddExpenseDialog(isFixed: false);
         },
       ),
     );

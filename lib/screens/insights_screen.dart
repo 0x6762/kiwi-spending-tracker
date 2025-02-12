@@ -64,12 +64,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     // First calculate raw totals
     for (final expense in monthExpenses) {
-      if (expense.category != null) {
-        totals[expense.category!] =
-            (totals[expense.category!] ?? 0.0) + expense.amount;
+      if (expense.categoryId != null) {
+        totals[expense.categoryId!] =
+            (totals[expense.categoryId!] ?? 0.0) + expense.amount;
       } else {
-        totals['Uncategorized'] =
-            (totals['Uncategorized'] ?? 0.0) + expense.amount;
+        totals['uncategorized'] =
+            (totals['uncategorized'] ?? 0.0) + expense.amount;
       }
     }
 
@@ -88,15 +88,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   Widget _buildCategoryRow(
-      BuildContext context, String category, double percentage, double amount) {
+      BuildContext context, String categoryId, double percentage, double amount) {
     final theme = Theme.of(context);
     
     return FutureBuilder<ExpenseCategory?>(
       future: _categoryRepoFuture.then((repo) => 
-        category == 'Uncategorized' ? null : repo.findCategoryByName(category)
+        categoryId == 'uncategorized' ? null : repo.findCategoryById(categoryId)
       ),
       builder: (context, snapshot) {
         final categoryInfo = snapshot.data;
+        final categoryName = categoryInfo?.name ?? 'Uncategorized';
         
         return Row(
           children: [
@@ -115,7 +116,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                category,
+                categoryName,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
@@ -393,9 +394,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ...categoryTotals.entries.map((entry) {
                     final amount = _filteredExpenses
                         .where((e) =>
-                            e.category == entry.key ||
-                            (entry.key == 'Uncategorized' &&
-                                e.category == null))
+                            e.categoryId == entry.key ||
+                            (entry.key == 'uncategorized' &&
+                                e.categoryId == null))
                         .fold(0.0, (sum, e) => sum + e.amount);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
