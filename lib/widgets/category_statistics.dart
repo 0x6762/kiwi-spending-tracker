@@ -27,49 +27,60 @@ class CategoryStatistics extends StatelessWidget {
         final categoryInfo = snapshot.data;
         final categoryName = categoryInfo?.name ?? 'Uncategorized';
         
-        return Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                categoryInfo?.icon ?? Icons.category_outlined,
-                size: 24,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                categoryName,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          color: theme.colorScheme.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  '${spending.percentage.toStringAsFixed(1)}%',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  formatCurrency(spending.amount),
-                  style: theme.textTheme.bodySmall?.copyWith(
+                  child: Icon(
+                    categoryInfo?.icon ?? Icons.category_outlined,
+                    size: 24,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    categoryName,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${spending.percentage.toStringAsFixed(1)}%',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formatCurrency(spending.amount),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -102,22 +113,7 @@ class CategoryStatistics extends StatelessWidget {
           itemCount: categorySpending.length,
           itemBuilder: (context, index) {
             final spending = categorySpending[index];
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Card(
-                margin: EdgeInsets.zero,
-                color: theme.colorScheme.surfaceContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _buildCategoryRow(context, spending),
-                ),
-              ),
-            );
+            return _buildCategoryRow(context, spending);
           },
         );
       },
