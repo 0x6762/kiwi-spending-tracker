@@ -70,8 +70,6 @@ class _ExpenseListState extends State<ExpenseList> {
             );
 
         final theme = Theme.of(context);
-        final typeIcon = _getExpenseTypeIcon(expense.type);
-        final typeColor = _getExpenseTypeColor(expense.type);
 
         return Dismissible(
           key: Key(expense.id),
@@ -147,39 +145,12 @@ class _ExpenseListState extends State<ExpenseList> {
                                 ),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: typeColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    typeIcon,
-                                    size: 16,
-                                    color: typeColor,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _getExpenseTypeLabel(expense.type),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: typeColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _formatDate(expense.date),
-                          style: theme.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -202,39 +173,6 @@ class _ExpenseListState extends State<ExpenseList> {
     );
   }
 
-  IconData _getExpenseTypeIcon(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return Icons.subscriptions_outlined;
-      case ExpenseType.fixed:
-        return Icons.calendar_month_outlined;
-      case ExpenseType.variable:
-        return Icons.shopping_bag_outlined;
-    }
-  }
-
-  Color _getExpenseTypeColor(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return const Color(0xFF2196F3); // Blue
-      case ExpenseType.fixed:
-        return const Color(0xFFCF5825); // Orange
-      case ExpenseType.variable:
-        return const Color(0xFF8056E4); // Purple
-    }
-  }
-
-  String _getExpenseTypeLabel(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return 'Sub';
-      case ExpenseType.fixed:
-        return 'Fixed';
-      case ExpenseType.variable:
-        return 'Var';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final expenses = _sortedExpenses;
@@ -250,9 +188,9 @@ class _ExpenseListState extends State<ExpenseList> {
 
     return ListView.builder(
       controller: widget.scrollController,
-      shrinkWrap: true, // This ensures the list takes only the space it needs
-      physics: const NeverScrollableScrollPhysics(), // Disable scrolling within the list
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: expenses.length,
       itemBuilder: (context, index) {
         final expense = expenses[index];

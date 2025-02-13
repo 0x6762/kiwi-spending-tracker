@@ -97,7 +97,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   String _getExpenseTypeIcon(ExpenseType type) {
     switch (type) {
       case ExpenseType.subscription:
-        return 'assets/icons/subscription_expense.svg';
+        return 'assets/icons/subscription.svg';
       case ExpenseType.fixed:
         return 'assets/icons/fixed_expense.svg';
       case ExpenseType.variable:
@@ -141,7 +141,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
               IconButton(
                 icon: Icon(
                   Icons.delete,
-                  color: theme.colorScheme.error,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 onPressed: () async {
                   final shouldDelete = await showDialog<bool>(
@@ -186,14 +186,14 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                     children: [
                       Text(
                         expense.title,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         formatCurrency(expense.amount),
-                        style: theme.textTheme.headlineLarge?.copyWith(
+                        style: theme.textTheme.headlineMedium?.copyWith(
                           color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
