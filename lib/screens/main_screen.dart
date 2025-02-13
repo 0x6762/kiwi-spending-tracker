@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
+import '../services/expense_analytics_service.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -15,11 +16,13 @@ import 'insights_screen.dart';
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
   final CategoryRepository categoryRepo;
+  final ExpenseAnalyticsService analyticsService;
 
   const MainScreen({
     super.key, 
     required this.repository,
     required this.categoryRepo,
+    required this.analyticsService,
   });
 
   @override
@@ -241,34 +244,30 @@ class _MainScreenState extends State<MainScreen>
         color: Theme.of(context).colorScheme.primary,
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
-            left: 8, // main padding left
-            right: 8, // main padding right
-            bottom: 104, // navigation bar height + small buffer
+            left: 8,
+            right: 8,
+            bottom: 104,
           ),
-
-
           clipBehavior: Clip.none,
-          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(),
-              ExpenseSummary(
-                expenses: _expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: (month) {
-                  setState(() {
-                    _selectedMonth = month;
-                  });
-                },
-              ),
-              if (filteredExpenses.isEmpty)
+              if (_expenses.isEmpty)
                 _buildEmptyState()
-              else
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: _buildExpenseList(filteredExpenses),
+              else ...[
+                ExpenseSummary(
+                  expenses: _expenses,
+                  selectedMonth: _selectedMonth,
+                  onMonthSelected: (month) {
+                    setState(() {
+                      _selectedMonth = month;
+                    });
+                  },
+                  analyticsService: widget.analyticsService,
                 ),
+                _buildExpenseList(filteredExpenses),
+              ],
             ],
           ),
         ),
@@ -288,6 +287,7 @@ class _MainScreenState extends State<MainScreen>
           InsightsScreen(
             expenses: _expenses,
             categoryRepo: widget.categoryRepo,
+            analyticsService: widget.analyticsService,
           ),
         ],
       ),
@@ -332,6 +332,19 @@ class _MainScreenState extends State<MainScreen>
           Navigator.pop(context);
           _showAddExpenseDialog(isFixed: false);
         },
+      ),
+    );
+  }
+
+  void _navigateToInsights() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InsightsScreen(
+          expenses: _expenses,
+          categoryRepo: widget.categoryRepo,
+          analyticsService: widget.analyticsService,
+        ),
       ),
     );
   }

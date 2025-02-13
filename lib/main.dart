@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_screen.dart';
 import 'repositories/expense_repository.dart';
 import 'repositories/category_repository.dart';
+import 'services/expense_analytics_service.dart';
 import 'theme/theme.dart';
 import 'utils/formatters.dart';
 import 'utils/category_migration.dart';
@@ -18,6 +19,10 @@ void main() async {
   // Initialize repositories
   final categoryRepo = SharedPrefsCategoryRepository(prefs);
   await categoryRepo.loadCategories();
+
+  // Initialize repositories and services
+  final expenseRepo = LocalStorageExpenseRepository(prefs);
+  final analyticsService = ExpenseAnalyticsService(expenseRepo, categoryRepo);
 
   // Run category migration
   await CategoryMigration.migrateToIds(prefs, categoryRepo);
@@ -41,17 +46,23 @@ void main() async {
   runApp(MyApp(
     prefs: prefs,
     categoryRepo: categoryRepo,
+    expenseRepo: expenseRepo,
+    analyticsService: analyticsService,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   final CategoryRepository categoryRepo;
+  final ExpenseRepository expenseRepo;
+  final ExpenseAnalyticsService analyticsService;
 
   const MyApp({
     super.key, 
     required this.prefs,
     required this.categoryRepo,
+    required this.expenseRepo,
+    required this.analyticsService,
   });
 
   @override
@@ -71,8 +82,9 @@ class MyApp extends StatelessWidget {
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.dark,
         home: MainScreen(
-          repository: LocalStorageExpenseRepository(prefs),
+          repository: expenseRepo,
           categoryRepo: categoryRepo,
+          analyticsService: analyticsService,
         ),
       ),
     );

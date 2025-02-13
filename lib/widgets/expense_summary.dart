@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/expense.dart';
+import '../services/expense_analytics_service.dart';
 import 'monthly_expense_chart.dart';
 import '../utils/formatters.dart';
 
@@ -10,12 +11,14 @@ class ExpenseSummary extends StatefulWidget {
   final void Function(DateTime selectedMonth) onMonthSelected;
   final DateTime selectedMonth;
   final bool showChart;
+  final ExpenseAnalyticsService analyticsService;
 
   const ExpenseSummary({
     super.key,
     required this.expenses,
     required this.onMonthSelected,
     required this.selectedMonth,
+    required this.analyticsService,
     this.showChart = true,
   });
 
@@ -26,70 +29,33 @@ class ExpenseSummary extends StatefulWidget {
 class _ExpenseSummaryState extends State<ExpenseSummary> {
   final _monthFormat = DateFormat.yMMMM();
 
-  List<Expense> get _monthlyExpenses {
-    return widget.expenses
-        .where((expense) =>
-            expense.date.year == widget.selectedMonth.year &&
-            expense.date.month == widget.selectedMonth.month)
-        .toList();
-  }
-
-  double get _fixedTotal {
-    return _monthlyExpenses
-        .where((expense) => expense.isFixed)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-  }
-
-  double get _variableTotal {
-    return _monthlyExpenses
-        .where((expense) => !expense.isFixed)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-  }
-
-  double get _monthlyTotal => _fixedTotal + _variableTotal;
-
-  double get _previousMonthTotal {
-    final previousMonth =
-        DateTime(widget.selectedMonth.year, widget.selectedMonth.month - 1);
-    return widget.expenses
-        .where((expense) =>
-            expense.date.year == previousMonth.year &&
-            expense.date.month == previousMonth.month)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-  }
-
-  Widget _buildMonthComparison(BuildContext context) {
-    final previousTotal = _previousMonthTotal;
-    if (previousTotal == 0) return const SizedBox.shrink();
+  Widget _buildMonthComparison(BuildContext context, MonthlyAnalytics analytics) {
+    if (analytics.previousMonthTotal == 0) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    final difference = _monthlyTotal - previousTotal;
-    final percentageChange =
-        (difference / previousTotal * 100).abs().toStringAsFixed(1);
-    final isIncrease = difference > 0;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: [
           Icon(
-            isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
+            analytics.isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
             size: 16,
-            color: isIncrease
+            color: analytics.isIncrease
                 ? theme.colorScheme.error
                 : theme.colorScheme.primary,
           ),
           const SizedBox(width: 4),
           Text(
-            '${percentageChange}%',
+            '${analytics.percentageChange.toStringAsFixed(1)}%',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: isIncrease
+              color: analytics.isIncrease
                   ? theme.colorScheme.error
                   : theme.colorScheme.primary,
             ),
           ),
           Text(
-            ' ${isIncrease ? 'more' : 'less'} than last month',
+            ' ${analytics.isIncrease ? 'more' : 'less'} than last month',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -103,82 +69,93 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (widget.showChart) ...[
-            Card(
-              margin: EdgeInsets.zero,
-              color: theme.colorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              elevation: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Spent',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatCurrency(_monthlyTotal),
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    _buildMonthComparison(context),
-                    const SizedBox(height: 32),
-                    MonthlyExpenseChart(
-                      expenses: widget.expenses,
-                      selectedMonth: widget.selectedMonth,
-                      onMonthSelected: widget.onMonthSelected,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8), // spacing between chart and summary
-            Card(
-              margin: EdgeInsets.zero,
-              color: theme.colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              elevation: 0,
+    return FutureBuilder<MonthlyAnalytics>(
+      future: widget.analyticsService.getMonthlyAnalytics(widget.selectedMonth),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _SummaryRow(
-                      label: 'Fixed Expenses',
-                      amount: _fixedTotal,
-                      context: context,
-                      iconAsset: 'assets/icons/fixed_expense.svg',
+        final analytics = snapshot.data!;
+
+        return Padding(
+          padding: const EdgeInsets.all(0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.showChart) ...[
+                Card(
+                  margin: EdgeInsets.zero,
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Spent',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          formatCurrency(analytics.totalSpent),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        _buildMonthComparison(context, analytics),
+                        const SizedBox(height: 32),
+                        MonthlyExpenseChart(
+                          expenses: widget.expenses,
+                          selectedMonth: widget.selectedMonth,
+                          onMonthSelected: widget.onMonthSelected,
+                          analyticsService: widget.analyticsService,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 0),
-                    _SummaryRow(
-                      label: 'Variable Expenses',
-                      amount: _variableTotal,
-                      context: context,
-                      iconAsset: 'assets/icons/variable_expense.svg',
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ],
-      ),
+                const SizedBox(height: 8),
+                Card(
+                  margin: EdgeInsets.zero,
+                  color: theme.colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _SummaryRow(
+                          label: 'Fixed Expenses',
+                          amount: analytics.fixedExpenses,
+                          context: context,
+                          iconAsset: 'assets/icons/fixed_expense.svg',
+                        ),
+                        const SizedBox(height: 0),
+                        _SummaryRow(
+                          label: 'Variable Expenses',
+                          amount: analytics.variableExpenses,
+                          context: context,
+                          iconAsset: 'assets/icons/variable_expense.svg',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

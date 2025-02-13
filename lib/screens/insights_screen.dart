@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
+import '../services/expense_analytics_service.dart';
 import '../widgets/category_statistics.dart';
-import '../widgets/expense_filter_row.dart';
-import 'settings_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
   final CategoryRepository categoryRepo;
+  final ExpenseAnalyticsService analyticsService;
 
   const InsightsScreen({
     super.key,
     required this.expenses,
     required this.categoryRepo,
+    required this.analyticsService,
   });
 
   @override
@@ -22,8 +23,7 @@ class InsightsScreen extends StatefulWidget {
 
 class _InsightsScreenState extends State<InsightsScreen> {
   late DateTime _selectedMonth;
-  bool? _selectedExpenseType;
-  String? _selectedAccountId;
+  final _monthFormat = DateFormat.yMMMM();
 
   @override
   void initState() {
@@ -32,101 +32,173 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   List<Expense> get _filteredExpenses {
-    return widget.expenses.where((expense) {
-      // Filter by month
-      final isMonthMatch = expense.date.year == _selectedMonth.year &&
-          expense.date.month == _selectedMonth.month;
-
-      // Filter by expense type
-      final isTypeMatch = _selectedExpenseType == null ||
-          expense.isFixed == _selectedExpenseType;
-
-      // Filter by account
-      final isAccountMatch =
-          _selectedAccountId == null || expense.accountId == _selectedAccountId;
-
-      return isMonthMatch && isTypeMatch && isAccountMatch;
-    }).toList();
+    return widget.expenses.where((expense) =>
+        expense.date.year == _selectedMonth.year &&
+        expense.date.month == _selectedMonth.month).toList();
   }
 
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        SizedBox(height: MediaQuery.of(context).padding.top),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 16, 8, 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Text(
-                  'Insights',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.more_horiz,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SettingsScreen(
-                        categoryRepo: widget.categoryRepo,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+  void _showMonthPicker() async {
+    final DateTime? picked = await showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return MonthPickerDialog(
+          selectedMonth: _selectedMonth,
+          expenses: widget.expenses,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedMonth = picked;
+      });
+    }
+  }
+
+  Widget _buildMonthPicker() {
+    return TextButton(
+      onPressed: _showMonthPicker,
+      style: TextButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 10,
+          top: 8,
+          bottom: 8,
         ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(_monthFormat.format(_selectedMonth)),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.keyboard_arrow_down,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: _buildHeader(),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: theme.colorScheme.surface,
+        title: Text(
+          'Insights',
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
           ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ExpenseFilterRow(
-                  selectedMonth: _selectedMonth,
-                  selectedExpenseType: _selectedExpenseType,
-                  selectedAccountId: _selectedAccountId,
-                  expenses: widget.expenses,
-                  onMonthSelected: (month) => setState(() => _selectedMonth = month),
-                  onExpenseTypeSelected: (type) => setState(() => _selectedExpenseType = type),
-                  onAccountSelected: (id) => setState(() => _selectedAccountId = id),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            sliver: SliverToBoxAdapter(
-              child: CategoryStatistics(
-                expenses: _filteredExpenses,
-                categoryRepo: widget.categoryRepo,
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              child: Row(
+                children: [
+                  Text(
+                    'Spending by Category',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Spacer(),
+                  _buildMonthPicker(),
+                ],
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(height: MediaQuery.of(context).padding.bottom + 0),
-          ),
-        ],
+            CategoryStatistics(
+              expenses: _filteredExpenses,
+              categoryRepo: widget.categoryRepo,
+              analyticsService: widget.analyticsService,
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MonthPickerDialog extends StatelessWidget {
+  final DateTime selectedMonth;
+  final List<Expense> expenses;
+
+  const MonthPickerDialog({
+    super.key,
+    required this.selectedMonth,
+    required this.expenses,
+  });
+
+  List<DateTime> get _availableMonths {
+    final months = expenses
+        .map((e) => DateTime(e.date.year, e.date.month))
+        .toSet()
+        .toList();
+    months.sort((a, b) => b.compareTo(a)); // Most recent first
+    return months;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthFormat = DateFormat.yMMMM();
+    final months = _availableMonths;
+    final theme = Theme.of(context);
+
+    return Dialog(
+      backgroundColor: theme.colorScheme.surfaceContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Month',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: months.length,
+                itemBuilder: (context, index) {
+                  final month = months[index];
+                  final isSelected = month.year == selectedMonth.year &&
+                      month.month == selectedMonth.month;
+
+                  return ListTile(
+                    title: Text(monthFormat.format(month)),
+                    selected: isSelected,
+                    onTap: () => Navigator.pop(context, month),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
