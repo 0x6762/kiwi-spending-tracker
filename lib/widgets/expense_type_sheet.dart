@@ -17,14 +17,6 @@ class ExpenseTypeSheet extends StatelessWidget {
       contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       children: [
         _ExpenseTypeButton(
-          title: 'Subscription',
-          subtitle: 'Fixed recurring payments like Netflix, Spotify',
-          iconAsset: 'assets/icons/subscription.svg',
-          iconColor: const Color(0xFF2196F3),
-          onTap: () => onTypeSelected(ExpenseType.subscription),
-        ),
-        const SizedBox(height: 8),
-        _ExpenseTypeButton(
           title: 'Fixed Expense',
           subtitle: 'Variable recurring expenses like electricity, water',
           iconAsset: 'assets/icons/fixed_expense.svg',
@@ -38,6 +30,14 @@ class ExpenseTypeSheet extends StatelessWidget {
           iconAsset: 'assets/icons/variable_expense.svg',
           iconColor: const Color(0xFF8056E4),
           onTap: () => onTypeSelected(ExpenseType.variable),
+        ),
+        const SizedBox(height: 8),
+        _ExpenseTypeButton(
+          title: 'Subscription',
+          subtitle: 'Fixed recurring payments like Netflix, Spotify',
+          iconAsset: 'assets/icons/subscription.svg',
+          iconColor: const Color(0xFF2196F3),
+          onTap: () => onTypeSelected(ExpenseType.subscription),
         ),
       ],
     );

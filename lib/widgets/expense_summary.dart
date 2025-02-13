@@ -135,14 +135,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                     child: Column(
                       children: [
                         _SummaryRow(
-                          label: 'Subscriptions',
-                          amount: analytics.subscriptionExpenses,
-                          context: context,
-                          iconAsset: 'assets/icons/subscription.svg',
-                          iconColor: const Color(0xFF2196F3),
-                        ),
-                        const SizedBox(height: 0),
-                        _SummaryRow(
                           label: 'Fixed Expenses',
                           amount: analytics.fixedExpenses,
                           context: context,
@@ -156,6 +148,14 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           context: context,
                           iconAsset: 'assets/icons/variable_expense.svg',
                           iconColor: const Color(0xFF8056E4),
+                        ),
+                        const SizedBox(height: 0),
+                        _SummaryRow(
+                          label: 'Subscriptions',
+                          amount: analytics.subscriptionExpenses,
+                          context: context,
+                          iconAsset: 'assets/icons/subscription.svg',
+                          iconColor: const Color(0xFF2196F3),
                         ),
                       ],
                     ),
