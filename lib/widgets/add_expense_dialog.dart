@@ -40,7 +40,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   String _billingCycle = 'Monthly'; // For subscriptions
   DateTime _nextBillingDate = DateTime.now(); // For subscriptions
   DateTime _dueDate = DateTime.now(); // For fixed expenses
-  bool _isVariableAmount = false; // For fixed expenses
 
   @override
   void dispose() {
@@ -160,7 +159,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       billingCycle: widget.type == ExpenseType.subscription ? _billingCycle : null,
       nextBillingDate: widget.type == ExpenseType.subscription ? _nextBillingDate : null,
       dueDate: widget.type == ExpenseType.fixed ? _dueDate : null,
-      isVariableAmount: widget.type == ExpenseType.fixed ? _isVariableAmount : null,
     );
 
     widget.onExpenseAdded(expense);
@@ -307,16 +305,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   }
                 },
               ),
-            ),
-            SwitchListTile(
-              title: Text(
-                'Variable Amount',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              value: _isVariableAmount,
-              onChanged: (value) => setState(() => _isVariableAmount = value),
             ),
           ],
         );

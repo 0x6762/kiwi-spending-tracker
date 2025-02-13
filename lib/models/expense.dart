@@ -20,8 +20,7 @@ class Expense {
   // Type-specific fields
   final String? billingCycle; // For subscriptions (Monthly/Yearly)
   final DateTime? nextBillingDate; // For subscriptions
-  final DateTime? dueDate; // For fixed expenses
-  final bool? isVariableAmount; // For fixed expenses
+  final DateTime? dueDate; // For fixed expenses (e.g., utilities due on the 15th)
 
   const Expense({
     required this.id,
@@ -36,7 +35,6 @@ class Expense {
     this.billingCycle,
     this.nextBillingDate,
     this.dueDate,
-    this.isVariableAmount,
   });
 
   Expense copyWith({
@@ -52,7 +50,6 @@ class Expense {
     String? billingCycle,
     DateTime? nextBillingDate,
     DateTime? dueDate,
-    bool? isVariableAmount,
   }) {
     return Expense(
       id: id ?? this.id,
@@ -67,7 +64,6 @@ class Expense {
       billingCycle: billingCycle ?? this.billingCycle,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
-      isVariableAmount: isVariableAmount ?? this.isVariableAmount,
     );
   }
 
@@ -86,7 +82,6 @@ class Expense {
       'billingCycle': billingCycle,
       'nextBillingDate': nextBillingDate?.toIso8601String(),
       'dueDate': dueDate?.toIso8601String(),
-      'isVariableAmount': isVariableAmount,
     };
   }
 
@@ -108,7 +103,6 @@ class Expense {
       dueDate: json['dueDate'] != null 
           ? DateTime.parse(json['dueDate'])
           : null,
-      isVariableAmount: json['isVariableAmount'],
     );
   }
 }
