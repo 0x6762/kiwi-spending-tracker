@@ -21,15 +21,17 @@ class MonthlyExpenseChart extends StatelessWidget {
 
   List<DateTime> _getLast6Months() {
     final now = DateTime.now();
-    return List.generate(5, (index) {
+    return List.generate(6, (index) {
       return DateTime(
         now.year,
-        now.month - (4 - index),
+        now.month - (5 - index),
       );
     });
   }
 
   Future<Map<DateTime, double>> _getMonthlyTotals(List<DateTime> months) async {
+    if (months.isEmpty) return {};
+    
     final startDate = months.first;
     final endDate = months.last.add(const Duration(days: 31));
     return analyticsService.getMonthlyTotals(startDate, endDate);
@@ -69,6 +71,17 @@ class MonthlyExpenseChart extends StatelessWidget {
     return FutureBuilder<Map<DateTime, double>>(
       future: _getMonthlyTotals(months),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error loading chart',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          );
+        }
+
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -100,7 +113,7 @@ class MonthlyExpenseChart extends StatelessWidget {
                     barRods: [
                       BarChartRodData(
                         toY: _calculateBarHeight(total, maxTotal),
-                        width: MediaQuery.of(context).size.width * 0.15,
+                        width: 32, // Fixed width instead of screen-dependent
                         color: total > 0
                             ? (isSelectedMonth
                                 ? theme.colorScheme.onSurface

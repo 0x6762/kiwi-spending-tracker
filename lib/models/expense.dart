@@ -87,21 +87,21 @@ class Expense {
 
   factory Expense.fromJson(Map<String, dynamic> json) {
     return Expense(
-      id: json['id'],
-      title: json['title'],
-      amount: json['amount'].toDouble(),
-      date: DateTime.parse(json['date']),
-      createdAt: DateTime.parse(json['createdAt']),
-      categoryId: json['categoryId'],
-      notes: json['notes'],
-      type: ExpenseType.values[json['type'] as int],
-      accountId: json['accountId'],
-      billingCycle: json['billingCycle'],
+      id: json['id'] as String,
+      title: json['title'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      date: DateTime.parse(json['date'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      categoryId: json['categoryId'] as String?,
+      notes: json['notes'] as String?,
+      type: json['type'] != null ? ExpenseType.values[json['type'] as int] : ExpenseType.variable,
+      accountId: json['accountId'] as String,
+      billingCycle: json['billingCycle'] as String?,
       nextBillingDate: json['nextBillingDate'] != null 
-          ? DateTime.parse(json['nextBillingDate'])
+          ? DateTime.parse(json['nextBillingDate'] as String)
           : null,
       dueDate: json['dueDate'] != null 
-          ? DateTime.parse(json['dueDate'])
+          ? DateTime.parse(json['dueDate'] as String)
           : null,
     );
   }
