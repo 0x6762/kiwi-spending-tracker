@@ -94,7 +94,7 @@ class Expense {
       createdAt: DateTime.parse(json['createdAt']),
       categoryId: json['categoryId'],
       notes: json['notes'],
-      type: ExpenseType.values[json['type'] as int],
+      type: json['type'] != null ? ExpenseType.values[json['type'] as int] : ExpenseType.variable,
       accountId: json['accountId'],
       billingCycle: json['billingCycle'],
       nextBillingDate: json['nextBillingDate'] != null 
