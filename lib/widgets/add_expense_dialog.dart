@@ -343,7 +343,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   child: Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 56, 16, 56),
+                        padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
