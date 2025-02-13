@@ -22,7 +22,6 @@ class Expense {
   final DateTime? nextBillingDate; // For subscriptions
   final DateTime? dueDate; // For fixed expenses
   final bool? isVariableAmount; // For fixed expenses
-  final bool? enableReminders; // For subscriptions and fixed expenses
 
   const Expense({
     required this.id,
@@ -38,7 +37,6 @@ class Expense {
     this.nextBillingDate,
     this.dueDate,
     this.isVariableAmount,
-    this.enableReminders,
   });
 
   Expense copyWith({
@@ -55,7 +53,6 @@ class Expense {
     DateTime? nextBillingDate,
     DateTime? dueDate,
     bool? isVariableAmount,
-    bool? enableReminders,
   }) {
     return Expense(
       id: id ?? this.id,
@@ -71,7 +68,6 @@ class Expense {
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
       isVariableAmount: isVariableAmount ?? this.isVariableAmount,
-      enableReminders: enableReminders ?? this.enableReminders,
     );
   }
 
@@ -91,7 +87,6 @@ class Expense {
       'nextBillingDate': nextBillingDate?.toIso8601String(),
       'dueDate': dueDate?.toIso8601String(),
       'isVariableAmount': isVariableAmount,
-      'enableReminders': enableReminders,
     };
   }
 
@@ -114,7 +109,6 @@ class Expense {
           ? DateTime.parse(json['dueDate'])
           : null,
       isVariableAmount: json['isVariableAmount'],
-      enableReminders: json['enableReminders'],
     );
   }
 }

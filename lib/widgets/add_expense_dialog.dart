@@ -39,7 +39,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   // New state variables for type-specific fields
   String _billingCycle = 'Monthly'; // For subscriptions
   DateTime _nextBillingDate = DateTime.now(); // For subscriptions
-  bool _enableReminders = false; // For subscriptions and fixed
   DateTime _dueDate = DateTime.now(); // For fixed expenses
   bool _isVariableAmount = false; // For fixed expenses
 
@@ -162,7 +161,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       nextBillingDate: widget.type == ExpenseType.subscription ? _nextBillingDate : null,
       dueDate: widget.type == ExpenseType.fixed ? _dueDate : null,
       isVariableAmount: widget.type == ExpenseType.fixed ? _isVariableAmount : null,
-      enableReminders: widget.type != ExpenseType.variable ? _enableReminders : null,
     );
 
     widget.onExpenseAdded(expense);
@@ -285,16 +283,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 ],
               ),
             ),
-            SwitchListTile(
-              title: Text(
-                'Enable Reminders',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              value: _enableReminders,
-              onChanged: (value) => setState(() => _enableReminders = value),
-            ),
           ],
         );
       
@@ -329,16 +317,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
               value: _isVariableAmount,
               onChanged: (value) => setState(() => _isVariableAmount = value),
-            ),
-            SwitchListTile(
-              title: Text(
-                'Enable Reminders',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              value: _enableReminders,
-              onChanged: (value) => setState(() => _enableReminders = value),
             ),
           ],
         );
