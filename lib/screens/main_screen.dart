@@ -267,21 +267,20 @@ class _MainScreenState extends State<MainScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(),
+              ExpenseSummary(
+                expenses: _expenses,
+                selectedMonth: _selectedMonth,
+                onMonthSelected: (month) {
+                  setState(() {
+                    _selectedMonth = month;
+                  });
+                },
+                analyticsService: widget.analyticsService,
+              ),
               if (_expenses.isEmpty)
                 _buildEmptyState()
-              else ...[
-                ExpenseSummary(
-                  expenses: _expenses,
-                  selectedMonth: _selectedMonth,
-                  onMonthSelected: (month) {
-                    setState(() {
-                      _selectedMonth = month;
-                    });
-                  },
-                  analyticsService: widget.analyticsService,
-                ),
+              else
                 _buildExpenseList(filteredExpenses),
-              ],
             ],
           ),
         ),
