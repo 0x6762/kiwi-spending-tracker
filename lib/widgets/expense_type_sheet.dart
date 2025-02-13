@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'bottom_sheet.dart';
+import '../models/expense.dart';
 
 class ExpenseTypeSheet extends StatelessWidget {
-  final VoidCallback onFixedSelected;
-  final VoidCallback onVariableSelected;
+  final void Function(ExpenseType type) onTypeSelected;
 
   const ExpenseTypeSheet({
     super.key,
-    required this.onFixedSelected,
-    required this.onVariableSelected,
+    required this.onTypeSelected,
   });
 
   @override
@@ -18,12 +17,19 @@ class ExpenseTypeSheet extends StatelessWidget {
       contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       children: [
         _ExpenseTypeButton(
+          title: 'Subscription',
+          subtitle: 'Fixed recurring payments like Netflix, Spotify',
+          iconAsset: 'assets/icons/subscription.svg',
+          iconColor: const Color(0xFF2196F3),
+          onTap: () => onTypeSelected(ExpenseType.subscription),
+        ),
+        const SizedBox(height: 8),
+        _ExpenseTypeButton(
           title: 'Fixed Expense',
-          subtitle: 'Recurring expenses like rent, bills, subscriptions',
+          subtitle: 'Variable recurring expenses like electricity, water',
           iconAsset: 'assets/icons/fixed_expense.svg',
           iconColor: const Color(0xFFCF5825),
-          onTap: onFixedSelected,
-
+          onTap: () => onTypeSelected(ExpenseType.fixed),
         ),
         const SizedBox(height: 8),
         _ExpenseTypeButton(
@@ -31,7 +37,7 @@ class ExpenseTypeSheet extends StatelessWidget {
           subtitle: 'One-time expenses like groceries, shopping',
           iconAsset: 'assets/icons/variable_expense.svg',
           iconColor: const Color(0xFF8056E4),
-          onTap: onVariableSelected,
+          onTap: () => onTypeSelected(ExpenseType.variable),
         ),
       ],
     );
@@ -68,7 +74,6 @@ class _ExpenseTypeButton extends StatelessWidget {
           child: Row(
             children: [
               Container(
-
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
@@ -101,7 +106,6 @@ class _ExpenseTypeButton extends StatelessWidget {
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-
                     ),
                   ],
                 ),

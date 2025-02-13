@@ -91,7 +91,21 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  void _showAddExpenseDialog({bool isFixed = false}) {
+  void _showExpenseTypeSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ExpenseTypeSheet(
+        onTypeSelected: (type) {
+          Navigator.pop(context);
+          _showAddExpenseDialog(type: type);
+        },
+      ),
+    );
+  }
+
+  void _showAddExpenseDialog({required ExpenseType type}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -99,7 +113,7 @@ class _MainScreenState extends State<MainScreen>
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
-        isFixed: isFixed,
+        type: type,
         categoryRepo: widget.categoryRepo,
         onExpenseAdded: (expense) async {
           await widget.repository.addExpense(expense);
@@ -313,24 +327,6 @@ class _MainScreenState extends State<MainScreen>
               _loadExpenses();
             }
           }
-        },
-      ),
-    );
-  }
-
-  void _showExpenseTypeSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ExpenseTypeSheet(
-        onFixedSelected: () {
-          Navigator.pop(context);
-          _showAddExpenseDialog(isFixed: true);
-        },
-        onVariableSelected: () {
-          Navigator.pop(context);
-          _showAddExpenseDialog(isFixed: false);
         },
       ),
     );

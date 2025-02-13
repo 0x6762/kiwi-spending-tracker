@@ -1,5 +1,11 @@
 import 'account.dart';
 
+enum ExpenseType {
+  subscription,  // Fixed recurring (Netflix, Spotify)
+  fixed,        // Variable recurring (Electricity, Water)
+  variable      // Variable Variable (Groceries, Entertainment)
+}
+
 class Expense {
   final String id;
   final String title;
@@ -8,8 +14,14 @@ class Expense {
   final DateTime createdAt; // For sorting same-day items
   final String? categoryId;
   final String? notes;
-  final bool isFixed; // Whether this is a fixed monthly expense
+  final ExpenseType type;
   final String accountId;
+  
+  // Type-specific fields
+  final String? billingCycle; // For subscriptions (Monthly/Yearly)
+  final DateTime? nextBillingDate; // For subscriptions
+  final DateTime? dueDate; // For fixed expenses
+  final bool? isVariableAmount; // For fixed expenses
 
   const Expense({
     required this.id,
@@ -19,8 +31,12 @@ class Expense {
     required this.createdAt,
     this.categoryId,
     this.notes,
-    this.isFixed = false, // Default to variable expense
+    this.type = ExpenseType.variable,
     required this.accountId,
+    this.billingCycle,
+    this.nextBillingDate,
+    this.dueDate,
+    this.isVariableAmount,
   });
 
   Expense copyWith({
@@ -31,8 +47,12 @@ class Expense {
     DateTime? createdAt,
     String? categoryId,
     String? notes,
-    bool? isFixed,
+    ExpenseType? type,
     String? accountId,
+    String? billingCycle,
+    DateTime? nextBillingDate,
+    DateTime? dueDate,
+    bool? isVariableAmount,
   }) {
     return Expense(
       id: id ?? this.id,
@@ -42,8 +62,12 @@ class Expense {
       createdAt: createdAt ?? this.createdAt,
       categoryId: categoryId ?? this.categoryId,
       notes: notes ?? this.notes,
-      isFixed: isFixed ?? this.isFixed,
+      type: type ?? this.type,
       accountId: accountId ?? this.accountId,
+      billingCycle: billingCycle ?? this.billingCycle,
+      nextBillingDate: nextBillingDate ?? this.nextBillingDate,
+      dueDate: dueDate ?? this.dueDate,
+      isVariableAmount: isVariableAmount ?? this.isVariableAmount,
     );
   }
 
@@ -57,24 +81,34 @@ class Expense {
       'createdAt': createdAt.toIso8601String(),
       'categoryId': categoryId,
       'notes': notes,
-      'isFixed': isFixed,
+      'type': type.index,
       'accountId': accountId,
+      'billingCycle': billingCycle,
+      'nextBillingDate': nextBillingDate?.toIso8601String(),
+      'dueDate': dueDate?.toIso8601String(),
+      'isVariableAmount': isVariableAmount,
     };
   }
 
   factory Expense.fromJson(Map<String, dynamic> json) {
-    final categoryId = json['categoryId'] ?? json['category'];
-
     return Expense(
       id: json['id'],
       title: json['title'],
       amount: json['amount'].toDouble(),
       date: DateTime.parse(json['date']),
       createdAt: DateTime.parse(json['createdAt']),
-      categoryId: categoryId,
+      categoryId: json['categoryId'],
       notes: json['notes'],
-      isFixed: json['isFixed'] ?? false,
-      accountId: json['accountId'] ?? DefaultAccounts.checking.id,
+      type: ExpenseType.values[json['type'] as int],
+      accountId: json['accountId'],
+      billingCycle: json['billingCycle'],
+      nextBillingDate: json['nextBillingDate'] != null 
+          ? DateTime.parse(json['nextBillingDate'])
+          : null,
+      dueDate: json['dueDate'] != null 
+          ? DateTime.parse(json['dueDate'])
+          : null,
+      isVariableAmount: json['isVariableAmount'],
     );
   }
 }

@@ -148,7 +148,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       categoryId: 'other', // Default category ID
       createdAt: DateTime.now(),
       accountId: 'checking', // Default account
-      isFixed: false,
+      type: ExpenseType.variable, // Default to variable expense
     );
 
     await widget.repository.addExpense(expense);

@@ -135,10 +135,19 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                     child: Column(
                       children: [
                         _SummaryRow(
+                          label: 'Subscriptions',
+                          amount: analytics.subscriptionExpenses,
+                          context: context,
+                          iconAsset: 'assets/icons/subscription.svg',
+                          iconColor: const Color(0xFF2196F3),
+                        ),
+                        const SizedBox(height: 0),
+                        _SummaryRow(
                           label: 'Fixed Expenses',
                           amount: analytics.fixedExpenses,
                           context: context,
                           iconAsset: 'assets/icons/fixed_expense.svg',
+                          iconColor: const Color(0xFFCF5825),
                         ),
                         const SizedBox(height: 0),
                         _SummaryRow(
@@ -146,6 +155,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           amount: analytics.variableExpenses,
                           context: context,
                           iconAsset: 'assets/icons/variable_expense.svg',
+                          iconColor: const Color(0xFF8056E4),
                         ),
                       ],
                     ),
@@ -165,18 +175,19 @@ class _SummaryRow extends StatelessWidget {
   final double amount;
   final BuildContext context;
   final String iconAsset;
+  final Color iconColor;
 
   const _SummaryRow({
     required this.label,
     required this.amount,
     required this.context,
     required this.iconAsset,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool isFixed = label == 'Fixed Expenses';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -191,7 +202,7 @@ class _SummaryRow extends StatelessWidget {
             width: 24,
             height: 24,
             colorFilter: ColorFilter.mode(
-              isFixed ? const Color(0xFFCF5825) : const Color(0xFF8056E4),
+              iconColor,
               BlendMode.srcIn,
             ),
           ),
