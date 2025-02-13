@@ -83,6 +83,39 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     );
   }
 
+  String _getExpenseTypeLabel(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return 'Subscription';
+      case ExpenseType.fixed:
+        return 'Fixed Expense';
+      case ExpenseType.variable:
+        return 'Variable Expense';
+    }
+  }
+
+  String _getExpenseTypeIcon(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return 'assets/icons/subscription_expense.svg';
+      case ExpenseType.fixed:
+        return 'assets/icons/fixed_expense.svg';
+      case ExpenseType.variable:
+        return 'assets/icons/variable_expense.svg';
+    }
+  }
+
+  Color _getExpenseTypeColor(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return const Color(0xFF2196F3); // Blue
+      case ExpenseType.fixed:
+        return const Color(0xFFCF5825); // Orange
+      case ExpenseType.variable:
+        return const Color(0xFF8056E4); // Purple
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -106,33 +139,35 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             backgroundColor: theme.colorScheme.surface,
             actions: [
               IconButton(
-                icon: const Icon(Icons.delete),
+                icon: Icon(
+                  Icons.delete,
+                  color: theme.colorScheme.error,
+                ),
                 onPressed: () async {
                   final shouldDelete = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Expense'),
-                          content: const Text(
-                              'Are you sure you want to delete this expense?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              style: TextButton.styleFrom(
-                                foregroundColor:
-                                    theme.colorScheme.error,
-                              ),
-                              child: const Text('Delete'),
-                            ),
-                          ],
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Expense'),
+                      content: const Text('Are you sure you want to delete this expense?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
                         ),
-                      ) ??
-                      false;
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
 
-                  if (shouldDelete) {
+                  if (shouldDelete == true) {
                     Navigator.pop(context, true);
                   }
                 },
@@ -140,31 +175,32 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        formatCurrency(expense.amount),
+                        expense.title,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        expense.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        formatCurrency(expense.amount),
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
                 Card(
                   margin: EdgeInsets.zero,
                   color: theme.colorScheme.surfaceContainer,
@@ -199,13 +235,9 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                         ),
                         _buildDetailRow(
                           'Type',
-                          expense.isFixed ? 'Fixed' : 'Variable',
-                          expense.isFixed
-                              ? 'assets/icons/fixed_expense.svg'
-                              : 'assets/icons/variable_expense.svg',
-                          iconColor: expense.isFixed
-                              ? const Color(0xFFCF5825)  // Fixed expense orange
-                              : const Color(0xFF8056E4), // Variable expense purple
+                          _getExpenseTypeLabel(expense.type),
+                          _getExpenseTypeIcon(expense.type),
+                          iconColor: _getExpenseTypeColor(expense.type),
                           isSvg: true,
                         ),
                         if (expense.notes != null && expense.notes!.isNotEmpty)

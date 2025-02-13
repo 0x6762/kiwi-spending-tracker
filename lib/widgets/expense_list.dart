@@ -69,16 +69,20 @@ class _ExpenseListState extends State<ExpenseList> {
               orElse: () => DefaultAccounts.checking,
             );
 
+        final theme = Theme.of(context);
+        final typeIcon = _getExpenseTypeIcon(expense.type);
+        final typeColor = _getExpenseTypeColor(expense.type);
+
         return Dismissible(
           key: Key(expense.id),
           direction: DismissDirection.endToStart,
           background: Container(
-            color: Theme.of(context).colorScheme.surfaceContainer,
+            color: theme.colorScheme.surfaceContainer,
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 24),
             child: Icon(
               Icons.delete,
-              color: Theme.of(context).colorScheme.error,
+              color: theme.colorScheme.error,
             ),
           ),
           confirmDismiss: (direction) async {
@@ -120,12 +124,12 @@ class _ExpenseListState extends State<ExpenseList> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      color: theme.colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       category?.icon ?? Icons.category_outlined,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -133,26 +137,60 @@ class _ExpenseListState extends State<ExpenseList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          expense.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith( 
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                expense.title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: typeColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    typeIcon,
+                                    size: 16,
+                                    color: typeColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _getExpenseTypeLabel(expense.type),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: typeColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _formatDate(expense.date),
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 16),
                   Text(
                     formatCurrency(expense.amount),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -162,6 +200,39 @@ class _ExpenseListState extends State<ExpenseList> {
         );
       },
     );
+  }
+
+  IconData _getExpenseTypeIcon(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return Icons.subscriptions_outlined;
+      case ExpenseType.fixed:
+        return Icons.calendar_month_outlined;
+      case ExpenseType.variable:
+        return Icons.shopping_bag_outlined;
+    }
+  }
+
+  Color _getExpenseTypeColor(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return const Color(0xFF2196F3); // Blue
+      case ExpenseType.fixed:
+        return const Color(0xFFCF5825); // Orange
+      case ExpenseType.variable:
+        return const Color(0xFF8056E4); // Purple
+    }
+  }
+
+  String _getExpenseTypeLabel(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.subscription:
+        return 'Sub';
+      case ExpenseType.fixed:
+        return 'Fixed';
+      case ExpenseType.variable:
+        return 'Var';
+    }
   }
 
   @override

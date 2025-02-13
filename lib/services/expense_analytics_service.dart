@@ -18,6 +18,7 @@ class CategorySpending {
 
 class MonthlyAnalytics {
   final double totalSpent;
+  final double subscriptionExpenses;
   final double fixedExpenses;
   final double variableExpenses;
   final double previousMonthTotal;
@@ -26,6 +27,7 @@ class MonthlyAnalytics {
 
   MonthlyAnalytics({
     required this.totalSpent,
+    required this.subscriptionExpenses,
     required this.fixedExpenses,
     required this.variableExpenses,
     required this.previousMonthTotal,
@@ -79,16 +81,20 @@ class ExpenseAnalyticsService {
         expense.date.year == selectedMonth.year &&
         expense.date.month == selectedMonth.month).toList();
 
-    // Calculate fixed and variable totals
+    // Calculate totals for each expense type
+    final subscriptionTotal = monthlyExpenses
+        .where((expense) => expense.type == ExpenseType.subscription)
+        .fold(0.0, (sum, expense) => sum + expense.amount);
+
     final fixedTotal = monthlyExpenses
-        .where((expense) => expense.isFixed)
+        .where((expense) => expense.type == ExpenseType.fixed)
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
     final variableTotal = monthlyExpenses
-        .where((expense) => !expense.isFixed)
+        .where((expense) => expense.type == ExpenseType.variable)
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
-    final monthlyTotal = fixedTotal + variableTotal;
+    final monthlyTotal = subscriptionTotal + fixedTotal + variableTotal;
 
     // Calculate previous month total
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
@@ -110,6 +116,7 @@ class ExpenseAnalyticsService {
 
     return MonthlyAnalytics(
       totalSpent: monthlyTotal,
+      subscriptionExpenses: subscriptionTotal,
       fixedExpenses: fixedTotal,
       variableExpenses: variableTotal,
       previousMonthTotal: previousMonthTotal,
