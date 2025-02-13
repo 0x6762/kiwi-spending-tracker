@@ -354,160 +354,151 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     final selectedAccount = DefaultAccounts.defaultAccounts
         .firstWhere((a) => a.id == _selectedAccountId);
 
-    return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppBar(
+    return Material(
+      color: theme.colorScheme.surface,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          appBar: AppBar(
             backgroundColor: theme.colorScheme.surface,
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            ),
             title: Text(
               _getDialogTitle(),
               style: theme.textTheme.titleMedium,
             ),
-            actions: [
-              TextButton(
-                onPressed: _submit,
-                child: Text(
-                  'Save',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 56, 16, 56),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 56, 16, 56),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Text(
-                                '\$',
-                                style:
-                                    theme.textTheme.headlineMedium?.copyWith(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: Text(
+                                    '\$',
+                                    style: theme.textTheme.headlineMedium?.copyWith(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  _amountController.text == '0' ? '0.00' : _amountController.text,
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
                             ),
+                            const SizedBox(height: 8),
                             Text(
-                              _amountController.text == '0' ? '0.00' : _amountController.text,
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.onSurface,
+                              _dateFormat.format(_selectedDate),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _dateFormat.format(_selectedDate),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      Container(
+                        color: theme.colorScheme.surface,
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          child: TextFormField(
+                            controller: _titleController,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Expense Name',
+                              hintStyle: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    color: theme.colorScheme.surface,
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Container(
-                      width: double.infinity,
-                      alignment: Alignment.center,
-                      child: TextFormField(
-                        controller: _titleController,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Expense Name',
-                          hintStyle: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 8),
                         ),
                       ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: PickerButton(
-                            label: selectedAccount.name,
-                            icon: selectedAccount.icon,
-                            iconColor: selectedAccount.color,
-                            onTap: () {
-                              PickerSheet.show(
-                                context: context,
-                                title: 'Select Account',
-                                children: DefaultAccounts.defaultAccounts
-                                    .map(
-                                      (account) => ListTile(
-                                        leading: Icon(account.icon,
-                                            color: account.color),
-                                        title: Text(account.name),
-                                        selected:
-                                            _selectedAccountId == account.id,
-                                        onTap: () {
-                                          setState(() => _selectedAccountId =
-                                              account.id);
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                    )
-                                    .toList(),
-                              );
-                            },
-                          ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: PickerButton(
+                                label: selectedAccount.name,
+                                icon: selectedAccount.icon,
+                                iconColor: selectedAccount.color,
+                                onTap: () {
+                                  PickerSheet.show(
+                                    context: context,
+                                    title: 'Select Account',
+                                    children: DefaultAccounts.defaultAccounts
+                                        .map(
+                                          (account) => ListTile(
+                                            leading: Icon(account.icon, color: account.color),
+                                            title: Text(account.name),
+                                            selected: _selectedAccountId == account.id,
+                                            onTap: () {
+                                              setState(() => _selectedAccountId = account.id);
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        )
+                                        .toList(),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: PickerButton(
+                                label: _selectedCategoryInfo?.name ?? 'Select Category',
+                                icon: _selectedCategoryInfo?.icon,
+                                onTap: _showCategoryPicker,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: PickerButton(
-                            label:
-                                _selectedCategoryInfo?.name ?? 'Select Category',
-                            icon: _selectedCategoryInfo?.icon,
-                            onTap: _showCategoryPicker,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      _buildTypeSpecificFields(),
+                    ],
                   ),
-                  _buildTypeSpecificFields(),
-                ],
+                ),
               ),
-            ),
+              Container(
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                child: _buildNumberPad(),
+              ),
+            ],
           ),
-          Container(
-            color: theme.colorScheme.surface,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-            child: _buildNumberPad(),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -519,30 +510,33 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       children: [
         Row(
           children: [
-            _buildNumberPadButton('1', onPressed: () => _addDigit('1')),
-            _buildNumberPadButton('2', onPressed: () => _addDigit('2')),
-            _buildNumberPadButton('3', onPressed: () => _addDigit('3')),
-            _buildNumberPadButton(
-              'backspace',
-              onPressed: _deleteDigit,
-              isAction: true,
+            Expanded(child: _buildNumberPadButton('1', onPressed: () => _addDigit('1'))),
+            Expanded(child: _buildNumberPadButton('2', onPressed: () => _addDigit('2'))),
+            Expanded(child: _buildNumberPadButton('3', onPressed: () => _addDigit('3'))),
+            Expanded(
+              child: _buildNumberPadButton(
+                'backspace',
+                onPressed: _deleteDigit,
+                isAction: true,
+              ),
             ),
           ],
         ),
         Row(
           children: [
-            _buildNumberPadButton('4', onPressed: () => _addDigit('4')),
-            _buildNumberPadButton('5', onPressed: () => _addDigit('5')),
-            _buildNumberPadButton('6', onPressed: () => _addDigit('6')),
-            _buildNumberPadButton(
-              'date',
-              onPressed: _selectDate,
-              isAction: true,
+            Expanded(child: _buildNumberPadButton('4', onPressed: () => _addDigit('4'))),
+            Expanded(child: _buildNumberPadButton('5', onPressed: () => _addDigit('5'))),
+            Expanded(child: _buildNumberPadButton('6', onPressed: () => _addDigit('6'))),
+            Expanded(
+              child: _buildNumberPadButton(
+                'date',
+                onPressed: _selectDate,
+                isAction: true,
+              ),
             ),
           ],
         ),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               flex: 3,
@@ -550,20 +544,16 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 children: [
                   Row(
                     children: [
-                      _buildNumberPadButton('7',
-                          onPressed: () => _addDigit('7')),
-                      _buildNumberPadButton('8',
-                          onPressed: () => _addDigit('8')),
-                      _buildNumberPadButton('9',
-                          onPressed: () => _addDigit('9')),
+                      Expanded(child: _buildNumberPadButton('7', onPressed: () => _addDigit('7'))),
+                      Expanded(child: _buildNumberPadButton('8', onPressed: () => _addDigit('8'))),
+                      Expanded(child: _buildNumberPadButton('9', onPressed: () => _addDigit('9'))),
                     ],
                   ),
                   Row(
                     children: [
-                      _buildNumberPadButton('.', onPressed: _addDecimalPoint),
-                      _buildNumberPadButton('0',
-                          onPressed: () => _addDigit('0')),
-                      _buildNumberPadButton('00', onPressed: _addDoubleZero),
+                      Expanded(child: _buildNumberPadButton('.', onPressed: _addDecimalPoint)),
+                      Expanded(child: _buildNumberPadButton('0', onPressed: () => _addDigit('0'))),
+                      Expanded(child: _buildNumberPadButton('00', onPressed: _addDoubleZero)),
                     ],
                   ),
                 ],
@@ -590,25 +580,22 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     bool isLarge = false,
   }) {
     final theme = Theme.of(context);
-    return Expanded(
-      flex: 1,
-      child: AspectRatio(
-        aspectRatio: isLarge ? 0.5 : 1,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Material(
-            color: text == 'save'
-                ? theme.colorScheme.primary
-                : text == 'date'
-                    ? theme.colorScheme.primary.withOpacity(0.1)
-                    : theme.colorScheme.surfaceContainer,
+    return AspectRatio(
+      aspectRatio: isLarge ? 0.5 : 1,
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Material(
+          color: text == 'save'
+              ? theme.colorScheme.primary
+              : text == 'date'
+                  ? theme.colorScheme.primary.withOpacity(0.1)
+                  : theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(24),
+          child: InkWell(
+            onTap: onPressed,
             borderRadius: BorderRadius.circular(24),
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(24),
-              child: Center(
-                child: _buildButtonContent(text, isAction, theme),
-              ),
+            child: Center(
+              child: _buildButtonContent(text, isAction, theme),
             ),
           ),
         ),

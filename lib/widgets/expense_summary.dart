@@ -138,7 +138,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           label: 'Subscriptions',
                           amount: analytics.subscriptionExpenses,
                           context: context,
-                          iconAsset: 'assets/icons/subscription_expense.svg',
+                          iconAsset: 'assets/icons/subscription.svg',
                           iconColor: const Color(0xFF2196F3),
                         ),
                         const SizedBox(height: 0),
