@@ -76,6 +76,19 @@ class ExpenseAnalyticsService {
   Future<MonthlyAnalytics> getMonthlyAnalytics(DateTime selectedMonth) async {
     final expenses = await _expenseRepo.getAllExpenses();
     
+    // Return default values if there are no expenses
+    if (expenses.isEmpty) {
+      return MonthlyAnalytics(
+        totalSpent: 0.0,
+        subscriptionExpenses: 0.0,
+        fixedExpenses: 0.0,
+        variableExpenses: 0.0,
+        previousMonthTotal: 0.0,
+        percentageChange: 0.0,
+        isIncrease: false,
+      );
+    }
+    
     // Filter expenses for selected month
     final monthlyExpenses = expenses.where((expense) =>
         expense.date.year == selectedMonth.year &&
