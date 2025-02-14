@@ -485,6 +485,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     final theme = Theme.of(context);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
@@ -559,19 +560,19 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }) {
     final theme = Theme.of(context);
     return AspectRatio(
-      aspectRatio: isLarge ? 0.5 : 1,
+      aspectRatio: isLarge ? 0.6 : 1.2,
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(3),
         child: Material(
           color: text == 'save'
               ? theme.colorScheme.primary
               : text == 'date'
                   ? theme.colorScheme.primary.withOpacity(0.1)
                   : theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onPressed,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
             child: Center(
               child: _buildButtonContent(text, isAction, theme),
             ),
