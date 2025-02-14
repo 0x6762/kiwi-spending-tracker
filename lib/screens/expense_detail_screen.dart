@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/delete_confirmation_dialog.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
@@ -146,29 +147,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                   color: theme.colorScheme.error,
                 ),
                 onPressed: () async {
-                  final shouldDelete = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Expense'),
-                      content: const Text('Are you sure you want to delete this expense?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(
-                              color: theme.colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-
+                  final shouldDelete = await DeleteConfirmationDialog.show(context);
                   if (shouldDelete == true && mounted) {
                     Navigator.pop(context, true);
                   }

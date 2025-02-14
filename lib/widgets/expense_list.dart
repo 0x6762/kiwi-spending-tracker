@@ -5,6 +5,7 @@ import '../models/expense_category.dart';
 import '../models/account.dart';
 import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
+import 'delete_confirmation_dialog.dart';
 
 class ExpenseList extends StatefulWidget {
   final List<Expense> expenses;
@@ -84,28 +85,7 @@ class _ExpenseListState extends State<ExpenseList> {
             ),
           ),
           confirmDismiss: (direction) async {
-            return await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Delete Expense'),
-                    content:
-                        const Text('Are you sure you want to delete this expense?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                ) ??
-                false;
+            return await DeleteConfirmationDialog.show(context);
           },
           onDismissed: (_) {
             if (widget.onDelete != null) {
