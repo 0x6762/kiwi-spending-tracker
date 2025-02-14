@@ -56,33 +56,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
   }
 
-  Widget _buildMonthPicker() {
-    return TextButton(
-      onPressed: _showMonthPicker,
-      style: TextButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.only(
-          left: 16,
-          right: 10,
-          top: 8,
-          bottom: 8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_monthFormat.format(_selectedMonth)),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.keyboard_arrow_down,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -91,27 +64,43 @@ class _InsightsScreenState extends State<InsightsScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
-        title: Text(
-          'Insights',
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: theme.colorScheme.onSurface,
+        title: TextButton(
+          onPressed: _showMonthPicker,
+          style: TextButton.styleFrom(
+            backgroundColor: theme.colorScheme.surface,
+            foregroundColor: theme.colorScheme.onSurfaceVariant,
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 10,
+              top: 8,
+              bottom: 8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _monthFormat.format(_selectedMonth),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+            ],
           ),
         ),
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  _buildMonthPicker(),
-                ],
-              ),
-            ),
             ExpenseSummary(
               expenses: widget.expenses,
               selectedMonth: _selectedMonth,
@@ -124,7 +113,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
             const SizedBox(height: 24),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               child: Text(
                 'Spending by Category',
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -137,8 +126,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               categoryRepo: widget.categoryRepo,
               analyticsService: widget.analyticsService,
             ),
-            const SizedBox(height: 24),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 0),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
           ],
         ),
       ),
