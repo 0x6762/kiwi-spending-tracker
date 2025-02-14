@@ -63,6 +63,7 @@ class AllExpensesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         backgroundColor: theme.colorScheme.surface,
         title: Text(
           'All Expenses',

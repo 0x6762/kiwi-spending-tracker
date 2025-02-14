@@ -63,6 +63,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         backgroundColor: theme.colorScheme.surface,
         title: TextButton(
           onPressed: _showMonthPicker,

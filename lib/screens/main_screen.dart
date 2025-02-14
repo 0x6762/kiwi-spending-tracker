@@ -302,6 +302,21 @@ class _MainScreenState extends State<MainScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       extendBody: true,
+      appBar: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          'Kiwi Spending',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          _SettingsButton(
+            categoryRepo: widget.categoryRepo,
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
         color: Theme.of(context).colorScheme.primary,
@@ -310,12 +325,12 @@ class _MainScreenState extends State<MainScreen>
             left: 8,
             right: 8,
             bottom: 104,
+            top: 8,
           ),
           clipBehavior: Clip.none,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildHeader(),
               TodaySpendingCard(
                 expenses: _expenses,
               ),
