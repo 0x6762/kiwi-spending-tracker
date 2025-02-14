@@ -183,13 +183,15 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: _listen,
-      child: Icon(
-        _isListening ? Icons.mic : Icons.mic_none,
-        color: Theme.of(context).colorScheme.onPrimary,
-      ),
       backgroundColor: _isListening 
         ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.primary,
+        : Theme.of(context).colorScheme.surfaceContainerLowest,
+      child: Icon(
+        _isListening ? Icons.pause : Icons.mic,
+        color: _isListening 
+          ? Theme.of(context).colorScheme.onSurface
+          : Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 } 
