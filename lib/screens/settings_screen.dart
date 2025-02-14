@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'category_management_screen.dart';
 import '../models/currency_settings.dart';
 import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
+import '../theme/theme_provider.dart';
+import '../widgets/picker_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
@@ -42,6 +45,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _selectedCurrency = currencyCode;
     });
+  }
+
+  void _showThemePicker() {
+    final theme = Theme.of(context);
+    final themeProvider = context.read<ThemeProvider>();
+
+    PickerSheet.show(
+      context: context,
+      title: 'Select Theme',
+      children: ThemeMode.values.map((mode) => ListTile(
+        title: Text(themeProvider.getThemeModeName(mode)),
+        selected: themeProvider.themeMode == mode,
+        onTap: () {
+          themeProvider.setThemeMode(mode);
+          Navigator.pop(context);
+        },
+      )).toList(),
+    );
   }
 
   void _showCurrencyPicker() {
@@ -109,6 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedCurrency = CurrencySettings.availableCurrencies[_selectedCurrency]!;
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -142,10 +164,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.palette_outlined),
                     title: const Text('Theme'),
-                    subtitle: const Text('System default'),
-                    onTap: () {
-                      // TODO: Implement theme selection
-                    },
+                    subtitle: Text(themeProvider.getThemeModeName(themeProvider.themeMode)),
+                    onTap: _showThemePicker,
                   ),
                 ],
               ),

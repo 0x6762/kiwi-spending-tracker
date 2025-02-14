@@ -82,14 +82,14 @@ class AppTheme {
     error: Color(0xFFBA1A1A),
     onError: Color(0xFFFFFFFF),
     // Main screen background
-    background: Color(0xFFFFFBFE),
-    onBackground: Color(0xFF1C1B1F),
-    // Card and surface colors
     surface: Color(0xFFFFFBFE),
     onSurface: Color(0xFF1C1B1F),
-    // Used for the bottom sheet, nav bar, and subtle backgrounds
-    surfaceVariant: Color(0xFFF3F3F3),
     onSurfaceVariant: Color(0xFF49454F),
+    // Used for the bottom sheet, nav bar, and subtle backgrounds
+    surfaceContainer: Color(0xFFF3F3F3),
+    surfaceContainerHighest: Color(0xFFF3F3F3),
+    surfaceContainerLow: Color(0xFFF3F3F3),
+    surfaceContainerLowest: Color(0xFFF3F3F3),
     // Used for borders and dividers
     outline: Color(0xFFE3E3E3),
     outlineVariant: Color(0xFFE3E3E3),
