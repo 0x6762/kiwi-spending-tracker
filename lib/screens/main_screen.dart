@@ -191,7 +191,7 @@ class _MainScreenState extends State<MainScreen>
             children: [
               Text(
                 'Recent expenses',
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),

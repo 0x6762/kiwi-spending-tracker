@@ -126,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Theme settings
                   Text(
                     'Appearance',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -150,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // User settings
                   Text(
                     'Preferences',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -208,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Data settings
                   Text(
                     'Data',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),

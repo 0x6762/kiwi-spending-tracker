@@ -64,7 +64,7 @@ class CategoryStatistics extends StatelessWidget {
                   children: [
                     Text(
                       '${spending.percentage.toStringAsFixed(1)}%',
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),

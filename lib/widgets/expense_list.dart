@@ -140,7 +140,7 @@ class _ExpenseListState extends State<ExpenseList> {
                             Expanded(
                               child: Text(
                                 expense.title,
-                                style: theme.textTheme.titleMedium?.copyWith(
+                                style: theme.textTheme.titleSmall?.copyWith(
                                   color: theme.colorScheme.onSurface,
                                 ),
                               ),
@@ -160,7 +160,7 @@ class _ExpenseListState extends State<ExpenseList> {
                   const SizedBox(width: 16),
                   Text(
                     formatCurrency(expense.amount),
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),
                   ),

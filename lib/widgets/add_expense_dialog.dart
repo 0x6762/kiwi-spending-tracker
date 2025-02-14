@@ -334,7 +334,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
             ),
             title: Text(
               _getDialogTitle(),
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleSmall,
             ),
           ),
           body: Column(
@@ -587,7 +587,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       case 'save':
         return Text(
           'Add',
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleSmall?.copyWith(
             color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.w800,
           ),
@@ -595,7 +595,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       default:
         return Text(
           text,
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: theme.textTheme.titleSmall?.copyWith(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
           ),

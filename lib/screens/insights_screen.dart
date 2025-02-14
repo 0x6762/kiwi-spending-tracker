@@ -116,7 +116,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               child: Text(
                 'Spending by Category',
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),

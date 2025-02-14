@@ -21,13 +21,13 @@ class AppTheme {
       // Used for section titles and expense amounts
       titleMedium: base.titleMedium?.copyWith(
         fontFamily: 'Inter',
-        fontSize: 16,
+        fontSize: 20,
         height: 1.4,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: base.titleSmall?.copyWith(
         fontFamily: 'Inter',
-        fontSize: 14,
+        fontSize: 16,
         height: 1.4,
         fontWeight: FontWeight.w500,
       ),

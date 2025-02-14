@@ -54,7 +54,7 @@ class TodaySpendingCard extends StatelessWidget {
               children: [
                 Text(
                   "Spent today",
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -114,7 +114,7 @@ class TodaySpendingCard extends StatelessWidget {
                       ),
                       Text(
                         formatCurrency(creditCardTotal),
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleSmall?.copyWith(
                           color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),

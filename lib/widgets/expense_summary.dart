@@ -98,7 +98,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                       children: [
                         Text(
                           'Total Spent',
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -217,7 +217,7 @@ class _SummaryRow extends StatelessWidget {
           ),
           Text(
             formatCurrency(amount),
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.onSurface,
             ),
           ),

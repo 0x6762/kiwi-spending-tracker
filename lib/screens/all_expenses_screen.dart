@@ -78,7 +78,7 @@ class AllExpensesScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
                   child: Text(
                     _formatSectionTitle(entry.key),
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
