@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _changeCurrency(String currencyCode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(CurrencySettings.prefsKey, currencyCode);
-    await initializeFormatter(); // Reinitialize formatter with new currency
+    await initializeFormatter();
     setState(() {
       _selectedCurrency = currencyCode;
     });
@@ -116,130 +116,143 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Settings',
         leading: const Icon(Icons.arrow_back),
       ),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // Theme settings
-                  Text(
-                    'Appearance',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.palette_outlined),
-                          title: const Text('Theme'),
-                          subtitle: const Text('System default'),
-                          onTap: () {
-                            // TODO: Implement theme selection
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // User settings
-                  Text(
-                    'Preferences',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              selectedCurrency.symbol,
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          title: const Text('Currency'),
-                          subtitle: Text(selectedCurrency.name),
-                          onTap: _showCurrencyPicker,
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.account_balance_outlined),
-                          title: const Text('Manage Accounts'),
-                          subtitle: const Text('Add or edit your accounts'),
-                          onTap: () {
-                            // TODO: Implement account management
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.category_outlined),
-                          title: const Text('Categories'),
-                          subtitle: const Text('Manage expense categories'),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CategoryManagementScreen(
-                                  categoryRepo: widget.categoryRepo,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Data settings
-                  Text(
-                    'Data',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.backup_outlined),
-                          title: const Text('Backup & Restore'),
-                          subtitle: const Text('Manage your expense data'),
-                          onTap: () {
-                            // TODO: Implement backup & restore
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.delete_outline),
-                          title: const Text('Clear Data'),
-                          subtitle: const Text('Delete all expenses'),
-                          textColor: theme.colorScheme.error,
-                          iconColor: theme.colorScheme.error,
-                          onTap: () {
-                            // TODO: Implement clear data
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: Text(
+                'Appearance',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.palette_outlined),
+                    title: const Text('Theme'),
+                    subtitle: const Text('System default'),
+                    onTap: () {
+                      // TODO: Implement theme selection
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: Text(
+                'Preferences',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        selectedCurrency.symbol,
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    title: const Text('Currency'),
+                    subtitle: Text(selectedCurrency.name),
+                    onTap: _showCurrencyPicker,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_balance_outlined),
+                    title: const Text('Manage Accounts'),
+                    subtitle: const Text('Add or edit your accounts'),
+                    onTap: () {
+                      // TODO: Implement account management
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.category_outlined),
+                    title: const Text('Categories'),
+                    subtitle: const Text('Manage expense categories'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryManagementScreen(
+                            categoryRepo: widget.categoryRepo,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: Text(
+                'Data',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.backup_outlined),
+                    title: const Text('Backup & Restore'),
+                    subtitle: const Text('Manage your expense data'),
+                    onTap: () {
+                      // TODO: Implement backup & restore
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline),
+                    title: const Text('Clear Data'),
+                    subtitle: const Text('Delete all expenses'),
+                    textColor: theme.colorScheme.error,
+                    iconColor: theme.colorScheme.error,
+                    onTap: () {
+                      // TODO: Implement clear data
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

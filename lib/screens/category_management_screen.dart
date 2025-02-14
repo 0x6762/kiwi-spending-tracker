@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/expense_category.dart';
 import '../widgets/add_category_sheet.dart';
 import '../repositories/category_repository.dart';
+import '../widgets/app_bar.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
@@ -51,12 +52,9 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        title: Text(
-          'Manage Categories',
-          style: theme.textTheme.titleMedium,
-        ),
+      appBar: KiwiAppBar(
+        title: 'Categories',
+        leading: const Icon(Icons.arrow_back),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
