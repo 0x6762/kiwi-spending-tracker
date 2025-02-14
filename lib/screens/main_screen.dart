@@ -39,6 +39,17 @@ class _MainScreenState extends State<MainScreen>
   late Animation<double> _arrowAnimation;
   final _monthFormat = DateFormat.yMMMM();
 
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning,';
+    } else if (hour < 18) {
+      return 'Good afternoon,';
+    } else {
+      return 'Good evening,';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -306,7 +317,7 @@ class _MainScreenState extends State<MainScreen>
         scrolledUnderElevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
-          'Kiwi Spending',
+          _greeting,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
           ),
