@@ -36,10 +36,12 @@ class MonthlyExpenseChart extends StatelessWidget {
   }
 
   double _calculateBarHeight(double total, double maxTotal) {
-    if (total <= 0) return 8; // Minimum height for empty months
-    
-    // Calculate height with a minimum of 10% of max value for non-zero values
+    // Calculate minimum height for non-zero values (10% of max)
     final minHeight = maxTotal * 0.1;
+    
+    // Empty months should be 1/3 of the minimum height
+    if (total <= 0) return minHeight * 0.3;
+    
     return total < minHeight ? minHeight : total;
   }
 
