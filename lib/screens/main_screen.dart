@@ -9,6 +9,7 @@ import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import '../widgets/voice_input_button.dart';
 import '../widgets/today_spending_card.dart';
+import '../widgets/app_bar.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -256,15 +257,8 @@ class _MainScreenState extends State<MainScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       extendBody: true,
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text(
-          _greeting,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
+      appBar: KiwiAppBar(
+        title: _greeting,
         actions: [
           _SettingsButton(
             categoryRepo: widget.categoryRepo,

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/expense_list.dart';
+import '../widgets/app_bar.dart';
 
 class AllExpensesScreen extends StatelessWidget {
   final List<Expense> expenses;
@@ -62,15 +63,9 @@ class AllExpensesScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: theme.colorScheme.surface,
-        title: Text(
-          'All Expenses',
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
+      appBar: KiwiAppBar(
+        title: 'All Expenses',
+        leading: const Icon(Icons.arrow_back),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8),

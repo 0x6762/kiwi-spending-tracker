@@ -5,6 +5,7 @@ import '../repositories/category_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/category_statistics.dart';
 import '../widgets/expense_summary.dart';
+import '../widgets/app_bar.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -62,10 +63,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        backgroundColor: theme.colorScheme.surface,
-        title: TextButton(
+      appBar: KiwiAppBar(
+        titleWidget: TextButton(
           onPressed: _showMonthPicker,
           style: TextButton.styleFrom(
             backgroundColor: theme.colorScheme.surface,
