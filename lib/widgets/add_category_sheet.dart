@@ -82,6 +82,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -119,8 +120,10 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
             ),
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 240, // Fixed height for icon grid
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: screenHeight * (bottomPadding > 0 ? 0.2 : 0.4),
+            ),
             child: SingleChildScrollView(
               child: Wrap(
                 spacing: 12,
