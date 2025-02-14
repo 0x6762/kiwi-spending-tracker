@@ -40,7 +40,7 @@ class TodaySpendingCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  "Today's Spending",
+                  "Spent today",
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
