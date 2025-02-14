@@ -25,6 +25,12 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w500,
       ),
+      titleSmall: base.titleSmall?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        height: 1.4,
+        fontWeight: FontWeight.w500,
+      ),
       // Used for expense titles and primary labels
       bodyLarge: base.bodyLarge?.copyWith(
         fontFamily: 'Inter',

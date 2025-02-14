@@ -5,6 +5,7 @@ import 'category_management_screen.dart';
 import '../models/currency_settings.dart';
 import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
+import '../widgets/app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
@@ -110,14 +111,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final selectedCurrency = CurrencySettings.availableCurrencies[_selectedCurrency]!;
 
     return Scaffold(
-      extendBody: true,
       backgroundColor: theme.colorScheme.surface,
+      appBar: KiwiAppBar(
+        title: 'Settings',
+        leading: const Icon(Icons.arrow_back),
+      ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverAppBar.medium(
-              title: const Text('Settings'),
-            ),
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverList(

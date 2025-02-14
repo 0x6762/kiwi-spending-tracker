@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
+import '../widgets/app_bar.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
@@ -135,13 +136,14 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
 
         return Scaffold(
           backgroundColor: theme.colorScheme.surface,
-          appBar: AppBar(
-            backgroundColor: theme.colorScheme.surface,
+          appBar: KiwiAppBar(
+            title: 'Expense Details',
+            leading: const Icon(Icons.arrow_back),
             actions: [
               IconButton(
                 icon: Icon(
-                  Icons.delete,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  Icons.delete_outline,
+                  color: theme.colorScheme.error,
                 ),
                 onPressed: () async {
                   final shouldDelete = await showDialog<bool>(
@@ -167,7 +169,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                     ),
                   );
 
-                  if (shouldDelete == true) {
+                  if (shouldDelete == true && mounted) {
                     Navigator.pop(context, true);
                   }
                 },
