@@ -5,10 +5,10 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense_list.dart';
-import '../widgets/expense_summary.dart';
 import '../widgets/add_expense_dialog.dart';
 import '../widgets/expense_type_sheet.dart';
 import '../widgets/voice_input_button.dart';
+import '../widgets/today_spending_card.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -267,15 +267,8 @@ class _MainScreenState extends State<MainScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildHeader(),
-              ExpenseSummary(
+              TodaySpendingCard(
                 expenses: _expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: (month) {
-                  setState(() {
-                    _selectedMonth = month;
-                  });
-                },
-                analyticsService: widget.analyticsService,
               ),
               if (_expenses.isEmpty)
                 _buildEmptyState()

@@ -4,6 +4,7 @@ import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/category_statistics.dart';
+import '../widgets/expense_summary.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -106,15 +107,29 @@ class _InsightsScreenState extends State<InsightsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Row(
                 children: [
-                  Text(
-                    'Spending by Category',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
                   const Spacer(),
                   _buildMonthPicker(),
                 ],
+              ),
+            ),
+            ExpenseSummary(
+              expenses: widget.expenses,
+              selectedMonth: _selectedMonth,
+              onMonthSelected: (month) {
+                setState(() {
+                  _selectedMonth = month;
+                });
+              },
+              analyticsService: widget.analyticsService,
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                'Spending by Category',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             CategoryStatistics(
@@ -123,6 +138,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               analyticsService: widget.analyticsService,
             ),
             const SizedBox(height: 24),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 0),
           ],
         ),
       ),
