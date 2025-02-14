@@ -12,6 +12,7 @@ import '../widgets/today_spending_card.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
+import 'all_expenses_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
@@ -157,18 +158,20 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
     return Column(
       children: [
         SizedBox(height: MediaQuery.of(context).padding.top),
         Padding(
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+          padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _MonthPickerButton(
-                selectedMonth: _selectedMonth,
-                monthFormat: _monthFormat,
-                onPressed: _showMonthPicker,
+              Text(
+                'Kiwi Spending',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
               _SettingsButton(
                 categoryRepo: widget.categoryRepo,
@@ -217,12 +220,56 @@ class _MainScreenState extends State<MainScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-          child: Text(
-            'Recent transactions',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          child: Row(
+            children: [
+              Text(
+                'Recent expenses',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllExpensesScreen(
+                        expenses: _expenses,
+                        categoryRepo: widget.categoryRepo,
+                        onDelete: _deleteExpense,
+                        onTap: _viewExpenseDetails,
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'See all',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    // const SizedBox(width: 4),
+                    // Icon(
+                    //   Icons.arrow_forward_ios_rounded,
+                    //   size: 12,
+                    //   color: theme.colorScheme.primary,
+                    // ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         Card(
@@ -244,10 +291,12 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _buildExpensesScreen() {
-    final filteredExpenses = _expenses
+    final now = DateTime.now();
+    final todayExpenses = _expenses
         .where((expense) =>
-            expense.date.year == _selectedMonth.year &&
-            expense.date.month == _selectedMonth.month)
+            expense.date.year == now.year &&
+            expense.date.month == now.month &&
+            expense.date.day == now.day)
         .toList();
 
     return Scaffold(
@@ -318,7 +367,7 @@ class _MainScreenState extends State<MainScreen>
               if (_expenses.isEmpty)
                 _buildEmptyState()
               else
-                _buildExpenseList(filteredExpenses),
+                _buildExpenseList(todayExpenses),
             ],
           ),
         ),

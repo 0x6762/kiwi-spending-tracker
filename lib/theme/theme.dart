@@ -39,6 +39,12 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w400,
       ),
+      labelMedium: base.labelMedium?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        height: 1.4,
+        fontWeight: FontWeight.w500,
+      ),
       labelSmall: base.labelSmall?.copyWith(
         fontFamily: 'Inter',
         fontSize: 12,

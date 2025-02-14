@@ -178,10 +178,15 @@ class _ExpenseListState extends State<ExpenseList> {
     final expenses = _sortedExpenses;
 
     if (expenses.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.all(16),
         child: Center(
-          child: Text('No expenses yet'),
+          child: Text(
+            'No expenses today',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
       );
     }
