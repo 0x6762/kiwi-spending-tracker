@@ -290,41 +290,89 @@ class _MainScreenState extends State<MainScreen>
                   borderRadius: BorderRadius.circular(28),
                 ),
                 elevation: 0,
-                child: InkWell(
-                  onTap: _showExpenseTypeSheet,
-                  borderRadius: BorderRadius.circular(28),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: _showExpenseTypeSheet,
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(28),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.add_rounded,
+                                  size: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Add new expense',
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              const Spacer(),
+                              // Icon(
+                              //   Icons.arrow_forward_ios_rounded,
+                              //   size: 16,
+                              //   color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              // ),
+                            ],
                           ),
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Container(
+                        height: 40,
+                        width: 1,
+                        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                      ),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: VoiceInputButton(
+                                repository: widget.repository,
+                                categoryRepo: widget.categoryRepo,
+                                onExpenseAdded: _loadExpenses,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(28),
+                        ),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          alignment: Alignment.center,
                           child: Icon(
-                            Icons.add_rounded,
-                            size: 20,
+                            Icons.mic,
                             color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Add new expense',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               if (_expenses.isEmpty)
@@ -354,12 +402,6 @@ class _MainScreenState extends State<MainScreen>
           ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0 ? VoiceInputButton(
-        repository: widget.repository,
-        categoryRepo: widget.categoryRepo,
-        onExpenseAdded: _loadExpenses,
-      ) : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _BottomNavBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {

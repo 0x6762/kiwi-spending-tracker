@@ -156,8 +156,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       widget.onExpenseAdded!();
     }
 
-    // Show success message
+    // Show success message and close dialog
     if (mounted) {
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -181,16 +182,52 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: _listen,
-      backgroundColor: _isListening 
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.surfaceContainerLowest,
-      child: Icon(
-        _isListening ? Icons.pause : Icons.mic,
-        color: _isListening 
-          ? Theme.of(context).colorScheme.onSurface
-          : Theme.of(context).colorScheme.primary,
+    final theme = Theme.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Voice Input',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _isListening 
+              ? _lastWords.isEmpty 
+                ? 'Listening...' 
+                : _lastWords
+              : 'Tap the microphone and say something like:\n"Spent 25 on groceries"',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Material(
+            color: _isListening 
+              ? theme.colorScheme.error
+              : theme.colorScheme.surfaceContainerLowest,
+            shape: const CircleBorder(),
+            child: InkWell(
+              onTap: _listen,
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Icon(
+                  _isListening ? Icons.stop : Icons.mic,
+                  size: 32,
+                  color: _isListening 
+                    ? theme.colorScheme.onError
+                    : theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
