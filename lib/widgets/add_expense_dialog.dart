@@ -8,6 +8,7 @@ import 'picker_button.dart';
 import 'picker_sheet.dart';
 import 'add_category_sheet.dart';
 import '../repositories/category_repository.dart';
+import 'dart:math' as math;
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
@@ -28,7 +29,7 @@ class AddExpenseDialog extends StatefulWidget {
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
+  final _amountController = TextEditingController(text: '0');
   final _notesController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
@@ -167,11 +168,21 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   void _addDigit(String digit) {
     setState(() {
-      if (_amountController.text == '0') {
+      final currentText = _amountController.text;
+      
+      // If current text is '0' and no decimal point, replace the 0
+      if (currentText == '0' && !currentText.contains('.')) {
         _amountController.text = digit;
-      } else {
-        _amountController.text += digit;
+        return;
       }
+
+      // If we have a decimal point, check number of decimal places
+      if (currentText.contains('.')) {
+        final decimalPlaces = currentText.split('.')[1].length;
+        if (decimalPlaces >= 2) return; // Limit to 2 decimal places
+      }
+
+      _amountController.text += digit;
     });
   }
 
@@ -184,11 +195,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }
 
   void _addDecimalPoint() {
-    if (!_amountController.text.contains('.')) {
-      setState(() {
+    setState(() {
+      if (!_amountController.text.contains('.')) {
         _amountController.text += '.';
-      });
-    }
+      }
+    });
   }
 
   void _deleteDigit() {
@@ -364,7 +375,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                   ),
                                 ),
                                 Text(
-                                  _amountController.text == '0' ? '0.00' : _amountController.text,
+                                  _formatAmount(_amountController.text),
                                   style: theme.textTheme.headlineMedium?.copyWith(
                                     fontSize: 48,
                                     fontWeight: FontWeight.w600,
@@ -595,11 +606,21 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       default:
         return Text(
           text,
-          style: theme.textTheme.titleSmall?.copyWith(
+          style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
           ),
         );
     }
+  }
+
+  String _formatAmount(String amount) {
+    if (amount == '0') return '0';
+    if (amount.contains('.')) {
+      final parts = amount.split('.');
+      if (parts[1].isEmpty) return amount; // Just show the decimal point
+      return parts[0] + '.' + parts[1].substring(0, math.min(parts[1].length, 2)); // Limit to 2 decimal places
+    }
+    return amount;
   }
 }
