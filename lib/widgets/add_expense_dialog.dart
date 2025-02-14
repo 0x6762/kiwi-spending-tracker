@@ -325,6 +325,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: theme.colorScheme.surface,
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             backgroundColor: theme.colorScheme.surface,
             leading: IconButton(
@@ -459,7 +460,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
               Container(
                 color: theme.colorScheme.surface,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
                 child: _buildNumberPad(),
               ),
             ],
