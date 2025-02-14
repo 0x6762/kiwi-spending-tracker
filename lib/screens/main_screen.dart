@@ -34,10 +34,8 @@ class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   List<Expense> _expenses = [];
-  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
-  final _monthFormat = DateFormat.yMMMM();
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -83,24 +81,6 @@ class _MainScreenState extends State<MainScreen>
     setState(() {
       _expenses = expenses;
     });
-  }
-
-  void _showMonthPicker() async {
-    final DateTime? picked = await showDialog<DateTime>(
-      context: context,
-      builder: (BuildContext context) {
-        return MonthPickerDialog(
-          selectedMonth: _selectedMonth,
-          expenses: _expenses,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        _selectedMonth = picked;
-      });
-    }
   }
 
   void _showExpenseTypeSheet() {
@@ -166,32 +146,6 @@ class _MainScreenState extends State<MainScreen>
     } else {
       await _loadExpenses();
     }
-  }
-
-  Widget _buildHeader() {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        SizedBox(height: MediaQuery.of(context).padding.top),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Kiwi Spending',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              _SettingsButton(
-                categoryRepo: widget.categoryRepo,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildEmptyState() {
@@ -262,22 +216,11 @@ class _MainScreenState extends State<MainScreen>
                     vertical: 6,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'See all',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    // const SizedBox(width: 4),
-                    // Icon(
-                    //   Icons.arrow_forward_ios_rounded,
-                    //   size: 12,
-                    //   color: theme.colorScheme.primary,
-                    // ),
-                  ],
+                child: Text(
+                  'See all',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ],
@@ -420,9 +363,7 @@ class _MainScreenState extends State<MainScreen>
       floatingActionButton: _selectedIndex == 0 ? VoiceInputButton(
         repository: widget.repository,
         categoryRepo: widget.categoryRepo,
-        onExpenseAdded: () {
-          _loadExpenses();
-        },
+        onExpenseAdded: _loadExpenses,
       ) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _BottomNavBar(
@@ -441,87 +382,6 @@ class _MainScreenState extends State<MainScreen>
           }
         },
       ),
-    );
-  }
-
-  void _navigateToInsights() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InsightsScreen(
-          expenses: _expenses,
-          categoryRepo: widget.categoryRepo,
-          analyticsService: widget.analyticsService,
-        ),
-      ),
-    );
-  }
-}
-
-class _MonthPickerButton extends StatelessWidget {
-  final DateTime selectedMonth;
-  final DateFormat monthFormat;
-  final VoidCallback onPressed;
-
-  const _MonthPickerButton({
-    required this.selectedMonth,
-    required this.monthFormat,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.only(
-          left: 16,
-          right: 10,
-          top: 8,
-          bottom: 8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(monthFormat.format(selectedMonth)),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.keyboard_arrow_down,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsButton extends StatelessWidget {
-  final CategoryRepository categoryRepo;
-
-  const _SettingsButton({
-    required this.categoryRepo,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        Icons.more_horiz,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SettingsScreen(
-              categoryRepo: categoryRepo,
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -601,76 +461,30 @@ class _BottomNavBar extends StatelessWidget {
   }
 }
 
-class MonthPickerDialog extends StatelessWidget {
-  final DateTime selectedMonth;
-  final List<Expense> expenses;
+class _SettingsButton extends StatelessWidget {
+  final CategoryRepository categoryRepo;
 
-  const MonthPickerDialog({
-    super.key,
-    required this.selectedMonth,
-    required this.expenses,
+  const _SettingsButton({
+    required this.categoryRepo,
   });
-
-  List<DateTime> get _availableMonths {
-    final months = expenses
-        .map((e) => DateTime(e.date.year, e.date.month))
-        .toSet()
-        .toList();
-    months.sort((a, b) => b.compareTo(a)); // Most recent first
-    return months;
-  }
 
   @override
   Widget build(BuildContext context) {
-    final monthFormat = DateFormat.yMMMM();
-    final months = _availableMonths;
-    final theme = Theme.of(context);
-
-    return Dialog(
-      backgroundColor: theme.colorScheme.surfaceContainer,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Month',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: months.length,
-                itemBuilder: (context, index) {
-                  final month = months[index];
-                  final isSelected = month.year == selectedMonth.year &&
-                      month.month == selectedMonth.month;
-
-                  return ListTile(
-                    title: Text(monthFormat.format(month)),
-                    selected: isSelected,
-                    onTap: () => Navigator.pop(context, month),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+    return IconButton(
+      icon: Icon(
+        Icons.more_horiz,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SettingsScreen(
+              categoryRepo: categoryRepo,
+            ),
+          ),
+        );
+      },
     );
   }
 }
