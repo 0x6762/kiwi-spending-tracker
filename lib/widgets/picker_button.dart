@@ -23,32 +23,44 @@ class PickerButton extends StatelessWidget {
         backgroundColor: theme.colorScheme.surfaceContainer,
         foregroundColor: theme.colorScheme.onSurfaceVariant,
         padding: const EdgeInsets.only(
-          left: 24,
+          left: 12,
           right: 16,
-          top: 16,
-          bottom: 16,
+          top: 12,
+          bottom: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(
-              icon!,
-              size: 18,
-              color: iconColor ?? theme.colorScheme.onSurfaceVariant,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor?.withOpacity(0.1) ?? theme.colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 8),
-          ],
+            child: Icon(
+              icon ?? Icons.category_outlined,
+              size: 20,
+              color: iconColor ?? theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ),
-          const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down, size: 18),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
         ],
       ),
     );

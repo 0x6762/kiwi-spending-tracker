@@ -8,6 +8,7 @@ import 'picker_button.dart';
 import 'picker_sheet.dart';
 import 'add_category_sheet.dart';
 import '../repositories/category_repository.dart';
+import '../widgets/app_bar.dart';
 import 'dart:math' as math;
 
 class AddExpenseDialog extends StatefulWidget {
@@ -337,141 +338,227 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         child: Scaffold(
           backgroundColor: theme.colorScheme.surface,
           resizeToAvoidBottomInset: false,
-          appBar: AppBar(
+          appBar: KiwiAppBar(
             backgroundColor: theme.colorScheme.surface,
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              _getDialogTitle(),
-              style: theme.textTheme.titleSmall,
-            ),
+            title: _getDialogTitle(),
+            leading: const Icon(Icons.close),
+            onLeadingPressed: () => Navigator.pop(context),
           ),
           body: Column(
             children: [
+              Container(
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _dateFormat.format(_selectedDate),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            '\$',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w500,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _formatAmount(_amountController.text),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 4),
-                                  child: Text(
-                                    '\$',
-                                    style: theme.textTheme.headlineMedium?.copyWith(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w500,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  _formatAmount(_amountController.text),
-                                  style: theme.textTheme.headlineMedium?.copyWith(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _dateFormat.format(_selectedDate),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       Container(
                         color: theme.colorScheme.surface,
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                        child: Container(
-                          width: double.infinity,
-                          alignment: Alignment.center,
-                          child: TextFormField(
-                            controller: _titleController,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Expense Name',
-                              hintStyle: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: PickerButton(
-                                label: selectedAccount.name,
-                                icon: selectedAccount.icon,
-                                iconColor: selectedAccount.color,
+                            Container(
+                              width: double.infinity,
+                              alignment: Alignment.topLeft,
+                              child: TextFormField(
+                                controller: _titleController,
+                                textAlign: TextAlign.start,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Type expense name',
+                                  hintStyle: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  filled: true,
+                                  fillColor: theme.colorScheme.surfaceContainer,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: theme.colorScheme.surfaceContainerLowest,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: theme.colorScheme.error,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: theme.colorScheme.error,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            PickerButton(
+                              label: selectedAccount.name,
+                              icon: selectedAccount.icon,
+                              iconColor: selectedAccount.color,
+                              onTap: () {
+                                PickerSheet.show(
+                                  context: context,
+                                  title: 'Select Account',
+                                  children: DefaultAccounts.defaultAccounts
+                                      .map(
+                                        (account) => ListTile(
+                                          leading: Icon(account.icon, color: account.color),
+                                          title: Text(account.name),
+                                          selected: _selectedAccountId == account.id,
+                                          onTap: () {
+                                            setState(() => _selectedAccountId = account.id);
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                      )
+                                      .toList(),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            PickerButton(
+                              label: _selectedCategoryInfo?.name ?? 'Select Category',
+                              icon: _selectedCategoryInfo?.icon,
+                              onTap: _showCategoryPicker,
+                            ),
+                            if (widget.type == ExpenseType.subscription) ...[
+                              const SizedBox(height: 24),
+                              Text(
+                                'Billing Cycle / Due Date',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              PickerButton(
+                                label: _billingCycle,
+                                icon: Icons.calendar_view_month,
                                 onTap: () {
                                   PickerSheet.show(
                                     context: context,
-                                    title: 'Select Account',
-                                    children: DefaultAccounts.defaultAccounts
-                                        .map(
-                                          (account) => ListTile(
-                                            leading: Icon(account.icon, color: account.color),
-                                            title: Text(account.name),
-                                            selected: _selectedAccountId == account.id,
-                                            onTap: () {
-                                              setState(() => _selectedAccountId = account.id);
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                        )
-                                        .toList(),
+                                    title: 'Billing Cycle',
+                                    children: ['Monthly', 'Yearly'].map(
+                                      (cycle) => ListTile(
+                                        title: Text(cycle),
+                                        selected: _billingCycle == cycle,
+                                        onTap: () {
+                                          setState(() => _billingCycle = cycle);
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ).toList(),
                                   );
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: PickerButton(
-                                label: _selectedCategoryInfo?.name ?? 'Select Category',
-                                icon: _selectedCategoryInfo?.icon,
-                                onTap: _showCategoryPicker,
+                              const SizedBox(height: 8),
+                              PickerButton(
+                                label: _dateFormat.format(_nextBillingDate),
+                                icon: Icons.event_repeat,
+                                onTap: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _nextBillingDate,
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _nextBillingDate = picked);
+                                  }
+                                },
                               ),
-                            ),
+                            ],
+                            if (widget.type == ExpenseType.fixed) ...[
+                              const SizedBox(height: 24),
+                              Text(
+                                'Due Date',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              PickerButton(
+                                label: _dateFormat.format(_dueDate),
+                                icon: Icons.event,
+                                onTap: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _dueDate,
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _dueDate = picked);
+                                  }
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      _buildTypeSpecificFields(),
                     ],
                   ),
                 ),
               ),
               Container(
                 color: theme.colorScheme.surface,
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
                 child: _buildNumberPad(),
               ),
             ],
@@ -560,9 +647,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }) {
     final theme = Theme.of(context);
     return AspectRatio(
-      aspectRatio: isLarge ? 0.6 : 1.2,
+      aspectRatio: isLarge ? 0.7 : 1.4,
       child: Padding(
-        padding: const EdgeInsets.all(3),
+        padding: const EdgeInsets.all(4),
         child: Material(
           color: text == 'save'
               ? theme.colorScheme.primary
