@@ -55,7 +55,10 @@ class MonthlyExpenseChart extends StatelessWidget {
   String _formatAmount(double amount) {
     if (amount < 1000) {
       final currentSymbol = formatCurrency(0).replaceAll(RegExp(r'[0-9.,]+'), '');
-      return formatCurrency(amount).replaceAll(RegExp(r'[.,]00'), '');
+      // Handle both dot and comma decimal separators
+      return formatCurrency(amount)
+          .replaceAll(RegExp(r'[.,]00'), '') // Remove .00 or ,00
+          .replaceAll(RegExp(r'[.,][0-9]+'), ''); // Remove any decimal part with either . or ,
     }
     final value = (amount / 1000).toStringAsFixed(1);
     final formatted = formatCurrency(1000).replaceAll(RegExp(r'[0-9.,]+'), '');
