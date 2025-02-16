@@ -659,6 +659,26 @@ class $CategoriesTableTable extends CategoriesTable
           defaultConstraints: GeneratedColumn.constraintIsAlways(
               'CHECK ("icon_match_text_direction" IN (0, 1))'),
           defaultValue: const Constant(false));
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isModifiedMeta =
+      const VerificationMeta('isModified');
+  @override
+  late final GeneratedColumn<bool> isModified = GeneratedColumn<bool>(
+      'is_modified', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_modified" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -666,7 +686,9 @@ class $CategoriesTableTable extends CategoriesTable
         iconCodePoint,
         iconFontFamily,
         iconFontPackage,
-        iconMatchTextDirection
+        iconMatchTextDirection,
+        isDefault,
+        isModified
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -715,6 +737,16 @@ class $CategoriesTableTable extends CategoriesTable
           iconMatchTextDirection.isAcceptableOrUnknown(
               data['icon_match_text_direction']!, _iconMatchTextDirectionMeta));
     }
+    if (data.containsKey('is_default')) {
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
+    }
+    if (data.containsKey('is_modified')) {
+      context.handle(
+          _isModifiedMeta,
+          isModified.isAcceptableOrUnknown(
+              data['is_modified']!, _isModifiedMeta));
+    }
     return context;
   }
 
@@ -737,6 +769,10 @@ class $CategoriesTableTable extends CategoriesTable
       iconMatchTextDirection: attachedDatabase.typeMapping.read(
           DriftSqlType.bool,
           data['${effectivePrefix}icon_match_text_direction'])!,
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_modified'])!,
     );
   }
 
@@ -754,13 +790,17 @@ class CategoryTableData extends DataClass
   final String? iconFontFamily;
   final String? iconFontPackage;
   final bool iconMatchTextDirection;
+  final bool isDefault;
+  final bool isModified;
   const CategoryTableData(
       {required this.id,
       required this.name,
       required this.iconCodePoint,
       this.iconFontFamily,
       this.iconFontPackage,
-      required this.iconMatchTextDirection});
+      required this.iconMatchTextDirection,
+      required this.isDefault,
+      required this.isModified});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -774,6 +814,8 @@ class CategoryTableData extends DataClass
       map['icon_font_package'] = Variable<String>(iconFontPackage);
     }
     map['icon_match_text_direction'] = Variable<bool>(iconMatchTextDirection);
+    map['is_default'] = Variable<bool>(isDefault);
+    map['is_modified'] = Variable<bool>(isModified);
     return map;
   }
 
@@ -789,6 +831,8 @@ class CategoryTableData extends DataClass
           ? const Value.absent()
           : Value(iconFontPackage),
       iconMatchTextDirection: Value(iconMatchTextDirection),
+      isDefault: Value(isDefault),
+      isModified: Value(isModified),
     );
   }
 
@@ -803,6 +847,8 @@ class CategoryTableData extends DataClass
       iconFontPackage: serializer.fromJson<String?>(json['iconFontPackage']),
       iconMatchTextDirection:
           serializer.fromJson<bool>(json['iconMatchTextDirection']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      isModified: serializer.fromJson<bool>(json['isModified']),
     );
   }
   @override
@@ -815,6 +861,8 @@ class CategoryTableData extends DataClass
       'iconFontFamily': serializer.toJson<String?>(iconFontFamily),
       'iconFontPackage': serializer.toJson<String?>(iconFontPackage),
       'iconMatchTextDirection': serializer.toJson<bool>(iconMatchTextDirection),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'isModified': serializer.toJson<bool>(isModified),
     };
   }
 
@@ -824,7 +872,9 @@ class CategoryTableData extends DataClass
           int? iconCodePoint,
           Value<String?> iconFontFamily = const Value.absent(),
           Value<String?> iconFontPackage = const Value.absent(),
-          bool? iconMatchTextDirection}) =>
+          bool? iconMatchTextDirection,
+          bool? isDefault,
+          bool? isModified}) =>
       CategoryTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -836,6 +886,8 @@ class CategoryTableData extends DataClass
             : this.iconFontPackage,
         iconMatchTextDirection:
             iconMatchTextDirection ?? this.iconMatchTextDirection,
+        isDefault: isDefault ?? this.isDefault,
+        isModified: isModified ?? this.isModified,
       );
   CategoryTableData copyWithCompanion(CategoriesTableCompanion data) {
     return CategoryTableData(
@@ -853,6 +905,9 @@ class CategoryTableData extends DataClass
       iconMatchTextDirection: data.iconMatchTextDirection.present
           ? data.iconMatchTextDirection.value
           : this.iconMatchTextDirection,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      isModified:
+          data.isModified.present ? data.isModified.value : this.isModified,
     );
   }
 
@@ -864,14 +919,16 @@ class CategoryTableData extends DataClass
           ..write('iconCodePoint: $iconCodePoint, ')
           ..write('iconFontFamily: $iconFontFamily, ')
           ..write('iconFontPackage: $iconFontPackage, ')
-          ..write('iconMatchTextDirection: $iconMatchTextDirection')
+          ..write('iconMatchTextDirection: $iconMatchTextDirection, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isModified: $isModified')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, name, iconCodePoint, iconFontFamily,
-      iconFontPackage, iconMatchTextDirection);
+      iconFontPackage, iconMatchTextDirection, isDefault, isModified);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -881,7 +938,9 @@ class CategoryTableData extends DataClass
           other.iconCodePoint == this.iconCodePoint &&
           other.iconFontFamily == this.iconFontFamily &&
           other.iconFontPackage == this.iconFontPackage &&
-          other.iconMatchTextDirection == this.iconMatchTextDirection);
+          other.iconMatchTextDirection == this.iconMatchTextDirection &&
+          other.isDefault == this.isDefault &&
+          other.isModified == this.isModified);
 }
 
 class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
@@ -891,6 +950,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
   final Value<String?> iconFontFamily;
   final Value<String?> iconFontPackage;
   final Value<bool> iconMatchTextDirection;
+  final Value<bool> isDefault;
+  final Value<bool> isModified;
   final Value<int> rowid;
   const CategoriesTableCompanion({
     this.id = const Value.absent(),
@@ -899,6 +960,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
     this.iconFontFamily = const Value.absent(),
     this.iconFontPackage = const Value.absent(),
     this.iconMatchTextDirection = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isModified = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CategoriesTableCompanion.insert({
@@ -908,6 +971,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
     this.iconFontFamily = const Value.absent(),
     this.iconFontPackage = const Value.absent(),
     this.iconMatchTextDirection = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isModified = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
@@ -919,6 +984,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
     Expression<String>? iconFontFamily,
     Expression<String>? iconFontPackage,
     Expression<bool>? iconMatchTextDirection,
+    Expression<bool>? isDefault,
+    Expression<bool>? isModified,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -929,6 +996,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
       if (iconFontPackage != null) 'icon_font_package': iconFontPackage,
       if (iconMatchTextDirection != null)
         'icon_match_text_direction': iconMatchTextDirection,
+      if (isDefault != null) 'is_default': isDefault,
+      if (isModified != null) 'is_modified': isModified,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -940,6 +1009,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
       Value<String?>? iconFontFamily,
       Value<String?>? iconFontPackage,
       Value<bool>? iconMatchTextDirection,
+      Value<bool>? isDefault,
+      Value<bool>? isModified,
       Value<int>? rowid}) {
     return CategoriesTableCompanion(
       id: id ?? this.id,
@@ -949,6 +1020,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
       iconFontPackage: iconFontPackage ?? this.iconFontPackage,
       iconMatchTextDirection:
           iconMatchTextDirection ?? this.iconMatchTextDirection,
+      isDefault: isDefault ?? this.isDefault,
+      isModified: isModified ?? this.isModified,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -975,6 +1048,12 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
       map['icon_match_text_direction'] =
           Variable<bool>(iconMatchTextDirection.value);
     }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (isModified.present) {
+      map['is_modified'] = Variable<bool>(isModified.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -990,6 +1069,8 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
           ..write('iconFontFamily: $iconFontFamily, ')
           ..write('iconFontPackage: $iconFontPackage, ')
           ..write('iconMatchTextDirection: $iconMatchTextDirection, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isModified: $isModified, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1301,6 +1382,8 @@ typedef $$CategoriesTableTableCreateCompanionBuilder = CategoriesTableCompanion
   Value<String?> iconFontFamily,
   Value<String?> iconFontPackage,
   Value<bool> iconMatchTextDirection,
+  Value<bool> isDefault,
+  Value<bool> isModified,
   Value<int> rowid,
 });
 typedef $$CategoriesTableTableUpdateCompanionBuilder = CategoriesTableCompanion
@@ -1311,6 +1394,8 @@ typedef $$CategoriesTableTableUpdateCompanionBuilder = CategoriesTableCompanion
   Value<String?> iconFontFamily,
   Value<String?> iconFontPackage,
   Value<bool> iconMatchTextDirection,
+  Value<bool> isDefault,
+  Value<bool> isModified,
   Value<int> rowid,
 });
 
@@ -1343,6 +1428,12 @@ class $$CategoriesTableTableFilterComposer
   ColumnFilters<bool> get iconMatchTextDirection => $composableBuilder(
       column: $table.iconMatchTextDirection,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => ColumnFilters(column));
 }
 
 class $$CategoriesTableTableOrderingComposer
@@ -1375,6 +1466,12 @@ class $$CategoriesTableTableOrderingComposer
   ColumnOrderings<bool> get iconMatchTextDirection => $composableBuilder(
       column: $table.iconMatchTextDirection,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CategoriesTableTableAnnotationComposer
@@ -1403,6 +1500,12 @@ class $$CategoriesTableTableAnnotationComposer
 
   GeneratedColumn<bool> get iconMatchTextDirection => $composableBuilder(
       column: $table.iconMatchTextDirection, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => column);
 }
 
 class $$CategoriesTableTableTableManager extends RootTableManager<
@@ -1438,6 +1541,8 @@ class $$CategoriesTableTableTableManager extends RootTableManager<
             Value<String?> iconFontFamily = const Value.absent(),
             Value<String?> iconFontPackage = const Value.absent(),
             Value<bool> iconMatchTextDirection = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isModified = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CategoriesTableCompanion(
@@ -1447,6 +1552,8 @@ class $$CategoriesTableTableTableManager extends RootTableManager<
             iconFontFamily: iconFontFamily,
             iconFontPackage: iconFontPackage,
             iconMatchTextDirection: iconMatchTextDirection,
+            isDefault: isDefault,
+            isModified: isModified,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1456,6 +1563,8 @@ class $$CategoriesTableTableTableManager extends RootTableManager<
             Value<String?> iconFontFamily = const Value.absent(),
             Value<String?> iconFontPackage = const Value.absent(),
             Value<bool> iconMatchTextDirection = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isModified = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CategoriesTableCompanion.insert(
@@ -1465,6 +1574,8 @@ class $$CategoriesTableTableTableManager extends RootTableManager<
             iconFontFamily: iconFontFamily,
             iconFontPackage: iconFontPackage,
             iconMatchTextDirection: iconMatchTextDirection,
+            isDefault: isDefault,
+            isModified: isModified,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

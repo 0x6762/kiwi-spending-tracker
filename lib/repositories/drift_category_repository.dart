@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart';
 import '../database/database.dart';
 import '../database/extensions/category_extensions.dart';
 import '../models/expense_category.dart';
@@ -56,17 +57,51 @@ class DriftCategoryRepository implements CategoryRepository {
       throw Exception('A category with this name already exists');
     }
 
-    await _db.insertCategory(category.toCompanion());
+    // Convert to companion and set flags
+    final companion = CategoriesTableCompanion.insert(
+      id: category.id,
+      name: category.name,
+      iconCodePoint: category.icon.codePoint,
+      iconFontFamily: Value(category.icon.fontFamily),
+      iconFontPackage: Value(category.icon.fontPackage),
+      iconMatchTextDirection: Value(category.icon.matchTextDirection),
+      isDefault: const Value(false),
+      isModified: const Value(false),
+    );
+    
+    await _db.insertCategory(companion);
   }
 
   @override
   Future<void> updateCategory(ExpenseCategory oldCategory, ExpenseCategory newCategory) async {
-    await _db.updateCategory(newCategory.toCompanion());
+    try {
+      final existingCategory = await _db.getCategoryById(oldCategory.id);
+      final isDefault = existingCategory.isDefault;
+      
+      await _db.updateCategory(CategoriesTableCompanion(
+        id: Value(newCategory.id),
+        name: Value(newCategory.name),
+        iconCodePoint: Value(newCategory.icon.codePoint),
+        iconFontFamily: Value(newCategory.icon.fontFamily),
+        iconFontPackage: Value(newCategory.icon.fontPackage),
+        iconMatchTextDirection: Value(newCategory.icon.matchTextDirection),
+        isDefault: Value(isDefault),
+        isModified: Value(isDefault), // Only mark as modified if it's a default category
+      ));
+    } catch (e) {
+      debugPrint('Error updating category: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<bool> isDefaultCategory(String id) async {
-    return CategoryRepository.defaultCategories.any((category) => category.id == id);
+    try {
+      final category = await _db.getCategoryById(id);
+      return category.isDefault;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -78,8 +113,18 @@ class DriftCategoryRepository implements CategoryRepository {
       try {
         await _db.getCategoryById(category.id);
       } catch (e) {
-        // Category doesn't exist, insert it
-        await _db.insertCategory(category.toCompanion());
+        // Category doesn't exist, insert it with default flags
+        final companion = CategoriesTableCompanion.insert(
+          id: category.id,
+          name: category.name,
+          iconCodePoint: category.icon.codePoint,
+          iconFontFamily: Value(category.icon.fontFamily),
+          iconFontPackage: Value(category.icon.fontPackage),
+          iconMatchTextDirection: Value(category.icon.matchTextDirection),
+          isDefault: const Value(true),
+          isModified: const Value(false),
+        );
+        await _db.insertCategory(companion);
       }
     }
 

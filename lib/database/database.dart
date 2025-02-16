@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -36,6 +36,37 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           debugPrint('Upgrading database from version $from to $to');
+          if (from < 2) {
+            // Add new columns for category tracking
+            await m.addColumn(categoriesTable, categoriesTable.isDefault);
+            await m.addColumn(categoriesTable, categoriesTable.isModified);
+            
+            // Mark existing default categories
+            await customStatement(
+              '''
+              UPDATE categories_table 
+              SET is_default = 1, is_modified = 0 
+              WHERE id IN (
+                'food_dining', 'transportation', 'shopping', 
+                'entertainment', 'bills_utilities', 'health',
+                'travel', 'education', 'other'
+              );
+              '''
+            );
+            
+            // Mark all other categories as non-default
+            await customStatement(
+              '''
+              UPDATE categories_table 
+              SET is_default = 0, is_modified = 0 
+              WHERE id NOT IN (
+                'food_dining', 'transportation', 'shopping', 
+                'entertainment', 'bills_utilities', 'health',
+                'travel', 'education', 'other'
+              );
+              '''
+            );
+          }
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');

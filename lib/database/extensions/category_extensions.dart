@@ -21,13 +21,15 @@ extension CategoryConversions on CategoryTableData {
 
 extension CategoryTableConversion on domain.ExpenseCategory {
   CategoriesTableCompanion toCompanion() {
-    return CategoriesTableCompanion(
-      id: Value(id),
-      name: Value(name),
-      iconCodePoint: Value(icon.codePoint),
+    return CategoriesTableCompanion.insert(
+      id: id,
+      name: name,
+      iconCodePoint: icon.codePoint,
       iconFontFamily: Value(icon.fontFamily),
       iconFontPackage: Value(icon.fontPackage),
       iconMatchTextDirection: Value(icon.matchTextDirection),
+      isDefault: const Value(false),
+      isModified: const Value(false),
     );
   }
 } 
