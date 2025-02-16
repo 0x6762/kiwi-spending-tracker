@@ -67,6 +67,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   void _showCategoryPicker() async {
     final repo = widget.categoryRepo;
+    
+    // Ensure default categories are loaded
+    await repo.loadCategories();
+    
+    // Get all categories and sort by name
     final categories = await repo.getAllCategories();
     categories.sort((a, b) => a.name.compareTo(b.name));
 
@@ -76,6 +81,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       context: context,
       title: 'Select Category',
       children: [
+        // Add Category button
         ListTile(
           leading: Container(
             padding: const EdgeInsets.all(8),
@@ -114,6 +120,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
             }
           },
         ),
+        const Divider(),
         ...categories.map(
           (category) => ListTile(
             leading: Icon(category.icon),
