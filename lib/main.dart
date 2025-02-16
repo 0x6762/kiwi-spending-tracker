@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'screens/main_screen.dart';
-import 'repositories/expense_repository.dart';
-import 'repositories/category_repository.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
-import 'utils/category_migration.dart';
 import 'database/database.dart';
 import 'database/database_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
 
   // Initialize currency formatter
   await initializeFormatter();
@@ -27,20 +22,12 @@ void main() async {
 
   // Initialize repository provider
   final repositoryProvider = RepositoryProvider(
-    prefs: prefs,
     database: database,
-    useDrift: true, // Use Drift by default
   );
 
-  // Initialize repositories and services
+  // Initialize analytics service
   final analyticsService = ExpenseAnalyticsService(
     repositoryProvider.expenseRepository,
-    repositoryProvider.categoryRepository,
-  );
-
-  // Run category migration
-  await CategoryMigration.migrateToIds(
-    prefs,
     repositoryProvider.categoryRepository,
   );
 
@@ -61,20 +48,17 @@ void main() async {
   );
 
   runApp(MyApp(
-    prefs: prefs,
     repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
   ));
 }
 
 class MyApp extends StatelessWidget {
-  final SharedPreferences prefs;
   final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
 
   const MyApp({
-    super.key, 
-    required this.prefs,
+    super.key,
     required this.repositoryProvider,
     required this.analyticsService,
   });
