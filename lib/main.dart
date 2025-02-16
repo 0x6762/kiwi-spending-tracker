@@ -10,6 +10,7 @@ import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
 import 'utils/category_migration.dart';
+import 'database/database_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,8 +70,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => DatabaseProvider()),
+      ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) => AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
