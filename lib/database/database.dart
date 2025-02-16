@@ -16,7 +16,14 @@ part 'database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  static AppDatabase? _instance;
+  
+  AppDatabase._() : super(_openConnection());
+  
+  factory AppDatabase() {
+    _instance ??= AppDatabase._();
+    return _instance!;
+  }
 
   @override
   int get schemaVersion => 1;

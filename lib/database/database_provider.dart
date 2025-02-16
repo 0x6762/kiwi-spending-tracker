@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'database.dart';
 
-class DatabaseProvider extends ChangeNotifier {
-  final AppDatabase database;
+class DatabaseProvider {
+  final AppDatabase database = AppDatabase();
 
-  DatabaseProvider() : database = AppDatabase();
-
-  @override
   void dispose() {
     database.close();
-    super.dispose();
   }
 } 

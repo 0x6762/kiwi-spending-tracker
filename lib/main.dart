@@ -5,11 +5,13 @@ import 'package:provider/provider.dart';
 import 'screens/main_screen.dart';
 import 'repositories/expense_repository.dart';
 import 'repositories/category_repository.dart';
+import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
 import 'utils/category_migration.dart';
+import 'database/database.dart';
 import 'database/database_provider.dart';
 
 void main() async {
@@ -19,16 +21,28 @@ void main() async {
   // Initialize currency formatter
   await initializeFormatter();
 
-  // Initialize repositories
-  final categoryRepo = SharedPrefsCategoryRepository(prefs);
-  await categoryRepo.loadCategories();
+  // Initialize database
+  final database = AppDatabase();
+  final databaseProvider = DatabaseProvider();
+
+  // Initialize repository provider
+  final repositoryProvider = RepositoryProvider(
+    prefs: prefs,
+    database: database,
+    useDrift: true, // Use Drift by default
+  );
 
   // Initialize repositories and services
-  final expenseRepo = LocalStorageExpenseRepository(prefs);
-  final analyticsService = ExpenseAnalyticsService(expenseRepo, categoryRepo);
+  final analyticsService = ExpenseAnalyticsService(
+    repositoryProvider.expenseRepository,
+    repositoryProvider.categoryRepository,
+  );
 
   // Run category migration
-  await CategoryMigration.migrateToIds(prefs, categoryRepo);
+  await CategoryMigration.migrateToIds(
+    prefs,
+    repositoryProvider.categoryRepository,
+  );
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
@@ -48,23 +62,20 @@ void main() async {
 
   runApp(MyApp(
     prefs: prefs,
-    categoryRepo: categoryRepo,
-    expenseRepo: expenseRepo,
+    repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
-  final CategoryRepository categoryRepo;
-  final ExpenseRepository expenseRepo;
+  final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
 
   const MyApp({
     super.key, 
     required this.prefs,
-    required this.categoryRepo,
-    required this.expenseRepo,
+    required this.repositoryProvider,
     required this.analyticsService,
   });
 
@@ -73,7 +84,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => DatabaseProvider()),
+        ChangeNotifierProvider.value(value: repositoryProvider),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) => AnnotatedRegion<SystemUiOverlayStyle>(
@@ -91,8 +102,8 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.dark(),
             themeMode: themeProvider.themeMode,
             home: MainScreen(
-              repository: expenseRepo,
-              categoryRepo: categoryRepo,
+              repository: repositoryProvider.expenseRepository,
+              categoryRepo: repositoryProvider.categoryRepository,
               analyticsService: analyticsService,
             ),
           ),
