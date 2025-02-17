@@ -162,8 +162,8 @@ class _ExpenseListState extends State<ExpenseList> {
         padding: const EdgeInsets.all(16),
         child: Center(
           child: Text(
-            'No expenses today',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            'Nothing here so far.',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
