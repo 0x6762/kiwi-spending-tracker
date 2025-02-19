@@ -45,25 +45,25 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           categoryRepo: widget.categoryRepo,
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
-            widget.onExpenseUpdated();
-            // Update local state
             setState(() {
               final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
               if (index != -1) {
                 _expenses[index] = updatedExpense;
               }
             });
+            // Notify parent to update its state
+            widget.onExpenseUpdated();
           },
         ),
       ),
     );
 
     if (result == true) {
-      widget.onDelete(expense);
-      // Update local state after deletion
+      await widget.repository.deleteExpense(expense.id);
       setState(() {
         _expenses.removeWhere((e) => e.id == expense.id);
       });
+      widget.onDelete(expense);
     }
   }
 

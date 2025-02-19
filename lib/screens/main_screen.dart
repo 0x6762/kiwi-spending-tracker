@@ -125,11 +125,6 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
-  Future<void> _deleteExpense(Expense expense) async {
-    await widget.repository.deleteExpense(expense.id);
-    _loadExpenses();
-  }
-
   void _viewExpenseDetails(Expense expense) async {
     final result = await Navigator.push<dynamic>(
       context,
@@ -139,7 +134,12 @@ class _MainScreenState extends State<MainScreen>
           categoryRepo: widget.categoryRepo,
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
-            await _loadExpenses();
+            setState(() {
+              final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
+              if (index != -1) {
+                _expenses[index] = updatedExpense;
+              }
+            });
           },
         ),
         maintainState: true,
@@ -148,9 +148,14 @@ class _MainScreenState extends State<MainScreen>
 
     if (result == true) {
       await _deleteExpense(expense);
-    } else {
-      await _loadExpenses();
     }
+  }
+
+  Future<void> _deleteExpense(Expense expense) async {
+    await widget.repository.deleteExpense(expense.id);
+    setState(() {
+      _expenses.removeWhere((e) => e.id == expense.id);
+    });
   }
 
   Widget _buildEmptyState() {
