@@ -15,12 +15,14 @@ class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
   final CategoryRepository categoryRepo;
   final void Function(Expense expense) onExpenseAdded;
+  final Expense? expense;
 
   const AddExpenseDialog({
     super.key,
     required this.type,
     required this.categoryRepo,
     required this.onExpenseAdded,
+    this.expense,
   });
 
   @override
@@ -42,6 +44,32 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   String _billingCycle = 'Monthly'; // For subscriptions
   DateTime _nextBillingDate = DateTime.now(); // For subscriptions
   DateTime _dueDate = DateTime.now(); // For fixed expenses
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.expense != null) {
+      // Initialize form with existing expense data
+      _titleController.text = widget.expense!.title;
+      _amountController.text = widget.expense!.amount.toString();
+      _notesController.text = widget.expense!.notes ?? '';
+      _selectedDate = widget.expense!.date;
+      _selectedAccountId = widget.expense!.accountId;
+      _billingCycle = widget.expense!.billingCycle ?? 'Monthly';
+      _nextBillingDate = widget.expense!.nextBillingDate ?? DateTime.now();
+      _dueDate = widget.expense!.dueDate ?? DateTime.now();
+      
+      // Load category
+      _loadCategory(widget.expense!.categoryId);
+    }
+  }
+
+  Future<void> _loadCategory(String? categoryId) async {
+    if (categoryId != null) {
+      final category = await widget.categoryRepo.findCategoryById(categoryId);
+      setState(() => _selectedCategoryInfo = category);
+    }
+  }
 
   @override
   void dispose() {
@@ -153,18 +181,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
     final amount = double.parse(_amountController.text);
     final expense = Expense(
-      id: const Uuid().v4(),
+      id: widget.expense?.id ?? const Uuid().v4(),
       title: _titleController.text.trim().isNotEmpty 
         ? _titleController.text.trim()
         : _selectedCategoryInfo!.name,
       amount: amount,
       date: _selectedDate,
-      createdAt: DateTime.now(),
+      createdAt: widget.expense?.createdAt ?? DateTime.now(),
       categoryId: _selectedCategoryInfo!.id,
       notes: _notesController.text.trim(),
       type: widget.type,
       accountId: _selectedAccountId,
-      // Add new fields based on type
       billingCycle: widget.type == ExpenseType.subscription ? _billingCycle : null,
       nextBillingDate: widget.type == ExpenseType.subscription ? _nextBillingDate : null,
       dueDate: widget.type == ExpenseType.fixed ? _dueDate : null,
@@ -235,13 +262,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   }
 
   String _getDialogTitle() {
+    final action = widget.expense != null ? 'Edit' : 'Add';
     switch (widget.type) {
       case ExpenseType.subscription:
-        return 'Add Subscription';
+        return '$action Subscription';
       case ExpenseType.fixed:
-        return 'Add Fixed Expense';
+        return '$action Fixed Expense';
       case ExpenseType.variable:
-        return 'Add Variable Expense';
+        return '$action Variable Expense';
     }
   }
 

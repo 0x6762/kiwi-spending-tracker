@@ -131,18 +131,22 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _viewExpenseDetails(Expense expense) async {
-    final shouldDelete = await Navigator.push<bool>(
+    final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
         builder: (context) => ExpenseDetailScreen(
           expense: expense,
           categoryRepo: widget.categoryRepo,
+          onExpenseUpdated: (updatedExpense) async {
+            await widget.repository.updateExpense(updatedExpense);
+            await _loadExpenses();
+          },
         ),
         maintainState: true,
       ),
     );
 
-    if (shouldDelete == true) {
+    if (result == true) {
       await _deleteExpense(expense);
     } else {
       await _loadExpenses();
@@ -204,8 +208,9 @@ class _MainScreenState extends State<MainScreen>
                       builder: (context) => AllExpensesScreen(
                         expenses: _expenses,
                         categoryRepo: widget.categoryRepo,
+                        repository: widget.repository,
                         onDelete: _deleteExpense,
-                        onTap: _viewExpenseDetails,
+                        onExpenseUpdated: _loadExpenses,
                       ),
                     ),
                   );

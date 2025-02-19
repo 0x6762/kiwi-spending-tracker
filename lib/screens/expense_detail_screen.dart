@@ -8,15 +8,18 @@ import '../utils/formatters.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import '../widgets/add_expense_dialog.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
   final CategoryRepository categoryRepo;
+  final Function(Expense)? onExpenseUpdated;
 
   const ExpenseDetailScreen({
     super.key,
     required this.expense,
     required this.categoryRepo,
+    this.onExpenseUpdated,
   });
 
   @override
@@ -25,6 +28,43 @@ class ExpenseDetailScreen extends StatefulWidget {
 
 class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   final _dateFormat = DateFormat.yMMMd();
+  late Expense _currentExpense;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentExpense = widget.expense;
+  }
+
+  void _showEditExpenseDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
+        type: _currentExpense.type,
+        categoryRepo: widget.categoryRepo,
+        expense: _currentExpense,
+        onExpenseAdded: (updatedExpense) {
+          setState(() {
+            _currentExpense = updatedExpense;
+          });
+          widget.onExpenseUpdated?.call(updatedExpense);
+        },
+      ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
 
   Widget _buildDetailRow(
     String label,
@@ -121,16 +161,15 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expense = widget.expense;
     final account = DefaultAccounts.defaultAccounts
         .firstWhere(
-          (a) => a.id == expense.accountId,
+          (a) => a.id == _currentExpense.accountId,
           orElse: () => DefaultAccounts.checking,
         );
 
     return FutureBuilder<ExpenseCategory?>(
-      future: expense.categoryId != null
-          ? widget.categoryRepo.findCategoryById(expense.categoryId!)
+      future: _currentExpense.categoryId != null
+          ? widget.categoryRepo.findCategoryById(_currentExpense.categoryId!)
           : Future.value(null),
       builder: (context, categorySnapshot) {
         final category = categorySnapshot.data;
@@ -141,6 +180,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             title: 'Expense Details',
             leading: const Icon(Icons.arrow_back),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: _showEditExpenseDialog,
+              ),
               IconButton(
                 icon: Icon(
                   Icons.delete_outline,
@@ -166,14 +209,14 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        expense.title,
+                        _currentExpense.title,
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        formatCurrency(expense.amount),
+                        formatCurrency(_currentExpense.amount),
                         style: theme.textTheme.headlineMedium?.copyWith(
                           color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
@@ -206,25 +249,25 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                         ),
                         _buildDetailRow(
                           'Date',
-                          _dateFormat.format(expense.date),
+                          _dateFormat.format(_currentExpense.date),
                           Icons.calendar_today_outlined,
                         ),
                         _buildDetailRow(
                           'Time Added',
-                          DateFormat.jm().format(expense.createdAt),
+                          DateFormat.jm().format(_currentExpense.createdAt),
                           Icons.access_time_outlined,
                         ),
                         _buildDetailRow(
                           'Type',
-                          _getExpenseTypeLabel(expense.type),
-                          _getExpenseTypeIcon(expense.type),
-                          iconColor: _getExpenseTypeColor(expense.type),
+                          _getExpenseTypeLabel(_currentExpense.type),
+                          _getExpenseTypeIcon(_currentExpense.type),
+                          iconColor: _getExpenseTypeColor(_currentExpense.type),
                           isSvg: true,
                         ),
-                        if (expense.notes != null && expense.notes!.isNotEmpty)
+                        if (_currentExpense.notes != null && _currentExpense.notes!.isNotEmpty)
                           _buildDetailRow(
                             'Notes',
-                            expense.notes!,
+                            _currentExpense.notes!,
                             Icons.notes_outlined,
                           ),
                       ],

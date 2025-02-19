@@ -2,26 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/expense_repository.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/app_bar.dart';
+import 'expense_detail_screen.dart';
 
-class AllExpensesScreen extends StatelessWidget {
+class AllExpensesScreen extends StatefulWidget {
   final List<Expense> expenses;
   final CategoryRepository categoryRepo;
+  final ExpenseRepository repository;
   final void Function(Expense) onDelete;
-  final void Function(Expense) onTap;
+  final void Function() onExpenseUpdated;
 
   const AllExpensesScreen({
     super.key,
     required this.expenses,
     required this.categoryRepo,
+    required this.repository,
     required this.onDelete,
-    required this.onTap,
+    required this.onExpenseUpdated,
   });
+
+  @override
+  State<AllExpensesScreen> createState() => _AllExpensesScreenState();
+}
+
+class _AllExpensesScreenState extends State<AllExpensesScreen> {
+  late List<Expense> _expenses;
+
+  @override
+  void initState() {
+    super.initState();
+    _expenses = widget.expenses;
+  }
+
+  void _viewExpenseDetails(Expense expense) async {
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExpenseDetailScreen(
+          expense: expense,
+          categoryRepo: widget.categoryRepo,
+          onExpenseUpdated: (updatedExpense) async {
+            await widget.repository.updateExpense(updatedExpense);
+            widget.onExpenseUpdated();
+            // Update local state
+            setState(() {
+              final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
+              if (index != -1) {
+                _expenses[index] = updatedExpense;
+              }
+            });
+          },
+        ),
+      ),
+    );
+
+    if (result == true) {
+      widget.onDelete(expense);
+      // Update local state after deletion
+      setState(() {
+        _expenses.removeWhere((e) => e.id == expense.id);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(AllExpensesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expenses != oldWidget.expenses) {
+      setState(() {
+        _expenses = widget.expenses;
+      });
+    }
+  }
 
   Map<DateTime, List<Expense>> _groupExpensesByDate() {
     final groupedExpenses = <DateTime, List<Expense>>{};
-    final sortedExpenses = List<Expense>.from(expenses)
+    final sortedExpenses = List<Expense>.from(_expenses)
       ..sort((a, b) => b.date.compareTo(a.date));
 
     for (var expense in sortedExpenses) {
@@ -92,9 +150,9 @@ class AllExpensesScreen extends StatelessWidget {
                   elevation: 0,
                   child: ExpenseList(
                     expenses: entry.value,
-                    categoryRepo: categoryRepo,
-                    onTap: onTap,
-                    onDelete: onDelete,
+                    categoryRepo: widget.categoryRepo,
+                    onTap: _viewExpenseDetails,
+                    onDelete: widget.onDelete,
                   ),
                 ),
                 const SizedBox(height: 8),
