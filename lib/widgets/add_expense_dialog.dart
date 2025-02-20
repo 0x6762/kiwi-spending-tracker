@@ -9,6 +9,7 @@ import 'picker_sheet.dart';
 import 'add_category_sheet.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
+import '../utils/icons.dart';
 import 'dart:math' as math;
 
 class AddExpenseDialog extends StatefulWidget {
@@ -118,7 +119,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              Icons.add,
+              AppIcons.add,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
@@ -288,7 +289,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   Expanded(
                     child: PickerButton(
                       label: _billingCycle,
-                      icon: Icons.calendar_view_month,
+                      icon: AppIcons.calendar,
                       onTap: () {
                         PickerSheet.show(
                           context: context,
@@ -311,7 +312,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   Expanded(
                     child: PickerButton(
                       label: _dateFormat.format(_nextBillingDate),
-                      icon: Icons.event_repeat,
+                      icon: AppIcons.calendar,
                       onTap: () async {
                         final DateTime? picked = await showDatePicker(
                           context: context,
@@ -339,7 +340,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: PickerButton(
                 label: _dateFormat.format(_dueDate),
-                icon: Icons.event,
+                icon: AppIcons.calendar,
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
                     context: context,
@@ -376,7 +377,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           appBar: KiwiAppBar(
             backgroundColor: theme.colorScheme.surface,
             title: _getDialogTitle(),
-            leading: const Icon(Icons.close),
+            leading: const Icon(AppIcons.close),
             onLeadingPressed: () => Navigator.pop(context),
           ),
           body: Column(
@@ -510,7 +511,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             const SizedBox(height: 8),
                             PickerButton(
                               label: _selectedCategoryInfo?.name ?? 'Select Category',
-                              icon: _selectedCategoryInfo?.icon,
+                              icon: _selectedCategoryInfo?.icon ?? AppIcons.category,
                               onTap: _showCategoryPicker,
                             ),
                             if (widget.type == ExpenseType.subscription) ...[
@@ -524,7 +525,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               const SizedBox(height: 16),
                               PickerButton(
                                 label: _billingCycle,
-                                icon: Icons.calendar_view_month,
+                                icon: AppIcons.calendar,
                                 onTap: () {
                                   PickerSheet.show(
                                     context: context,
@@ -545,7 +546,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               const SizedBox(height: 8),
                               PickerButton(
                                 label: _dateFormat.format(_nextBillingDate),
-                                icon: Icons.event_repeat,
+                                icon: AppIcons.calendar,
                                 onTap: () async {
                                   final DateTime? picked = await showDatePicker(
                                     context: context,
@@ -570,7 +571,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               const SizedBox(height: 8),
                               PickerButton(
                                 label: _dateFormat.format(_dueDate),
-                                icon: Icons.event,
+                                icon: AppIcons.calendar,
                                 onTap: () async {
                                   final DateTime? picked = await showDatePicker(
                                     context: context,
@@ -708,13 +709,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     switch (text) {
       case 'backspace':
         return Icon(
-          Icons.backspace_outlined,
-          color: theme.colorScheme.onSurface,
+          AppIcons.backspace,
+          color: theme.colorScheme.onSurfaceVariant,
           size: 24,
         );
       case 'date':
         return Icon(
-          Icons.calendar_today,
+          AppIcons.calendar,
           color: theme.colorScheme.primary,
           size: 24,
         );

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'category_management_screen.dart';
 import '../models/currency_settings.dart';
 import '../utils/formatters.dart';
+import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
 import '../theme/theme_provider.dart';
@@ -88,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(AppIcons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -136,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
         title: 'Settings',
-        leading: const Icon(Icons.arrow_back),
+        leading: const Icon(AppIcons.back),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -162,7 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.palette_outlined),
+                    leading: const Icon(AppIcons.theme),
                     title: const Text('Theme'),
                     subtitle: Text(themeProvider.getThemeModeName(themeProvider.themeMode)),
                     onTap: _showThemePicker,
@@ -208,7 +209,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: _showCurrencyPicker,
                   ),
                   ListTile(
-                    leading: const Icon(Icons.account_balance_outlined),
+                    leading: const Icon(AppIcons.accounts),
                     title: const Text('Manage Accounts'),
                     subtitle: const Text('Add or edit your accounts'),
                     onTap: () {
@@ -216,7 +217,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.category_outlined),
+                    leading: const Icon(AppIcons.categories),
                     title: const Text('Categories'),
                     subtitle: const Text('Manage expense categories'),
                     onTap: () {
@@ -252,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.backup_outlined),
+                    leading: const Icon(AppIcons.backup),
                     title: const Text('Backup & Restore'),
                     subtitle: const Text('Manage your expense data'),
                     onTap: () {
@@ -260,7 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.delete_outline),
+                    leading: const Icon(AppIcons.clearData),
                     title: const Text('Clear Data'),
                     subtitle: const Text('Delete all expenses'),
                     textColor: theme.colorScheme.error,

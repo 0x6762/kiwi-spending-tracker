@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
@@ -10,6 +11,9 @@ import '../widgets/expense_type_sheet.dart';
 import '../widgets/voice_input_button.dart';
 import '../widgets/today_spending_card.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/expense_summary.dart';
+import '../widgets/expense_filter_row.dart';
+import '../utils/icons.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -518,7 +522,7 @@ class _SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(
-        Icons.more_horiz,
+        AppIcons.more,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       onPressed: () {

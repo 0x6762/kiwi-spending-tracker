@@ -3,6 +3,7 @@ import '../models/expense_category.dart';
 import '../widgets/add_category_sheet.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
+import '../utils/icons.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
@@ -54,7 +55,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
         title: 'Categories',
-        leading: const Icon(Icons.arrow_back),
+        leading: const Icon(AppIcons.back),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -74,7 +75,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.add,
+                      AppIcons.add,
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -128,7 +129,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
               trailing: Padding(
                 padding: const EdgeInsets.only(right: 0),
                 child: Icon(
-                  Icons.edit,
+                  AppIcons.edit,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),

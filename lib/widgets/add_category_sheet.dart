@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense_category.dart';
 import '../repositories/category_repository.dart';
+import '../utils/icons.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {
@@ -23,7 +24,7 @@ class AddCategorySheet extends StatefulWidget {
 class _AddCategorySheetState extends State<AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  IconData _selectedIcon = Icons.category_outlined;
+  IconData _selectedIcon = AppIcons.category;
   static final _uuid = const Uuid();
 
   @override
@@ -130,82 +131,122 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                 runSpacing: 12,
                 children: [
                   // Shopping & Retail
-                  Icons.shopping_bag_outlined,
-                  Icons.shopping_cart_outlined,
-                  Icons.store_outlined,
-                  Icons.local_mall_outlined,
-                  Icons.card_giftcard_outlined,
+                  AppIcons.shopping,
+                  AppIcons.shoppingCart,
+                  AppIcons.store,
+                  AppIcons.mall,
+                  AppIcons.gift,
+                  AppIcons.discount,
+                  AppIcons.tag,
 
                   // Food & Dining
-                  Icons.restaurant_outlined,
-                  Icons.local_cafe_outlined,
-                  Icons.local_bar_outlined,
-                  Icons.fastfood_outlined,
-                  Icons.local_pizza_outlined,
+                  AppIcons.foodDining,
+                  AppIcons.restaurant,
+                  AppIcons.cafe,
+                  AppIcons.bar,
+                  AppIcons.beer,
+                  AppIcons.fastFood,
+                  AppIcons.pizza,
+                  AppIcons.iceCream,
+                  AppIcons.bakery,
 
                   // Transportation
-                  Icons.directions_car_outlined,
-                  Icons.directions_bus_outlined,
-                  Icons.train_outlined,
-                  Icons.local_taxi_outlined,
-                  Icons.electric_bike_outlined,
+                  AppIcons.transportation,
+                  AppIcons.bus,
+                  AppIcons.train,
+                  AppIcons.taxi,
+                  AppIcons.bike,
+                  AppIcons.scooter,
+                  AppIcons.motorcycle,
+                  AppIcons.parking,
+                  AppIcons.gas,
 
                   // Home & Utilities
-                  Icons.home_outlined,
-                  Icons.house_outlined,
-                  Icons.water_drop_outlined,
-                  Icons.power_outlined,
-                  Icons.wifi_outlined,
+                  AppIcons.home,
+                  AppIcons.house,
+                  AppIcons.water,
+                  AppIcons.power,
+                  AppIcons.wifi,
+                  AppIcons.ac,
+                  AppIcons.cleaning,
+                  AppIcons.furniture,
+                  AppIcons.tools,
 
                   // Health & Wellness
-                  Icons.medical_services_outlined,
-                  Icons.local_hospital_outlined,
-                  Icons.medication_outlined,
-                  Icons.fitness_center_outlined,
-                  Icons.spa_outlined,
+                  AppIcons.health,
+                  AppIcons.hospital,
+                  AppIcons.doctor,
+                  AppIcons.dentist,
+                  AppIcons.pharmacy,
+                  AppIcons.medication,
+                  AppIcons.fitness,
+                  AppIcons.yoga,
+                  AppIcons.spa,
 
                   // Entertainment
-                  Icons.movie_outlined,
-                  Icons.sports_esports_outlined,
-                  Icons.sports_outlined,
-                  Icons.theater_comedy_outlined,
-                  Icons.music_note_outlined,
+                  AppIcons.entertainment,
+                  AppIcons.games,
+                  AppIcons.sports,
+                  AppIcons.theater,
+                  AppIcons.movie,
+                  AppIcons.tv,
+                  AppIcons.music,
+                  AppIcons.concert,
+                  AppIcons.karaoke,
 
                   // Travel & Transportation
-                  Icons.flight_outlined,
-                  Icons.hotel_outlined,
-                  Icons.beach_access_outlined,
-                  Icons.luggage_outlined,
-                  Icons.map_outlined,
+                  AppIcons.travel,
+                  AppIcons.hotel,
+                  AppIcons.beach,
+                  AppIcons.luggage,
+                  AppIcons.map,
+                  AppIcons.camping,
+                  AppIcons.hiking,
+                  AppIcons.passport,
+                  AppIcons.rental,
 
                   // Education
-                  Icons.school_outlined,
-                  Icons.book_outlined,
-                  Icons.auto_stories_outlined,
-                  Icons.library_books_outlined,
-                  Icons.science_outlined,
+                  AppIcons.education,
+                  AppIcons.book,
+                  AppIcons.stories,
+                  AppIcons.library,
+                  AppIcons.science,
+                  AppIcons.art,
+                  AppIcons.language_learning,
+                  AppIcons.online_course,
+                  AppIcons.certificate,
 
                   // Personal Care
-                  Icons.face_outlined,
-                  Icons.spa_outlined,
-                  Icons.dry_cleaning_outlined,
-                  Icons.content_cut_outlined,
-                  Icons.brush_outlined,
+                  AppIcons.face,
+                  AppIcons.haircut,
+                  AppIcons.cosmetics,
+                  AppIcons.nails,
+                  AppIcons.perfume,
+                  AppIcons.skincare,
+                  AppIcons.spa,
+                  AppIcons.dryCleaning,
 
                   // Bills & Finance
-                  Icons.account_balance_outlined,
-                  Icons.credit_card_outlined,
-                  Icons.receipt_long_outlined,
-                  Icons.payments_outlined,
-                  Icons.attach_money_outlined,
+                  AppIcons.bank,
+                  AppIcons.creditCard,
+                  AppIcons.receiptLong,
+                  AppIcons.payments,
+                  AppIcons.money,
+                  AppIcons.savings,
+                  AppIcons.insurance,
+                  AppIcons.investment,
+                  AppIcons.tax,
 
                   // Pets
-                  Icons.pets_outlined,
-                  Icons.cruelty_free_outlined,
+                  AppIcons.pets,
+                  AppIcons.veterinary,
+                  AppIcons.petFood,
+                  AppIcons.grooming,
+                  AppIcons.crueltyFree,
 
                   // Other
-                  Icons.category_outlined,
-                  Icons.more_horiz_outlined,
+                  AppIcons.category,
+                  AppIcons.more,
                 ].map((icon) {
                   final isSelected = _selectedIcon == icon;
                   return InkWell(

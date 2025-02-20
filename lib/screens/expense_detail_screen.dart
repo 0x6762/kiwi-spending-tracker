@@ -5,6 +5,7 @@ import '../models/account.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/formatters.dart';
+import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/delete_confirmation_dialog.dart';
@@ -178,15 +179,15 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
           backgroundColor: theme.colorScheme.surface,
           appBar: KiwiAppBar(
             title: 'Expense Details',
-            leading: const Icon(Icons.arrow_back),
+            leading: const Icon(AppIcons.back),
             actions: [
               IconButton(
-                icon: const Icon(Icons.edit_outlined),
+                icon: const Icon(AppIcons.edit),
                 onPressed: _showEditExpenseDialog,
               ),
               IconButton(
                 icon: Icon(
-                  Icons.delete_outline,
+                  AppIcons.delete,
                   color: theme.colorScheme.error,
                 ),
                 onPressed: () async {
@@ -250,12 +251,12 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                         _buildDetailRow(
                           'Date',
                           _dateFormat.format(_currentExpense.date),
-                          Icons.calendar_today_outlined,
+                          AppIcons.calendar,
                         ),
                         _buildDetailRow(
                           'Time Added',
                           DateFormat.jm().format(_currentExpense.createdAt),
-                          Icons.access_time_outlined,
+                          AppIcons.time,
                         ),
                         _buildDetailRow(
                           'Type',
@@ -268,7 +269,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                           _buildDetailRow(
                             'Notes',
                             _currentExpense.notes!,
-                            Icons.notes_outlined,
+                            AppIcons.notes,
                           ),
                       ],
                     ),
