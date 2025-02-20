@@ -324,98 +324,98 @@ class _MainScreenState extends State<MainScreen>
                       expenses: _expenses,
                     ),
               const SizedBox(height: 8),
-              Card(
-                margin: EdgeInsets.zero,
-                color: theme.colorScheme.surfaceContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                elevation: 0,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: _showExpenseTypeSheet,
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(28),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  AppIcons.add,
-                                  size: 20,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Add new expense',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
+              if (!_isLoading) ...[
+                Card(
+                  margin: EdgeInsets.zero,
+                  color: theme.colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  elevation: 0,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: _showExpenseTypeSheet,
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(28),
                           ),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Container(
-                        height: 40,
-                        width: 1,
-                        color: theme.colorScheme.surfaceContainerLowest,
-                      ),
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                              backgroundColor: theme.colorScheme.surfaceContainer,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              child: VoiceInputButton(
-                                repository: widget.repository,
-                                categoryRepo: widget.categoryRepo,
-                                onExpenseAdded: _loadExpenses,
-                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    AppIcons.add,
+                                    size: 20,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Add new expense',
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(28),
-                        ),
-                        child: Container(
-                          width: 56,
-                          height: 56,
-                          alignment: Alignment.center,
-                          child: Icon(
-                            AppIcons.mic,
-                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Center(
+                        child: Container(
+                          height: 40,
+                          width: 1,
+                          color: theme.colorScheme.surfaceContainerLowest,
+                        ),
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                backgroundColor: theme.colorScheme.surfaceContainer,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: VoiceInputButton(
+                                  repository: widget.repository,
+                                  categoryRepo: widget.categoryRepo,
+                                  onExpenseAdded: _loadExpenses,
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(28),
+                          ),
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              AppIcons.mic,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (_isLoading)
-                const SizedBox.shrink()
-              else if (_expenses.isEmpty)
-                _buildEmptyState()
-              else
-                _buildExpenseList(todayExpenses),
+                if (_expenses.isEmpty)
+                  _buildEmptyState()
+                else
+                  _buildExpenseList(todayExpenses),
+              ],
             ],
           ),
         ),
