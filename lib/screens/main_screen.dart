@@ -39,6 +39,7 @@ class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   List<Expense> _expenses = [];
+  bool _isLoading = true;
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
 
@@ -82,10 +83,21 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _loadExpenses() async {
-    final expenses = await widget.repository.getAllExpenses();
-    setState(() {
-      _expenses = expenses;
-    });
+    setState(() => _isLoading = true);
+    try {
+      final expenses = await widget.repository.getAllExpenses();
+      setState(() {
+        _expenses = expenses;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load expenses: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   void _showExpenseTypeSheet() {
@@ -248,18 +260,26 @@ class _MainScreenState extends State<MainScreen>
             borderRadius: BorderRadius.circular(28),
           ),
           elevation: 0,
-          child: ExpenseList(
-            expenses: filteredExpenses,
-            categoryRepo: widget.categoryRepo,
-            onTap: _viewExpenseDetails,
-            onDelete: _deleteExpense,
-          ),
+          child: _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : ExpenseList(
+                  expenses: filteredExpenses,
+                  categoryRepo: widget.categoryRepo,
+                  onTap: _viewExpenseDetails,
+                  onDelete: _deleteExpense,
+                ),
         ),
       ],
     );
   }
 
   Widget _buildExpensesScreen() {
+    final theme = Theme.of(context);
     final now = DateTime.now();
     final todayExpenses = _expenses
         .where((expense) =>
@@ -269,7 +289,7 @@ class _MainScreenState extends State<MainScreen>
         .toList();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
       extendBody: true,
       appBar: KiwiAppBar(
         title: _greeting,
@@ -281,7 +301,7 @@ class _MainScreenState extends State<MainScreen>
       ),
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
-        color: Theme.of(context).colorScheme.primary,
+        color: theme.colorScheme.primary,
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
             left: 8,
@@ -293,13 +313,20 @@ class _MainScreenState extends State<MainScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TodaySpendingCard(
-                expenses: _expenses,
-              ),
+              _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : TodaySpendingCard(
+                      expenses: _expenses,
+                    ),
               const SizedBox(height: 8),
               Card(
                 margin: EdgeInsets.zero,
-                color: Theme.of(context).colorScheme.surfaceContainer,
+                color: theme.colorScheme.surfaceContainer,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -319,28 +346,22 @@ class _MainScreenState extends State<MainScreen>
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  color: theme.colorScheme.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
-                                  Icons.add_rounded,
+                                  AppIcons.add,
                                   size: 20,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Text(
                                 'Add new expense',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
-                              const Spacer(),
-                              // Icon(
-                              //   Icons.arrow_forward_ios_rounded,
-                              //   size: 16,
-                              //   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              // ),
                             ],
                           ),
                         ),
@@ -350,7 +371,7 @@ class _MainScreenState extends State<MainScreen>
                       child: Container(
                         height: 40,
                         width: 1,
-                        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                        color: theme.colorScheme.surfaceContainerLowest,
                       ),
                     ),
                     Material(
@@ -360,7 +381,7 @@ class _MainScreenState extends State<MainScreen>
                           showDialog(
                             context: context,
                             builder: (context) => Dialog(
-                              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                              backgroundColor: theme.colorScheme.surfaceContainer,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(28),
                               ),
@@ -380,8 +401,8 @@ class _MainScreenState extends State<MainScreen>
                           height: 56,
                           alignment: Alignment.center,
                           child: Icon(
-                            Icons.mic,
-                            color: Theme.of(context).colorScheme.primary,
+                            AppIcons.mic,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
@@ -389,7 +410,9 @@ class _MainScreenState extends State<MainScreen>
                   ],
                 ),
               ),
-              if (_expenses.isEmpty)
+              if (_isLoading)
+                const SizedBox.shrink()
+              else if (_expenses.isEmpty)
                 _buildEmptyState()
               else
                 _buildExpenseList(todayExpenses),

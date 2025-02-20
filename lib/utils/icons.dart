@@ -17,6 +17,7 @@ class AppIcons {
   static const share = Icons.share_rounded;
   static const favorite = Icons.favorite_rounded;
   static const favoriteOutline = Icons.favorite_outline_rounded;
+  static const mic = Icons.mic_rounded;
 
   // Navigation & UI
   static const calendar = Icons.calendar_today_rounded;
