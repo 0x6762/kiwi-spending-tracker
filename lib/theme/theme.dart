@@ -118,7 +118,7 @@ class AppTheme {
     surfaceContainerLowest: Color(0xFF262933),
     // Used for borders and dividers
     outline: Color(0xFF13151D),
-    outlineVariant: Color(0xFF13151D),
+    outlineVariant: Color(0xFF343741),
   );
 
   static ThemeData light() {
