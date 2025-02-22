@@ -19,6 +19,12 @@ class $ExpensesTableTable extends ExpensesTable
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<double> amount = GeneratedColumn<double>(
@@ -80,6 +86,7 @@ class $ExpensesTableTable extends ExpensesTable
   List<GeneratedColumn> get $columns => [
         id,
         title,
+        description,
         amount,
         date,
         createdAt,
@@ -111,6 +118,12 @@ class $ExpensesTableTable extends ExpensesTable
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
     if (data.containsKey('amount')) {
       context.handle(_amountMeta,
@@ -176,6 +189,8 @@ class $ExpensesTableTable extends ExpensesTable
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
       amount: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
       date: attachedDatabase.typeMapping
@@ -213,6 +228,7 @@ class ExpenseTableData extends DataClass
     implements Insertable<ExpenseTableData> {
   final String id;
   final String title;
+  final String? description;
   final double amount;
   final DateTime date;
   final DateTime createdAt;
@@ -226,6 +242,7 @@ class ExpenseTableData extends DataClass
   const ExpenseTableData(
       {required this.id,
       required this.title,
+      this.description,
       required this.amount,
       required this.date,
       required this.createdAt,
@@ -241,6 +258,9 @@ class ExpenseTableData extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     map['amount'] = Variable<double>(amount);
     map['date'] = Variable<DateTime>(date);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -271,6 +291,9 @@ class ExpenseTableData extends DataClass
     return ExpensesTableCompanion(
       id: Value(id),
       title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       amount: Value(amount),
       date: Value(date),
       createdAt: Value(createdAt),
@@ -299,6 +322,7 @@ class ExpenseTableData extends DataClass
     return ExpenseTableData(
       id: serializer.fromJson<String>(json['id']),
       title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
       amount: serializer.fromJson<double>(json['amount']),
       date: serializer.fromJson<DateTime>(json['date']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -318,6 +342,7 @@ class ExpenseTableData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
       'amount': serializer.toJson<double>(amount),
       'date': serializer.toJson<DateTime>(date),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -335,6 +360,7 @@ class ExpenseTableData extends DataClass
   ExpenseTableData copyWith(
           {String? id,
           String? title,
+          Value<String?> description = const Value.absent(),
           double? amount,
           DateTime? date,
           DateTime? createdAt,
@@ -348,6 +374,7 @@ class ExpenseTableData extends DataClass
       ExpenseTableData(
         id: id ?? this.id,
         title: title ?? this.title,
+        description: description.present ? description.value : this.description,
         amount: amount ?? this.amount,
         date: date ?? this.date,
         createdAt: createdAt ?? this.createdAt,
@@ -366,6 +393,8 @@ class ExpenseTableData extends DataClass
     return ExpenseTableData(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
+      description:
+          data.description.present ? data.description.value : this.description,
       amount: data.amount.present ? data.amount.value : this.amount,
       date: data.date.present ? data.date.value : this.date,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -389,6 +418,7 @@ class ExpenseTableData extends DataClass
     return (StringBuffer('ExpenseTableData(')
           ..write('id: $id, ')
           ..write('title: $title, ')
+          ..write('description: $description, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
           ..write('createdAt: $createdAt, ')
@@ -407,6 +437,7 @@ class ExpenseTableData extends DataClass
   int get hashCode => Object.hash(
       id,
       title,
+      description,
       amount,
       date,
       createdAt,
@@ -423,6 +454,7 @@ class ExpenseTableData extends DataClass
       (other is ExpenseTableData &&
           other.id == this.id &&
           other.title == this.title &&
+          other.description == this.description &&
           other.amount == this.amount &&
           other.date == this.date &&
           other.createdAt == this.createdAt &&
@@ -438,6 +470,7 @@ class ExpenseTableData extends DataClass
 class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   final Value<String> id;
   final Value<String> title;
+  final Value<String?> description;
   final Value<double> amount;
   final Value<DateTime> date;
   final Value<DateTime> createdAt;
@@ -452,6 +485,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   const ExpensesTableCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
+    this.description = const Value.absent(),
     this.amount = const Value.absent(),
     this.date = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -467,6 +501,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   ExpensesTableCompanion.insert({
     required String id,
     required String title,
+    this.description = const Value.absent(),
     required double amount,
     required DateTime date,
     required DateTime createdAt,
@@ -488,6 +523,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   static Insertable<ExpenseTableData> custom({
     Expression<String>? id,
     Expression<String>? title,
+    Expression<String>? description,
     Expression<double>? amount,
     Expression<DateTime>? date,
     Expression<DateTime>? createdAt,
@@ -503,6 +539,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
+      if (description != null) 'description': description,
       if (amount != null) 'amount': amount,
       if (date != null) 'date': date,
       if (createdAt != null) 'created_at': createdAt,
@@ -520,6 +557,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   ExpensesTableCompanion copyWith(
       {Value<String>? id,
       Value<String>? title,
+      Value<String?>? description,
       Value<double>? amount,
       Value<DateTime>? date,
       Value<DateTime>? createdAt,
@@ -534,6 +572,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     return ExpensesTableCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
+      description: description ?? this.description,
       amount: amount ?? this.amount,
       date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
@@ -556,6 +595,9 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
@@ -599,6 +641,7 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     return (StringBuffer('ExpensesTableCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
+          ..write('description: $description, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
           ..write('createdAt: $createdAt, ')
@@ -1077,24 +1120,525 @@ class CategoriesTableCompanion extends UpdateCompanion<CategoryTableData> {
   }
 }
 
+class $AccountsTableTable extends AccountsTable
+    with TableInfo<$AccountsTableTable, AccountsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _iconCodePointMeta =
+      const VerificationMeta('iconCodePoint');
+  @override
+  late final GeneratedColumn<int> iconCodePoint = GeneratedColumn<int>(
+      'icon_code_point', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _iconFontFamilyMeta =
+      const VerificationMeta('iconFontFamily');
+  @override
+  late final GeneratedColumn<String> iconFontFamily = GeneratedColumn<String>(
+      'icon_font_family', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _iconFontPackageMeta =
+      const VerificationMeta('iconFontPackage');
+  @override
+  late final GeneratedColumn<String> iconFontPackage = GeneratedColumn<String>(
+      'icon_font_package', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _iconMatchTextDirectionMeta =
+      const VerificationMeta('iconMatchTextDirection');
+  @override
+  late final GeneratedColumn<bool> iconMatchTextDirection =
+      GeneratedColumn<bool>('icon_match_text_direction', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'CHECK ("icon_match_text_direction" IN (0, 1))'),
+          defaultValue: const Constant(false));
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<int> color = GeneratedColumn<int>(
+      'color', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isModifiedMeta =
+      const VerificationMeta('isModified');
+  @override
+  late final GeneratedColumn<bool> isModified = GeneratedColumn<bool>(
+      'is_modified', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_modified" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        iconCodePoint,
+        iconFontFamily,
+        iconFontPackage,
+        iconMatchTextDirection,
+        color,
+        isDefault,
+        isModified
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'accounts_table';
+  @override
+  VerificationContext validateIntegrity(Insertable<AccountsTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('icon_code_point')) {
+      context.handle(
+          _iconCodePointMeta,
+          iconCodePoint.isAcceptableOrUnknown(
+              data['icon_code_point']!, _iconCodePointMeta));
+    } else if (isInserting) {
+      context.missing(_iconCodePointMeta);
+    }
+    if (data.containsKey('icon_font_family')) {
+      context.handle(
+          _iconFontFamilyMeta,
+          iconFontFamily.isAcceptableOrUnknown(
+              data['icon_font_family']!, _iconFontFamilyMeta));
+    }
+    if (data.containsKey('icon_font_package')) {
+      context.handle(
+          _iconFontPackageMeta,
+          iconFontPackage.isAcceptableOrUnknown(
+              data['icon_font_package']!, _iconFontPackageMeta));
+    }
+    if (data.containsKey('icon_match_text_direction')) {
+      context.handle(
+          _iconMatchTextDirectionMeta,
+          iconMatchTextDirection.isAcceptableOrUnknown(
+              data['icon_match_text_direction']!, _iconMatchTextDirectionMeta));
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    } else if (isInserting) {
+      context.missing(_colorMeta);
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
+    }
+    if (data.containsKey('is_modified')) {
+      context.handle(
+          _isModifiedMeta,
+          isModified.isAcceptableOrUnknown(
+              data['is_modified']!, _isModifiedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AccountsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountsTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      iconCodePoint: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}icon_code_point'])!,
+      iconFontFamily: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}icon_font_family']),
+      iconFontPackage: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}icon_font_package']),
+      iconMatchTextDirection: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}icon_match_text_direction'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}color'])!,
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_modified'])!,
+    );
+  }
+
+  @override
+  $AccountsTableTable createAlias(String alias) {
+    return $AccountsTableTable(attachedDatabase, alias);
+  }
+}
+
+class AccountsTableData extends DataClass
+    implements Insertable<AccountsTableData> {
+  final String id;
+  final String name;
+  final int iconCodePoint;
+  final String? iconFontFamily;
+  final String? iconFontPackage;
+  final bool iconMatchTextDirection;
+  final int color;
+  final bool isDefault;
+  final bool isModified;
+  const AccountsTableData(
+      {required this.id,
+      required this.name,
+      required this.iconCodePoint,
+      this.iconFontFamily,
+      this.iconFontPackage,
+      required this.iconMatchTextDirection,
+      required this.color,
+      required this.isDefault,
+      required this.isModified});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['icon_code_point'] = Variable<int>(iconCodePoint);
+    if (!nullToAbsent || iconFontFamily != null) {
+      map['icon_font_family'] = Variable<String>(iconFontFamily);
+    }
+    if (!nullToAbsent || iconFontPackage != null) {
+      map['icon_font_package'] = Variable<String>(iconFontPackage);
+    }
+    map['icon_match_text_direction'] = Variable<bool>(iconMatchTextDirection);
+    map['color'] = Variable<int>(color);
+    map['is_default'] = Variable<bool>(isDefault);
+    map['is_modified'] = Variable<bool>(isModified);
+    return map;
+  }
+
+  AccountsTableCompanion toCompanion(bool nullToAbsent) {
+    return AccountsTableCompanion(
+      id: Value(id),
+      name: Value(name),
+      iconCodePoint: Value(iconCodePoint),
+      iconFontFamily: iconFontFamily == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconFontFamily),
+      iconFontPackage: iconFontPackage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconFontPackage),
+      iconMatchTextDirection: Value(iconMatchTextDirection),
+      color: Value(color),
+      isDefault: Value(isDefault),
+      isModified: Value(isModified),
+    );
+  }
+
+  factory AccountsTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      iconCodePoint: serializer.fromJson<int>(json['iconCodePoint']),
+      iconFontFamily: serializer.fromJson<String?>(json['iconFontFamily']),
+      iconFontPackage: serializer.fromJson<String?>(json['iconFontPackage']),
+      iconMatchTextDirection:
+          serializer.fromJson<bool>(json['iconMatchTextDirection']),
+      color: serializer.fromJson<int>(json['color']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      isModified: serializer.fromJson<bool>(json['isModified']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'iconCodePoint': serializer.toJson<int>(iconCodePoint),
+      'iconFontFamily': serializer.toJson<String?>(iconFontFamily),
+      'iconFontPackage': serializer.toJson<String?>(iconFontPackage),
+      'iconMatchTextDirection': serializer.toJson<bool>(iconMatchTextDirection),
+      'color': serializer.toJson<int>(color),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'isModified': serializer.toJson<bool>(isModified),
+    };
+  }
+
+  AccountsTableData copyWith(
+          {String? id,
+          String? name,
+          int? iconCodePoint,
+          Value<String?> iconFontFamily = const Value.absent(),
+          Value<String?> iconFontPackage = const Value.absent(),
+          bool? iconMatchTextDirection,
+          int? color,
+          bool? isDefault,
+          bool? isModified}) =>
+      AccountsTableData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        iconCodePoint: iconCodePoint ?? this.iconCodePoint,
+        iconFontFamily:
+            iconFontFamily.present ? iconFontFamily.value : this.iconFontFamily,
+        iconFontPackage: iconFontPackage.present
+            ? iconFontPackage.value
+            : this.iconFontPackage,
+        iconMatchTextDirection:
+            iconMatchTextDirection ?? this.iconMatchTextDirection,
+        color: color ?? this.color,
+        isDefault: isDefault ?? this.isDefault,
+        isModified: isModified ?? this.isModified,
+      );
+  AccountsTableData copyWithCompanion(AccountsTableCompanion data) {
+    return AccountsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      iconCodePoint: data.iconCodePoint.present
+          ? data.iconCodePoint.value
+          : this.iconCodePoint,
+      iconFontFamily: data.iconFontFamily.present
+          ? data.iconFontFamily.value
+          : this.iconFontFamily,
+      iconFontPackage: data.iconFontPackage.present
+          ? data.iconFontPackage.value
+          : this.iconFontPackage,
+      iconMatchTextDirection: data.iconMatchTextDirection.present
+          ? data.iconMatchTextDirection.value
+          : this.iconMatchTextDirection,
+      color: data.color.present ? data.color.value : this.color,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      isModified:
+          data.isModified.present ? data.isModified.value : this.isModified,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountsTableData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('iconCodePoint: $iconCodePoint, ')
+          ..write('iconFontFamily: $iconFontFamily, ')
+          ..write('iconFontPackage: $iconFontPackage, ')
+          ..write('iconMatchTextDirection: $iconMatchTextDirection, ')
+          ..write('color: $color, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isModified: $isModified')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, iconCodePoint, iconFontFamily,
+      iconFontPackage, iconMatchTextDirection, color, isDefault, isModified);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountsTableData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.iconCodePoint == this.iconCodePoint &&
+          other.iconFontFamily == this.iconFontFamily &&
+          other.iconFontPackage == this.iconFontPackage &&
+          other.iconMatchTextDirection == this.iconMatchTextDirection &&
+          other.color == this.color &&
+          other.isDefault == this.isDefault &&
+          other.isModified == this.isModified);
+}
+
+class AccountsTableCompanion extends UpdateCompanion<AccountsTableData> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<int> iconCodePoint;
+  final Value<String?> iconFontFamily;
+  final Value<String?> iconFontPackage;
+  final Value<bool> iconMatchTextDirection;
+  final Value<int> color;
+  final Value<bool> isDefault;
+  final Value<bool> isModified;
+  final Value<int> rowid;
+  const AccountsTableCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.iconCodePoint = const Value.absent(),
+    this.iconFontFamily = const Value.absent(),
+    this.iconFontPackage = const Value.absent(),
+    this.iconMatchTextDirection = const Value.absent(),
+    this.color = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isModified = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountsTableCompanion.insert({
+    required String id,
+    required String name,
+    required int iconCodePoint,
+    this.iconFontFamily = const Value.absent(),
+    this.iconFontPackage = const Value.absent(),
+    this.iconMatchTextDirection = const Value.absent(),
+    required int color,
+    this.isDefault = const Value.absent(),
+    this.isModified = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        iconCodePoint = Value(iconCodePoint),
+        color = Value(color);
+  static Insertable<AccountsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<int>? iconCodePoint,
+    Expression<String>? iconFontFamily,
+    Expression<String>? iconFontPackage,
+    Expression<bool>? iconMatchTextDirection,
+    Expression<int>? color,
+    Expression<bool>? isDefault,
+    Expression<bool>? isModified,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (iconCodePoint != null) 'icon_code_point': iconCodePoint,
+      if (iconFontFamily != null) 'icon_font_family': iconFontFamily,
+      if (iconFontPackage != null) 'icon_font_package': iconFontPackage,
+      if (iconMatchTextDirection != null)
+        'icon_match_text_direction': iconMatchTextDirection,
+      if (color != null) 'color': color,
+      if (isDefault != null) 'is_default': isDefault,
+      if (isModified != null) 'is_modified': isModified,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountsTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<int>? iconCodePoint,
+      Value<String?>? iconFontFamily,
+      Value<String?>? iconFontPackage,
+      Value<bool>? iconMatchTextDirection,
+      Value<int>? color,
+      Value<bool>? isDefault,
+      Value<bool>? isModified,
+      Value<int>? rowid}) {
+    return AccountsTableCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      iconCodePoint: iconCodePoint ?? this.iconCodePoint,
+      iconFontFamily: iconFontFamily ?? this.iconFontFamily,
+      iconFontPackage: iconFontPackage ?? this.iconFontPackage,
+      iconMatchTextDirection:
+          iconMatchTextDirection ?? this.iconMatchTextDirection,
+      color: color ?? this.color,
+      isDefault: isDefault ?? this.isDefault,
+      isModified: isModified ?? this.isModified,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (iconCodePoint.present) {
+      map['icon_code_point'] = Variable<int>(iconCodePoint.value);
+    }
+    if (iconFontFamily.present) {
+      map['icon_font_family'] = Variable<String>(iconFontFamily.value);
+    }
+    if (iconFontPackage.present) {
+      map['icon_font_package'] = Variable<String>(iconFontPackage.value);
+    }
+    if (iconMatchTextDirection.present) {
+      map['icon_match_text_direction'] =
+          Variable<bool>(iconMatchTextDirection.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<int>(color.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (isModified.present) {
+      map['is_modified'] = Variable<bool>(isModified.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('iconCodePoint: $iconCodePoint, ')
+          ..write('iconFontFamily: $iconFontFamily, ')
+          ..write('iconFontPackage: $iconFontPackage, ')
+          ..write('iconMatchTextDirection: $iconMatchTextDirection, ')
+          ..write('color: $color, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isModified: $isModified, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ExpensesTableTable expensesTable = $ExpensesTableTable(this);
   late final $CategoriesTableTable categoriesTable =
       $CategoriesTableTable(this);
+  late final $AccountsTableTable accountsTable = $AccountsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [expensesTable, categoriesTable];
+      [expensesTable, categoriesTable, accountsTable];
 }
 
 typedef $$ExpensesTableTableCreateCompanionBuilder = ExpensesTableCompanion
     Function({
   required String id,
   required String title,
+  Value<String?> description,
   required double amount,
   required DateTime date,
   required DateTime createdAt,
@@ -1111,6 +1655,7 @@ typedef $$ExpensesTableTableUpdateCompanionBuilder = ExpensesTableCompanion
     Function({
   Value<String> id,
   Value<String> title,
+  Value<String?> description,
   Value<double> amount,
   Value<DateTime> date,
   Value<DateTime> createdAt,
@@ -1138,6 +1683,9 @@ class $$ExpensesTableTableFilterComposer
 
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get amount => $composableBuilder(
       column: $table.amount, builder: (column) => ColumnFilters(column));
@@ -1188,6 +1736,9 @@ class $$ExpensesTableTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<double> get amount => $composableBuilder(
       column: $table.amount, builder: (column) => ColumnOrderings(column));
 
@@ -1235,6 +1786,9 @@ class $$ExpensesTableTableAnnotationComposer
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
@@ -1295,6 +1849,7 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> title = const Value.absent(),
+            Value<String?> description = const Value.absent(),
             Value<double> amount = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -1310,6 +1865,7 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
               ExpensesTableCompanion(
             id: id,
             title: title,
+            description: description,
             amount: amount,
             date: date,
             createdAt: createdAt,
@@ -1325,6 +1881,7 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String title,
+            Value<String?> description = const Value.absent(),
             required double amount,
             required DateTime date,
             required DateTime createdAt,
@@ -1340,6 +1897,7 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
               ExpensesTableCompanion.insert(
             id: id,
             title: title,
+            description: description,
             amount: amount,
             date: date,
             createdAt: createdAt,
@@ -1600,6 +2158,246 @@ typedef $$CategoriesTableTableProcessedTableManager = ProcessedTableManager<
     ),
     CategoryTableData,
     PrefetchHooks Function()>;
+typedef $$AccountsTableTableCreateCompanionBuilder = AccountsTableCompanion
+    Function({
+  required String id,
+  required String name,
+  required int iconCodePoint,
+  Value<String?> iconFontFamily,
+  Value<String?> iconFontPackage,
+  Value<bool> iconMatchTextDirection,
+  required int color,
+  Value<bool> isDefault,
+  Value<bool> isModified,
+  Value<int> rowid,
+});
+typedef $$AccountsTableTableUpdateCompanionBuilder = AccountsTableCompanion
+    Function({
+  Value<String> id,
+  Value<String> name,
+  Value<int> iconCodePoint,
+  Value<String?> iconFontFamily,
+  Value<String?> iconFontPackage,
+  Value<bool> iconMatchTextDirection,
+  Value<int> color,
+  Value<bool> isDefault,
+  Value<bool> isModified,
+  Value<int> rowid,
+});
+
+class $$AccountsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountsTableTable> {
+  $$AccountsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get iconCodePoint => $composableBuilder(
+      column: $table.iconCodePoint, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get iconFontFamily => $composableBuilder(
+      column: $table.iconFontFamily,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get iconFontPackage => $composableBuilder(
+      column: $table.iconFontPackage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get iconMatchTextDirection => $composableBuilder(
+      column: $table.iconMatchTextDirection,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => ColumnFilters(column));
+}
+
+class $$AccountsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountsTableTable> {
+  $$AccountsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get iconCodePoint => $composableBuilder(
+      column: $table.iconCodePoint,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get iconFontFamily => $composableBuilder(
+      column: $table.iconFontFamily,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get iconFontPackage => $composableBuilder(
+      column: $table.iconFontPackage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get iconMatchTextDirection => $composableBuilder(
+      column: $table.iconMatchTextDirection,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AccountsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountsTableTable> {
+  $$AccountsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get iconCodePoint => $composableBuilder(
+      column: $table.iconCodePoint, builder: (column) => column);
+
+  GeneratedColumn<String> get iconFontFamily => $composableBuilder(
+      column: $table.iconFontFamily, builder: (column) => column);
+
+  GeneratedColumn<String> get iconFontPackage => $composableBuilder(
+      column: $table.iconFontPackage, builder: (column) => column);
+
+  GeneratedColumn<bool> get iconMatchTextDirection => $composableBuilder(
+      column: $table.iconMatchTextDirection, builder: (column) => column);
+
+  GeneratedColumn<int> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<bool> get isModified => $composableBuilder(
+      column: $table.isModified, builder: (column) => column);
+}
+
+class $$AccountsTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AccountsTableTable,
+    AccountsTableData,
+    $$AccountsTableTableFilterComposer,
+    $$AccountsTableTableOrderingComposer,
+    $$AccountsTableTableAnnotationComposer,
+    $$AccountsTableTableCreateCompanionBuilder,
+    $$AccountsTableTableUpdateCompanionBuilder,
+    (
+      AccountsTableData,
+      BaseReferences<_$AppDatabase, $AccountsTableTable, AccountsTableData>
+    ),
+    AccountsTableData,
+    PrefetchHooks Function()> {
+  $$AccountsTableTableTableManager(_$AppDatabase db, $AccountsTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> iconCodePoint = const Value.absent(),
+            Value<String?> iconFontFamily = const Value.absent(),
+            Value<String?> iconFontPackage = const Value.absent(),
+            Value<bool> iconMatchTextDirection = const Value.absent(),
+            Value<int> color = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isModified = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AccountsTableCompanion(
+            id: id,
+            name: name,
+            iconCodePoint: iconCodePoint,
+            iconFontFamily: iconFontFamily,
+            iconFontPackage: iconFontPackage,
+            iconMatchTextDirection: iconMatchTextDirection,
+            color: color,
+            isDefault: isDefault,
+            isModified: isModified,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            required int iconCodePoint,
+            Value<String?> iconFontFamily = const Value.absent(),
+            Value<String?> iconFontPackage = const Value.absent(),
+            Value<bool> iconMatchTextDirection = const Value.absent(),
+            required int color,
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isModified = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AccountsTableCompanion.insert(
+            id: id,
+            name: name,
+            iconCodePoint: iconCodePoint,
+            iconFontFamily: iconFontFamily,
+            iconFontPackage: iconFontPackage,
+            iconMatchTextDirection: iconMatchTextDirection,
+            color: color,
+            isDefault: isDefault,
+            isModified: isModified,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$AccountsTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AccountsTableTable,
+    AccountsTableData,
+    $$AccountsTableTableFilterComposer,
+    $$AccountsTableTableOrderingComposer,
+    $$AccountsTableTableAnnotationComposer,
+    $$AccountsTableTableCreateCompanionBuilder,
+    $$AccountsTableTableUpdateCompanionBuilder,
+    (
+      AccountsTableData,
+      BaseReferences<_$AppDatabase, $AccountsTableTable, AccountsTableData>
+    ),
+    AccountsTableData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1608,4 +2406,6 @@ class $AppDatabaseManager {
       $$ExpensesTableTableTableManager(_db, _db.expensesTable);
   $$CategoriesTableTableTableManager get categoriesTable =>
       $$CategoriesTableTableTableManager(_db, _db.categoriesTable);
+  $$AccountsTableTableTableManager get accountsTable =>
+      $$AccountsTableTableTableManager(_db, _db.accountsTable);
 }

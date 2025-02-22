@@ -5,12 +5,16 @@ class Account {
   final String name;
   final IconData icon;
   final Color color;
+  final bool isDefault;
+  final bool isModified;
 
   const Account({
     required this.id,
     required this.name,
     required this.icon,
     required this.color,
+    this.isDefault = false,
+    this.isModified = false,
   });
 
   Account copyWith({
@@ -18,12 +22,16 @@ class Account {
     String? name,
     IconData? icon,
     Color? color,
+    bool? isDefault,
+    bool? isModified,
   }) {
     return Account(
       id: id ?? this.id,
       name: name ?? this.name,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      isDefault: isDefault ?? this.isDefault,
+      isModified: isModified ?? this.isModified,
     );
   }
 
@@ -32,7 +40,12 @@ class Account {
       'id': id,
       'name': name,
       'icon': icon.codePoint,
+      'iconFontFamily': icon.fontFamily,
+      'iconFontPackage': icon.fontPackage,
+      'iconMatchTextDirection': icon.matchTextDirection,
       'color': color.value,
+      'isDefault': isDefault,
+      'isModified': isModified,
     };
   }
 
@@ -40,8 +53,15 @@ class Account {
     return Account(
       id: json['id'],
       name: json['name'],
-      icon: IconData(json['icon'], fontFamily: 'MaterialIcons'),
+      icon: IconData(
+        json['icon'],
+        fontFamily: json['iconFontFamily'],
+        fontPackage: json['iconFontPackage'],
+        matchTextDirection: json['iconMatchTextDirection'] ?? false,
+      ),
       color: Color(json['color']),
+      isDefault: json['isDefault'] ?? false,
+      isModified: json['isModified'] ?? false,
     );
   }
 }
@@ -52,6 +72,7 @@ class DefaultAccounts {
     name: 'Checking',
     icon: Icons.account_balance,
     color: Color(0xFF2196F3), // Blue
+    isDefault: true,
   );
 
   static const creditCard = Account(
@@ -59,6 +80,7 @@ class DefaultAccounts {
     name: 'Credit Card',
     icon: Icons.credit_card,
     color: Color(0xFF4CAF50), // Green
+    isDefault: true,
   );
 
   static List<Account> defaultAccounts = [checking, creditCard];

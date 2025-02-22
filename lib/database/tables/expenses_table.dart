@@ -10,6 +10,7 @@ enum ExpenseType {
 class ExpensesTable extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
+  TextColumn get description => text().nullable()();
   RealColumn get amount => real()();
   DateTimeColumn get date => dateTime()();
   DateTimeColumn get createdAt => dateTime()();

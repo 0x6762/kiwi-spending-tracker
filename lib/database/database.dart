@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
 import 'tables/expenses_table.dart';
 import 'tables/categories_table.dart';
+import 'tables/accounts_table.dart';
 
 part 'database.g.dart';
 
@@ -13,6 +14,7 @@ part 'database.g.dart';
   tables: [
     ExpensesTable,
     CategoriesTable,
+    AccountsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -26,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,6 +69,21 @@ class AppDatabase extends _$AppDatabase {
               '''
             );
           }
+          if (from < 3) {
+            // Create accounts table and indexes
+            await m.createTable(accountsTable);
+            await customStatement('CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)');
+          }
+          if (from < 4) {
+            // Update existing expenses to use default checking account
+            await customStatement(
+              '''
+              UPDATE expenses_table 
+              SET account_id = 'checking' 
+              WHERE account_id IS NULL;
+              '''
+            );
+          }
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');
@@ -74,6 +91,7 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)');
           await customStatement('CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)');
           await customStatement('CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)');
+          await customStatement('CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)');
           debugPrint('Database indexes created/verified');
         },
       );
@@ -83,6 +101,7 @@ class AppDatabase extends _$AppDatabase {
   Iterable<TableInfo> get allTables => [
         expensesTable,
         categoriesTable,
+        accountsTable,
       ];
 
   @override
@@ -90,6 +109,7 @@ class AppDatabase extends _$AppDatabase {
         Index('expenses_date_idx', 'CREATE INDEX expenses_date_idx ON ${expensesTable.actualTableName} (date)'),
         Index('expenses_category_idx', 'CREATE INDEX expenses_category_idx ON ${expensesTable.actualTableName} (category_id)'),
         Index('expenses_type_idx', 'CREATE INDEX expenses_type_idx ON ${expensesTable.actualTableName} (type)'),
+        Index('accounts_id_idx', 'CREATE INDEX accounts_id_idx ON ${accountsTable.actualTableName} (id)'),
       ];
 
   // Basic CRUD operations for Expenses
@@ -174,6 +194,22 @@ class AppDatabase extends _$AppDatabase {
   
   Future<int> deleteCategory(String id) =>
       (delete(categoriesTable)..where((c) => c.id.equals(id))).go();
+
+  // Accounts operations
+  Future<List<AccountsTableData>> getAllAccounts() => select(accountsTable).get();
+  
+  Future<AccountsTableData> getAccountById(String id) =>
+      (select(accountsTable)..where((t) => t.id.equals(id)))
+          .getSingle();
+          
+  Future<void> insertAccount(AccountsTableCompanion account) =>
+      into(accountsTable).insert(account);
+      
+  Future<void> updateAccount(AccountsTableCompanion account) =>
+      update(accountsTable).replace(account);
+      
+  Future<void> deleteAccount(String id) =>
+      (delete(accountsTable)..where((t) => t.id.equals(id))).go();
 }
 
 LazyDatabase _openConnection() {
