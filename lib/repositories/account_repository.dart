@@ -19,4 +19,8 @@ abstract class AccountRepository {
   
   /// Load accounts from storage
   Future<void> loadAccounts();
+
+  /// Delete an account by its ID
+  /// This will fail if the account is a default account
+  Future<void> deleteAccount(String id);
 } 

@@ -76,4 +76,21 @@ class DriftAccountRepository implements AccountRepository {
 
     _isInitialized = true;
   }
+
+  @override
+  Future<void> deleteAccount(String id) async {
+    // Check if it's a default account
+    if (await isDefaultAccount(id)) {
+      throw Exception('Cannot delete a default account');
+    }
+
+    // Check if the account exists
+    final account = await findAccountById(id);
+    if (account == null) {
+      throw Exception('Account not found');
+    }
+
+    // Delete the account
+    await _db.deleteAccount(id);
+  }
 } 

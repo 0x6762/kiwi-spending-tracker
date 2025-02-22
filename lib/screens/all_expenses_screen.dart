@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
+import '../repositories/account_repository.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/app_bar.dart';
 import 'expense_detail_screen.dart';
@@ -11,6 +12,7 @@ class AllExpensesScreen extends StatefulWidget {
   final List<Expense> expenses;
   final CategoryRepository categoryRepo;
   final ExpenseRepository repository;
+  final AccountRepository accountRepo;
   final void Function(Expense) onDelete;
   final void Function() onExpenseUpdated;
 
@@ -19,6 +21,7 @@ class AllExpensesScreen extends StatefulWidget {
     required this.expenses,
     required this.categoryRepo,
     required this.repository,
+    required this.accountRepo,
     required this.onDelete,
     required this.onExpenseUpdated,
   });
@@ -43,6 +46,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
         builder: (context) => ExpenseDetailScreen(
           expense: expense,
           categoryRepo: widget.categoryRepo,
+          accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
             setState(() {

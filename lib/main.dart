@@ -25,6 +25,9 @@ void main() async {
     database: database,
   );
 
+  // Wait for repositories to initialize
+  await repositoryProvider.initialize();
+
   // Initialize analytics service
   final analyticsService = ExpenseAnalyticsService(
     repositoryProvider.expenseRepository,
@@ -88,6 +91,7 @@ class MyApp extends StatelessWidget {
             home: MainScreen(
               repository: repositoryProvider.expenseRepository,
               categoryRepo: repositoryProvider.categoryRepository,
+              accountRepo: repositoryProvider.accountRepository,
               analyticsService: analyticsService,
             ),
           ),

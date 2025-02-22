@@ -19,4 +19,14 @@ class RepositoryProvider extends ChangeNotifier {
   }) : expenseRepository = DriftExpenseRepository(database),
        categoryRepository = DriftCategoryRepository(database),
        accountRepository = DriftAccountRepository(database);
+
+  /// Initialize all repositories
+  Future<void> initialize() async {
+    try {
+      // Load default accounts
+      await accountRepository.loadAccounts();
+    } catch (e) {
+      debugPrint('Error initializing repositories: $e');
+    }
+  }
 } 

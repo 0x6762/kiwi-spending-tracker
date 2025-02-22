@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'category_management_screen.dart';
+import 'account_management_screen.dart';
 import '../models/currency_settings.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/repository_provider.dart';
 import '../widgets/app_bar.dart';
 import '../theme/theme_provider.dart';
 import '../widgets/picker_sheet.dart';
@@ -213,7 +215,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('Manage Accounts'),
                     subtitle: const Text('Add or edit your accounts'),
                     onTap: () {
-                      // TODO: Implement account management
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AccountManagementScreen(
+                            accountRepo: context.read<RepositoryProvider>().accountRepository,
+                          ),
+                        ),
+                      );
                     },
                   ),
                   ListTile(

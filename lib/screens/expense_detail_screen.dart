@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/account_repository.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -14,12 +15,14 @@ import '../widgets/add_expense_dialog.dart';
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
   final CategoryRepository categoryRepo;
+  final AccountRepository accountRepo;
   final Function(Expense)? onExpenseUpdated;
 
   const ExpenseDetailScreen({
     super.key,
     required this.expense,
     required this.categoryRepo,
+    required this.accountRepo,
     this.onExpenseUpdated,
   });
 
@@ -47,6 +50,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
       pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
         type: _currentExpense.type,
         categoryRepo: widget.categoryRepo,
+        accountRepo: widget.accountRepo,
         expense: _currentExpense,
         onExpenseAdded: (updatedExpense) {
           setState(() {
@@ -162,122 +166,124 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final account = DefaultAccounts.defaultAccounts
-        .firstWhere(
-          (a) => a.id == _currentExpense.accountId,
-          orElse: () => DefaultAccounts.checking,
-        );
+    
+    return FutureBuilder<Account?>(
+      future: widget.accountRepo.findAccountById(_currentExpense.accountId),
+      builder: (context, accountSnapshot) {
+        final account = accountSnapshot.data ?? DefaultAccounts.checking;
 
-    return FutureBuilder<ExpenseCategory?>(
-      future: _currentExpense.categoryId != null
-          ? widget.categoryRepo.findCategoryById(_currentExpense.categoryId!)
-          : Future.value(null),
-      builder: (context, categorySnapshot) {
-        final category = categorySnapshot.data;
+        return FutureBuilder<ExpenseCategory?>(
+          future: _currentExpense.categoryId != null
+              ? widget.categoryRepo.findCategoryById(_currentExpense.categoryId!)
+              : Future.value(null),
+          builder: (context, categorySnapshot) {
+            final category = categorySnapshot.data;
 
-        return Scaffold(
-          backgroundColor: theme.colorScheme.surface,
-          appBar: KiwiAppBar(
-            title: 'Expense Details',
-            leading: const Icon(AppIcons.back),
-            actions: [
-              IconButton(
-                icon: const Icon(AppIcons.edit),
-                onPressed: _showEditExpenseDialog,
-              ),
-              IconButton(
-                icon: Icon(
-                  AppIcons.delete,
-                  color: theme.colorScheme.error,
-                ),
-                onPressed: () async {
-                  final shouldDelete = await DeleteConfirmationDialog.show(context);
-                  if (shouldDelete == true && mounted) {
-                    Navigator.pop(context, true);
-                  }
-                },
-              ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _currentExpense.title,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        formatCurrency(_currentExpense.amount),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+            return Scaffold(
+              backgroundColor: theme.colorScheme.surface,
+              appBar: KiwiAppBar(
+                title: 'Expense Details',
+                leading: const Icon(AppIcons.back),
+                actions: [
+                  IconButton(
+                    icon: const Icon(AppIcons.edit),
+                    onPressed: _showEditExpenseDialog,
                   ),
-                ),
-                Card(
-                  margin: EdgeInsets.zero,
-                  color: theme.colorScheme.surfaceContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Column(
-                      children: [
-                        _buildDetailRow(
-                          'Category',
-                          category?.name ?? CategoryRepository.uncategorizedCategory.name,
-                          category?.icon ?? CategoryRepository.uncategorizedCategory.icon,
-                        ),
-                        _buildDetailRow(
-                          'Account',
-                          account.name,
-                          account.icon,
-                          iconColor: account.color,
-                        ),
-                        _buildDetailRow(
-                          'Date',
-                          _dateFormat.format(_currentExpense.date),
-                          AppIcons.calendar,
-                        ),
-                        _buildDetailRow(
-                          'Time Added',
-                          DateFormat.jm().format(_currentExpense.createdAt),
-                          AppIcons.time,
-                        ),
-                        _buildDetailRow(
-                          'Type',
-                          _getExpenseTypeLabel(_currentExpense.type),
-                          _getExpenseTypeIcon(_currentExpense.type),
-                          iconColor: _getExpenseTypeColor(_currentExpense.type),
-                          isSvg: true,
-                        ),
-                        if (_currentExpense.notes != null && _currentExpense.notes!.isNotEmpty)
-                          _buildDetailRow(
-                            'Notes',
-                            _currentExpense.notes!,
-                            AppIcons.notes,
-                          ),
-                      ],
+                  IconButton(
+                    icon: Icon(
+                      AppIcons.delete,
+                      color: theme.colorScheme.error,
                     ),
+                    onPressed: () async {
+                      final shouldDelete = await DeleteConfirmationDialog.show(context);
+                      if (shouldDelete == true && mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
                   ),
+                ],
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _currentExpense.title,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            formatCurrency(_currentExpense.amount),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      color: theme.colorScheme.surfaceContainer,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Column(
+                          children: [
+                            _buildDetailRow(
+                              'Category',
+                              category?.name ?? CategoryRepository.uncategorizedCategory.name,
+                              category?.icon ?? CategoryRepository.uncategorizedCategory.icon,
+                            ),
+                            _buildDetailRow(
+                              'Account',
+                              account.name,
+                              account.icon,
+                              iconColor: account.color,
+                            ),
+                            _buildDetailRow(
+                              'Date',
+                              _dateFormat.format(_currentExpense.date),
+                              AppIcons.calendar,
+                            ),
+                            _buildDetailRow(
+                              'Time Added',
+                              DateFormat.jm().format(_currentExpense.createdAt),
+                              AppIcons.time,
+                            ),
+                            _buildDetailRow(
+                              'Type',
+                              _getExpenseTypeLabel(_currentExpense.type),
+                              _getExpenseTypeIcon(_currentExpense.type),
+                              iconColor: _getExpenseTypeColor(_currentExpense.type),
+                              isSvg: true,
+                            ),
+                            if (_currentExpense.notes != null && _currentExpense.notes!.isNotEmpty)
+                              _buildDetailRow(
+                                'Notes',
+                                _currentExpense.notes!,
+                                AppIcons.notes,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

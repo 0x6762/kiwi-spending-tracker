@@ -8,6 +8,7 @@ import 'picker_button.dart';
 import 'picker_sheet.dart';
 import 'add_category_sheet.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/account_repository.dart';
 import '../widgets/app_bar.dart';
 import '../utils/icons.dart';
 import 'dart:math' as math;
@@ -15,6 +16,7 @@ import 'dart:math' as math;
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
   final CategoryRepository categoryRepo;
+  final AccountRepository accountRepo;
   final void Function(Expense expense) onExpenseAdded;
   final Expense? expense;
 
@@ -22,6 +24,7 @@ class AddExpenseDialog extends StatefulWidget {
     super.key,
     required this.type,
     required this.categoryRepo,
+    required this.accountRepo,
     required this.onExpenseAdded,
     this.expense,
   });
@@ -38,6 +41,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
   String _selectedAccountId = DefaultAccounts.checking.id;
+  Account? _selectedAccount;
   ExpenseCategory? _selectedCategoryInfo;
   final _dateFormat = DateFormat.yMMMd();
   
@@ -60,8 +64,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _nextBillingDate = widget.expense!.nextBillingDate ?? DateTime.now();
       _dueDate = widget.expense!.dueDate ?? DateTime.now();
       
-      // Load category
+      // Load category and account
       _loadCategory(widget.expense!.categoryId);
+      _loadAccount(widget.expense!.accountId);
+    } else {
+      // Load default account
+      _loadAccount(_selectedAccountId);
     }
   }
 
@@ -70,6 +78,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       final category = await widget.categoryRepo.findCategoryById(categoryId);
       setState(() => _selectedCategoryInfo = category);
     }
+  }
+
+  Future<void> _loadAccount(String accountId) async {
+    final account = await widget.accountRepo.findAccountById(accountId);
+    setState(() => _selectedAccount = account);
   }
 
   @override
@@ -162,6 +175,54 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAccountPicker() async {
+    // Ensure accounts are loaded
+    await widget.accountRepo.loadAccounts();
+    
+    // Get all accounts and sort by name
+    final accounts = await widget.accountRepo.getAllAccounts();
+    accounts.sort((a, b) {
+      // First sort by default status (default accounts first)
+      if (a.isDefault != b.isDefault) {
+        return a.isDefault ? -1 : 1;
+      }
+      // Then sort by name
+      return a.name.compareTo(b.name);
+    });
+
+    if (!mounted) return;
+
+    PickerSheet.show(
+      context: context,
+      title: 'Select Account',
+      children: accounts.map(
+        (account) => ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: account.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              account.icon,
+              color: account.color,
+            ),
+          ),
+          title: Text(account.name),
+          subtitle: account.isDefault ? const Text('Default Account') : null,
+          selected: _selectedAccountId == account.id,
+          onTap: () {
+            setState(() {
+              _selectedAccountId = account.id;
+              _selectedAccount = account;
+            });
+            Navigator.pop(context);
+          },
+        ),
+      ).toList(),
     );
   }
 
@@ -365,8 +426,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selectedAccount = DefaultAccounts.defaultAccounts
-        .firstWhere((a) => a.id == _selectedAccountId);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -484,29 +543,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            PickerButton(
-                              label: selectedAccount.name,
-                              icon: selectedAccount.icon,
-                              iconColor: selectedAccount.color,
-                              onTap: () {
-                                PickerSheet.show(
-                                  context: context,
-                                  title: 'Select Account',
-                                  children: DefaultAccounts.defaultAccounts
-                                      .map(
-                                        (account) => ListTile(
-                                          leading: Icon(account.icon, color: account.color),
-                                          title: Text(account.name),
-                                          selected: _selectedAccountId == account.id,
-                                          onTap: () {
-                                            setState(() => _selectedAccountId = account.id);
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                      )
-                                      .toList(),
-                                );
-                              },
+                            if (_selectedAccount != null) PickerButton(
+                              label: _selectedAccount!.name,
+                              icon: _selectedAccount!.icon,
+                              iconColor: _selectedAccount!.color,
+                              onTap: _showAccountPicker,
                             ),
                             const SizedBox(height: 8),
                             PickerButton(

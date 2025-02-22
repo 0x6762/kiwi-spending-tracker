@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/add_expense_dialog.dart';
@@ -22,12 +23,14 @@ import 'all_expenses_screen.dart';
 class MainScreen extends StatefulWidget {
   final ExpenseRepository repository;
   final CategoryRepository categoryRepo;
+  final AccountRepository accountRepo;
   final ExpenseAnalyticsService analyticsService;
 
   const MainScreen({
     super.key, 
     required this.repository,
     required this.categoryRepo,
+    required this.accountRepo,
     required this.analyticsService,
   });
 
@@ -124,6 +127,7 @@ class _MainScreenState extends State<MainScreen>
       pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
         type: type,
         categoryRepo: widget.categoryRepo,
+        accountRepo: widget.accountRepo,
         onExpenseAdded: (expense) async {
           await widget.repository.addExpense(expense);
           _loadExpenses();
@@ -148,6 +152,7 @@ class _MainScreenState extends State<MainScreen>
         builder: (context) => ExpenseDetailScreen(
           expense: expense,
           categoryRepo: widget.categoryRepo,
+          accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
             setState(() {
@@ -230,6 +235,7 @@ class _MainScreenState extends State<MainScreen>
                         expenses: _expenses,
                         categoryRepo: widget.categoryRepo,
                         repository: widget.repository,
+                        accountRepo: widget.accountRepo,
                         onDelete: _deleteExpense,
                         onExpenseUpdated: _loadExpenses,
                       ),
