@@ -212,7 +212,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
             ),
           ),
           title: Text(account.name),
-          subtitle: account.isDefault ? const Text('Default Account') : null,
           selected: _selectedAccountId == account.id,
           onTap: () {
             setState(() {

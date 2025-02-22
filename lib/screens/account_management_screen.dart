@@ -105,30 +105,21 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
             color: theme.colorScheme.onSurface,
           ),
         ),
-        subtitle: account.isDefault ? Row(
+        subtitle: account.isDefault && account.isModified ? Row(
           children: [
-            Text(
-              'Default Account',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'Modified',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
-            if (isModified) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Modified',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
           ],
         ) : null,
         trailing: account.isDefault ? Icon(
@@ -185,8 +176,26 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                 );
 
                 if (confirmed == true && mounted) {
-                  await widget.accountRepo.deleteAccount(account.id);
-                  _loadAccounts();
+                  try {
+                    await widget.accountRepo.deleteAccount(account.id);
+                    _loadAccounts();
+                  } catch (e) {
+                    if (mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Cannot Delete Account'),
+                          content: Text(e.toString().replaceAll('Exception: ', '')),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  }
                 }
               },
             ),

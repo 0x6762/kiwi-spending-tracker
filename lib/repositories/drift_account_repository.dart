@@ -77,6 +77,14 @@ class DriftAccountRepository implements AccountRepository {
     _isInitialized = true;
   }
 
+  Future<bool> _hasExpenses(String accountId) async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((e) => e.accountId.equals(accountId))
+      ..limit(1))
+      .get();
+    return expenses.isNotEmpty;
+  }
+
   @override
   Future<void> deleteAccount(String id) async {
     // Check if it's a default account
@@ -88,6 +96,11 @@ class DriftAccountRepository implements AccountRepository {
     final account = await findAccountById(id);
     if (account == null) {
       throw Exception('Account not found');
+    }
+
+    // Check if the account has any expenses
+    if (await _hasExpenses(id)) {
+      throw Exception('Cannot delete account with existing expenses. Please reassign or delete the expenses first.');
     }
 
     // Delete the account
