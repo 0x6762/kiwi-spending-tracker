@@ -12,47 +12,62 @@ class TodaySpendingCard extends StatelessWidget {
     required this.expenses,
   });
 
-  double get _todayTotal {
-    final now = DateTime.now();
-    return expenses
-        .where((expense) =>
-            expense.date.year == now.year &&
-            expense.date.month == now.month &&
-            expense.date.day == now.day)
-        .fold(0, (sum, expense) => sum + expense.amount);
-  }
+  ({
+    double todayTotal,
+    double todayCreditCardTotal,
+    double averageDaily,
+  }) _calculateExpenseMetrics() {
+    if (expenses.isEmpty) {
+      return (
+        todayTotal: 0.0,
+        todayCreditCardTotal: 0.0,
+        averageDaily: 0.0,
+      );
+    }
 
-  double get _todayCreditCardTotal {
     final now = DateTime.now();
-    return expenses
-        .where((expense) =>
-            expense.date.year == now.year &&
-            expense.date.month == now.month &&
-            expense.date.day == now.day &&
-            expense.accountId == DefaultAccounts.creditCard.id)
-        .fold(0, (sum, expense) => sum + expense.amount);
-  }
+    final thisMonth = DateTime(now.year, now.month);
+    
+    double todayTotal = 0.0;
+    double todayCreditCardTotal = 0.0;
+    double monthlyTotal = 0.0;
+    var daysWithExpenses = <int>{};  // Using int for day of month instead of DateTime
 
-  double get _averageDailySpend {
-    if (expenses.isEmpty) return 0;
-    
-    final now = DateTime.now();
-    final thisMonthExpenses = expenses.where((expense) =>
-        expense.date.year == now.year &&
-        expense.date.month == now.month);
-    
-    if (thisMonthExpenses.isEmpty) return 0;
-    
-    final totalSpent = thisMonthExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
-    return totalSpent / now.day; // Divide by current day of month to get daily average
+    for (final expense in expenses) {
+      // Skip expenses from other months early
+      if (expense.date.year != now.year || expense.date.month != now.month) {
+        continue;
+      }
+
+      final amount = expense.amount;
+      monthlyTotal += amount;
+      daysWithExpenses.add(expense.date.day);
+
+      // Check if expense is from today
+      if (expense.date.day == now.day) {
+        todayTotal += amount;
+        if (expense.accountId == DefaultAccounts.creditCard.id) {
+          todayCreditCardTotal += amount;
+        }
+      }
+    }
+
+    final averageDaily = daysWithExpenses.isEmpty ? 0.0 : monthlyTotal / daysWithExpenses.length;
+
+    return (
+      todayTotal: todayTotal,
+      todayCreditCardTotal: todayCreditCardTotal,
+      averageDaily: averageDaily,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final todayTotal = _todayTotal;
-    final creditCardTotal = _todayCreditCardTotal;
-    final averageDaily = _averageDailySpend;
+    final metrics = _calculateExpenseMetrics();
+    final todayTotal = metrics.todayTotal;
+    final creditCardTotal = metrics.todayCreditCardTotal;
+    final averageDaily = metrics.averageDaily;
 
     return Card(
       margin: EdgeInsets.zero,
