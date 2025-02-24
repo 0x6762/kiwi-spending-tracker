@@ -38,60 +38,34 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           debugPrint('Upgrading database from version $from to $to');
-          if (from < 2) {
-            // Add new columns for category tracking
-            await m.addColumn(categoriesTable, categoriesTable.isDefault);
-            await m.addColumn(categoriesTable, categoriesTable.isModified);
-            
-            // Mark existing default categories
-            await customStatement(
-              '''
-              UPDATE categories_table 
-              SET is_default = 1, is_modified = 0 
-              WHERE id IN (
-                'food_dining', 'transportation', 'shopping', 
-                'entertainment', 'bills_utilities', 'health',
-                'travel', 'education', 'other'
-              );
-              '''
-            );
-            
-            // Mark all other categories as non-default
-            await customStatement(
-              '''
-              UPDATE categories_table 
-              SET is_default = 0, is_modified = 0 
-              WHERE id NOT IN (
-                'food_dining', 'transportation', 'shopping', 
-                'entertainment', 'bills_utilities', 'health',
-                'travel', 'education', 'other'
-              );
-              '''
-            );
-          }
-          if (from < 3) {
-            // Create accounts table and indexes
-            await m.createTable(accountsTable);
-            await customStatement('CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)');
-          }
+          // If we're upgrading from a version before 4
           if (from < 4) {
-            // Update existing expenses to use default checking account
-            await customStatement(
-              '''
-              UPDATE expenses_table 
-              SET account_id = 'checking' 
-              WHERE account_id IS NULL;
-              '''
-            );
+            // Keep existing tables and data
+            await m.createAll();
           }
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');
+          await customStatement('PRAGMA foreign_keys = ON');
+          
           // Create indexes if they don't exist
-          await customStatement('CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)');
-          await customStatement('CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)');
-          await customStatement('CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)');
-          await customStatement('CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)');
+          await transaction(() async {
+            // Expenses indexes
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
+            );
+            
+            // Accounts index
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)',
+            );
+          });
           debugPrint('Database indexes created/verified');
         },
       );
@@ -214,21 +188,9 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    try {
-      final dbFolder = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dbFolder.path, 'spending_tracker.db'));
-      
-      if (kDebugMode) {
-        debugPrint('Database path: ${file.path}');
-      }
-
-      return NativeDatabase.createInBackground(
-        file,
-        logStatements: kDebugMode, // Enable SQL logging in debug mode
-      );
-    } catch (e) {
-      debugPrint('Error opening database: $e');
-      rethrow;
-    }
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dbFolder.path, 'spending_tracker.db'));
+    debugPrint('Database path: ${file.path}');
+    return NativeDatabase.createInBackground(file);
   });
 } 

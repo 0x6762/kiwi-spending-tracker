@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'bottom_sheet.dart';
 import '../models/expense.dart';
+import '../repositories/expense_repository.dart';
+import '../repositories/category_repository.dart';
+import '../utils/icons.dart';
+import 'voice_input_button.dart';
 
 class ExpenseTypeSheet extends StatelessWidget {
   final void Function(ExpenseType type) onTypeSelected;
+  final ExpenseRepository repository;
+  final CategoryRepository categoryRepo;
+  final VoidCallback onExpenseAdded;
 
   const ExpenseTypeSheet({
     super.key,
     required this.onTypeSelected,
+    required this.repository,
+    required this.categoryRepo,
+    required this.onExpenseAdded,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return AppBottomSheet(
       contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       children: [
         _ExpenseTypeButton(
           title: 'Add Expense',
           subtitle: 'Regular expenses like groceries, bills, shopping',
-          iconAsset: 'assets/icons/variable_expense.svg',
+          icon: AppIcons.add,
           iconColor: const Color(0xFF8056E4),
           onTap: () => onTypeSelected(ExpenseType.variable),
         ),
@@ -27,9 +38,33 @@ class ExpenseTypeSheet extends StatelessWidget {
         _ExpenseTypeButton(
           title: 'Subscription',
           subtitle: 'Fixed recurring payments like Netflix, Spotify',
-          iconAsset: 'assets/icons/subscription.svg',
+          icon: AppIcons.calendar,
           iconColor: const Color(0xFF2196F3),
           onTap: () => onTypeSelected(ExpenseType.subscription),
+        ),
+        const SizedBox(height: 8),
+        _ExpenseTypeButton(
+          title: 'Voice Input',
+          subtitle: 'Add an expense using your voice',
+          icon: AppIcons.mic,
+          iconColor: theme.colorScheme.primary,
+          onTap: () {
+            Navigator.pop(context);
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: theme.colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: VoiceInputButton(
+                  repository: repository,
+                  categoryRepo: categoryRepo,
+                  onExpenseAdded: onExpenseAdded,
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -39,14 +74,14 @@ class ExpenseTypeSheet extends StatelessWidget {
 class _ExpenseTypeButton extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String iconAsset;
+  final IconData icon;
   final Color iconColor;
   final VoidCallback onTap;
 
   const _ExpenseTypeButton({
     required this.title,
     required this.subtitle,
-    required this.iconAsset,
+    required this.icon,
     required this.iconColor,
     required this.onTap,
   });
@@ -71,14 +106,10 @@ class _ExpenseTypeButton extends StatelessWidget {
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: SvgPicture.asset(
-                  iconAsset,
-                  width: 24,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(
-                    iconColor,
-                    BlendMode.srcIn,
-                  ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 24),
@@ -104,7 +135,7 @@ class _ExpenseTypeButton extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Icon(
-                Icons.chevron_right,
+                AppIcons.chevronRight,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ],

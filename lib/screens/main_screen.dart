@@ -113,6 +113,9 @@ class _MainScreenState extends State<MainScreen>
           Navigator.pop(context);
           _showAddExpenseDialog(type: type);
         },
+        repository: widget.repository,
+        categoryRepo: widget.categoryRepo,
+        onExpenseAdded: _loadExpenses,
       ),
     );
   }
@@ -181,7 +184,7 @@ class _MainScreenState extends State<MainScreen>
 
   Widget _buildEmptyState() {
     return Padding(
-      padding: const EdgeInsets.only(top: 32),
+      padding: const EdgeInsets.only(top: 32, bottom: 32),
       child: Column(
         children: [
           Text(
@@ -331,86 +334,44 @@ class _MainScreenState extends State<MainScreen>
                     ),
               const SizedBox(height: 8),
               if (!_isLoading) ...[
-                Card(
-                  margin: EdgeInsets.zero,
-                  color: theme.colorScheme.surfaceContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  elevation: 0,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Row(
                     children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: _showExpenseTypeSheet,
-                          borderRadius: const BorderRadius.horizontal(
-                            left: Radius.circular(28),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    AppIcons.add,
-                                    size: 20,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Add new expense',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      Text(
+                        'Recent expenses',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      Center(
-                        child: Container(
-                          height: 40,
-                          width: 1,
-                          color: theme.colorScheme.surfaceContainerLowest,
-                        ),
-                      ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => Dialog(
-                                backgroundColor: theme.colorScheme.surfaceContainer,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                ),
-                                child: VoiceInputButton(
-                                  repository: widget.repository,
-                                  categoryRepo: widget.categoryRepo,
-                                  onExpenseAdded: _loadExpenses,
-                                ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllExpensesScreen(
+                                expenses: _expenses,
+                                categoryRepo: widget.categoryRepo,
+                                repository: widget.repository,
+                                accountRepo: widget.accountRepo,
+                                onDelete: _deleteExpense,
+                                onExpenseUpdated: _loadExpenses,
                               ),
-                            );
-                          },
-                          borderRadius: const BorderRadius.horizontal(
-                            right: Radius.circular(28),
-                          ),
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              AppIcons.mic,
-                              color: theme.colorScheme.primary,
                             ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: theme.colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                        ),
+                        child: Text(
+                          'See all',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -420,7 +381,20 @@ class _MainScreenState extends State<MainScreen>
                 if (_expenses.isEmpty)
                   _buildEmptyState()
                 else
-                  _buildExpenseList(todayExpenses),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    color: theme.colorScheme.surfaceContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    elevation: 0,
+                    child: ExpenseList(
+                      expenses: todayExpenses,
+                      categoryRepo: widget.categoryRepo,
+                      onTap: _viewExpenseDetails,
+                      onDelete: _deleteExpense,
+                    ),
+                  ),
               ],
             ],
           ),
