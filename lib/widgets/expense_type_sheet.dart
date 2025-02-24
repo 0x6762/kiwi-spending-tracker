@@ -17,16 +17,8 @@ class ExpenseTypeSheet extends StatelessWidget {
       contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       children: [
         _ExpenseTypeButton(
-          title: 'Fixed Expense',
-          subtitle: 'Variable recurring expenses like electricity, water',
-          iconAsset: 'assets/icons/fixed_expense.svg',
-          iconColor: const Color(0xFFCF5825),
-          onTap: () => onTypeSelected(ExpenseType.fixed),
-        ),
-        const SizedBox(height: 8),
-        _ExpenseTypeButton(
-          title: 'Variable Expense',
-          subtitle: 'One-time expenses like groceries, shopping',
+          title: 'Add Expense',
+          subtitle: 'Regular expenses like groceries, bills, shopping',
           iconAsset: 'assets/icons/variable_expense.svg',
           iconColor: const Color(0xFF8056E4),
           onTap: () => onTypeSelected(ExpenseType.variable),

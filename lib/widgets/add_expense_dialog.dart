@@ -38,6 +38,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController(text: '0');
   final _notesController = TextEditingController();
+  final _scrollController = ScrollController();
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
   String _selectedAccountId = DefaultAccounts.checking.id;
@@ -49,6 +50,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   String _billingCycle = 'Monthly'; // For subscriptions
   DateTime _nextBillingDate = DateTime.now(); // For subscriptions
   DateTime _dueDate = DateTime.now(); // For fixed expenses
+  bool _isFixedExpense = false; // New state variable for fixed expense checkbox
 
   @override
   void initState() {
@@ -63,6 +65,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _billingCycle = widget.expense!.billingCycle ?? 'Monthly';
       _nextBillingDate = widget.expense!.nextBillingDate ?? DateTime.now();
       _dueDate = widget.expense!.dueDate ?? DateTime.now();
+      _isFixedExpense = widget.expense!.type == ExpenseType.fixed; // Initialize checkbox state
       
       // Load category and account
       _loadCategory(widget.expense!.categoryId);
@@ -70,6 +73,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     } else {
       // Load default account
       _loadAccount(_selectedAccountId);
+      // Initialize fixed expense checkbox based on the provided type
+      _isFixedExpense = widget.type == ExpenseType.fixed;
     }
   }
 
@@ -90,6 +95,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     _titleController.dispose();
     _amountController.dispose();
     _notesController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -241,6 +247,15 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
 
     final amount = double.parse(_amountController.text);
+    
+    // Determine the expense type based on widget.type and _isFixedExpense
+    ExpenseType expenseType;
+    if (widget.type == ExpenseType.subscription) {
+      expenseType = ExpenseType.subscription;
+    } else {
+      expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
+    }
+    
     final expense = Expense(
       id: widget.expense?.id ?? const Uuid().v4(),
       title: _titleController.text.trim().isNotEmpty 
@@ -251,11 +266,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       createdAt: widget.expense?.createdAt ?? DateTime.now(),
       categoryId: _selectedCategoryInfo!.id,
       notes: _notesController.text.trim(),
-      type: widget.type,
+      type: expenseType,
       accountId: _selectedAccountId,
-      billingCycle: widget.type == ExpenseType.subscription ? _billingCycle : null,
-      nextBillingDate: widget.type == ExpenseType.subscription ? _nextBillingDate : null,
-      dueDate: widget.type == ExpenseType.fixed ? _dueDate : null,
+      billingCycle: expenseType == ExpenseType.subscription ? _billingCycle : null,
+      nextBillingDate: expenseType == ExpenseType.subscription ? _nextBillingDate : null,
+      dueDate: expenseType == ExpenseType.fixed ? _dueDate : null,
     );
 
     widget.onExpenseAdded(expense);
@@ -324,77 +339,75 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   String _getDialogTitle() {
     final action = widget.expense != null ? 'Edit' : 'Add';
-    switch (widget.type) {
-      case ExpenseType.subscription:
-        return '$action Subscription';
-      case ExpenseType.fixed:
-        return '$action Fixed Expense';
-      case ExpenseType.variable:
-        return '$action Variable Expense';
+    if (widget.type == ExpenseType.subscription) {
+      return '$action Subscription';
+    } else {
+      // For variable and fixed expenses, use the checkbox state
+      return '$action Expense';
     }
   }
 
   Widget _buildTypeSpecificFields() {
     final theme = Theme.of(context);
     
-    switch (widget.type) {
-      case ExpenseType.subscription:
-        return Column(
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: PickerButton(
-                      label: _billingCycle,
-                      icon: AppIcons.calendar,
-                      onTap: () {
-                        PickerSheet.show(
-                          context: context,
-                          title: 'Billing Cycle',
-                          children: ['Monthly', 'Yearly'].map(
-                            (cycle) => ListTile(
-                              title: Text(cycle),
-                              selected: _billingCycle == cycle,
-                              onTap: () {
-                                setState(() => _billingCycle = cycle);
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ).toList(),
-                        );
-                      },
-                    ),
+    if (widget.type == ExpenseType.subscription) {
+      return Column(
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PickerButton(
+                    label: _billingCycle,
+                    icon: AppIcons.calendar,
+                    onTap: () {
+                      PickerSheet.show(
+                        context: context,
+                        title: 'Billing Cycle',
+                        children: ['Monthly', 'Yearly'].map(
+                          (cycle) => ListTile(
+                            title: Text(cycle),
+                            selected: _billingCycle == cycle,
+                            onTap: () {
+                              setState(() => _billingCycle = cycle);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ).toList(),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: PickerButton(
-                      label: _dateFormat.format(_nextBillingDate),
-                      icon: AppIcons.calendar,
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: _nextBillingDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime(2100),
-                        );
-                        if (picked != null) {
-                          setState(() => _nextBillingDate = picked);
-                        }
-                      },
-                    ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PickerButton(
+                    label: _dateFormat.format(_nextBillingDate),
+                    icon: AppIcons.calendar,
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: _nextBillingDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() => _nextBillingDate = picked);
+                      }
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        );
-      
-      case ExpenseType.fixed:
-        return Column(
-          children: [
+          ),
+        ],
+      );
+    } else {
+      // For both variable and fixed expenses
+      return Column(
+        children: [
+          if (_isFixedExpense) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -415,10 +428,25 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
             ),
           ],
+        ],
+      );
+    }
+  }
+
+  void _onFixedExpenseChanged(bool? value) {
+    setState(() {
+      _isFixedExpense = value ?? false;
+    });
+    
+    if (_isFixedExpense) {
+      // Wait for the setState to complete and the new field to be added
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
         );
-      
-      case ExpenseType.variable:
-        return const SizedBox.shrink(); // No additional fields needed
+      });
     }
   }
 
@@ -483,6 +511,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
               Expanded(
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     children: [
                       Container(
@@ -554,6 +583,79 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               icon: _selectedCategoryInfo?.icon ?? AppIcons.category,
                               onTap: _showCategoryPicker,
                             ),
+                            
+                            // Add Fixed Expense checkbox if not subscription
+                            if (widget.type != ExpenseType.subscription) ...[
+                              const SizedBox(height: 16),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _isFixedExpense = !_isFixedExpense;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Checkbox(
+                                            value: _isFixedExpense,
+                                            onChanged: _onFixedExpenseChanged,
+                                            activeColor: theme.colorScheme.primary,
+                                          ),
+                                          Text(
+                                            'Fixed expense',
+                                            style: theme.textTheme.bodyLarge?.copyWith(
+                                              color: theme.colorScheme.onSurface,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 48),
+                                        child: Text(
+                                          'Bills and expenses that repeat monthly like rent, utilities, etc.',
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                            
+                            // Show due date field if fixed expense is checked
+                            if (widget.type != ExpenseType.subscription && _isFixedExpense) ...[
+                              const SizedBox(height: 24),
+                              Text(
+                                'Due Date',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              PickerButton(
+                                label: _dateFormat.format(_dueDate),
+                                icon: AppIcons.calendar,
+                                onTap: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _dueDate,
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _dueDate = picked);
+                                  }
+                                },
+                              ),
+                            ],
+                            
                             if (widget.type == ExpenseType.subscription) ...[
                               const SizedBox(height: 24),
                               Text(
@@ -596,31 +698,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                   );
                                   if (picked != null) {
                                     setState(() => _nextBillingDate = picked);
-                                  }
-                                },
-                              ),
-                            ],
-                            if (widget.type == ExpenseType.fixed) ...[
-                              const SizedBox(height: 24),
-                              Text(
-                                'Due Date',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              PickerButton(
-                                label: _dateFormat.format(_dueDate),
-                                icon: AppIcons.calendar,
-                                onTap: () async {
-                                  final DateTime? picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _dueDate,
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() => _dueDate = picked);
                                   }
                                 },
                               ),
