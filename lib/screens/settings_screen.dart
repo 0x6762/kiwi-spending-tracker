@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'category_management_screen.dart';
 import 'account_management_screen.dart';
 import '../models/currency_settings.dart';
@@ -27,11 +28,14 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedCurrency = 'USD';
+  String _version = '';
+  bool _isVersionLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentCurrency();
+    _loadAppVersion();
   }
 
   Future<void> _loadCurrentCurrency() async {
@@ -39,6 +43,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _selectedCurrency = prefs.getString(CurrencySettings.prefsKey) ?? 'USD';
     });
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      setState(() => _isVersionLoading = true);
+      final packageInfo = await PackageInfo.fromPlatform();
+      print('Loaded version: ${packageInfo.version}+${packageInfo.buildNumber}'); // Debug print
+      setState(() {
+        _version = packageInfo.version; // Only using the semantic version
+        _isVersionLoading = false;
+      });
+    } catch (e) {
+      print('Error loading version: $e'); // Debug print
+      setState(() {
+        _version = 'Error loading version';
+        _isVersionLoading = false;
+      });
+    }
   }
 
   Future<void> _changeCurrency(String currencyCode) async {
@@ -281,6 +303,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 48),
+            Center(
+              child: _isVersionLoading
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    'Version $_version',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
             ),
             const SizedBox(height: 24),
           ],
