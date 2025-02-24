@@ -6,6 +6,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../widgets/expense_list.dart';
 import '../widgets/app_bar.dart';
+import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 
 class AllExpensesScreen extends StatefulWidget {
@@ -133,16 +134,32 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: groupedExpenses.entries.map((entry) {
+            // Calculate the sum of expenses for this day
+            final dayTotal = entry.value.fold<double>(
+              0, (sum, expense) => sum + expense.amount
+            );
+            
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                  child: Text(
-                    _formatSectionTitle(entry.key),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatSectionTitle(entry.key),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        'Total: ${formatCurrency(dayTotal)}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Card(
