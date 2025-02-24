@@ -607,21 +607,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                             activeColor: theme.colorScheme.primary,
                                           ),
                                           Text(
-                                            'Fixed expense',
+                                            'Fixed expense?',
                                             style: theme.textTheme.bodyLarge?.copyWith(
-                                              color: theme.colorScheme.onSurface,
+                                              color: theme.colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 48),
-                                        child: Text(
-                                          'Bills and expenses that repeat monthly like rent, utilities, etc.',
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            color: theme.colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
                                       ),
                                     ],
                                   ),

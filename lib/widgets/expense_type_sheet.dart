@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'bottom_sheet.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
@@ -31,14 +32,14 @@ class ExpenseTypeSheet extends StatelessWidget {
           title: 'Add Expense',
           subtitle: 'Regular expenses like groceries, bills, shopping',
           icon: AppIcons.add,
-          iconColor: const Color(0xFF8056E4),
+          iconColor: theme.colorScheme.primary,
           onTap: () => onTypeSelected(ExpenseType.variable),
         ),
         const SizedBox(height: 8),
         _ExpenseTypeButton(
           title: 'Subscription',
           subtitle: 'Fixed recurring payments like Netflix, Spotify',
-          icon: AppIcons.calendar,
+          icon: 'assets/icons/subscription.svg',
           iconColor: const Color(0xFF2196F3),
           onTap: () => onTypeSelected(ExpenseType.subscription),
         ),
@@ -47,7 +48,7 @@ class ExpenseTypeSheet extends StatelessWidget {
           title: 'Voice Input',
           subtitle: 'Add an expense using your voice',
           icon: AppIcons.mic,
-          iconColor: theme.colorScheme.primary,
+          iconColor: theme.colorScheme.onSurfaceVariant,
           onTap: () {
             Navigator.pop(context);
             showDialog(
@@ -74,7 +75,7 @@ class ExpenseTypeSheet extends StatelessWidget {
 class _ExpenseTypeButton extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final dynamic icon;
   final Color iconColor;
   final VoidCallback onTap;
 
@@ -106,22 +107,55 @@ class _ExpenseTypeButton extends StatelessWidget {
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 24,
-                ),
+                child: icon is IconData
+                    ? Icon(
+                        icon as IconData,
+                        color: iconColor,
+                        size: 24,
+                      )
+                    : SvgPicture.asset(
+                        icon as String,
+                        width: 24,
+                        height: 24,
+                        colorFilter: ColorFilter.mode(
+                          iconColor,
+                          BlendMode.srcIn,
+                        ),
+                      ),
               ),
               const SizedBox(width: 24),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        if (title == 'Voice Input')
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Beta',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
