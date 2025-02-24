@@ -331,6 +331,7 @@ class _MainScreenState extends State<MainScreen>
                     )
                   : TodaySpendingCard(
                       expenses: _expenses,
+                      analyticsService: widget.analyticsService,
                     ),
               const SizedBox(height: 8),
               if (!_isLoading) ...[

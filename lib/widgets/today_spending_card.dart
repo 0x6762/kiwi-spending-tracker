@@ -3,68 +3,22 @@ import '../models/expense.dart';
 import '../models/account.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
+import '../services/expense_analytics_service.dart';
 
 class TodaySpendingCard extends StatelessWidget {
   final List<Expense> expenses;
+  final ExpenseAnalyticsService analyticsService;
 
   const TodaySpendingCard({
     super.key,
     required this.expenses,
+    required this.analyticsService,
   });
-
-  ({
-    double todayTotal,
-    double todayCreditCardTotal,
-    double averageDaily,
-  }) _calculateExpenseMetrics() {
-    if (expenses.isEmpty) {
-      return (
-        todayTotal: 0.0,
-        todayCreditCardTotal: 0.0,
-        averageDaily: 0.0,
-      );
-    }
-
-    final now = DateTime.now();
-    final thisMonth = DateTime(now.year, now.month);
-    
-    double todayTotal = 0.0;
-    double todayCreditCardTotal = 0.0;
-    double monthlyTotal = 0.0;
-    var daysWithExpenses = <int>{};  // Using int for day of month instead of DateTime
-
-    for (final expense in expenses) {
-      // Skip expenses from other months early
-      if (expense.date.year != now.year || expense.date.month != now.month) {
-        continue;
-      }
-
-      final amount = expense.amount;
-      monthlyTotal += amount;
-      daysWithExpenses.add(expense.date.day);
-
-      // Check if expense is from today
-      if (expense.date.day == now.day) {
-        todayTotal += amount;
-        if (expense.accountId == DefaultAccounts.creditCard.id) {
-          todayCreditCardTotal += amount;
-        }
-      }
-    }
-
-    final averageDaily = daysWithExpenses.isEmpty ? 0.0 : monthlyTotal / daysWithExpenses.length;
-
-    return (
-      todayTotal: todayTotal,
-      todayCreditCardTotal: todayCreditCardTotal,
-      averageDaily: averageDaily,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final metrics = _calculateExpenseMetrics();
+    final metrics = analyticsService.getDailyMetrics(expenses);
     final todayTotal = metrics.todayTotal;
     final creditCardTotal = metrics.todayCreditCardTotal;
     final averageDaily = metrics.averageDaily;

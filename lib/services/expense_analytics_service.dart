@@ -3,6 +3,7 @@ import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
+import '../models/account.dart';
 
 class CategorySpending {
   final String categoryId;
@@ -13,6 +14,18 @@ class CategorySpending {
     required this.categoryId,
     required this.amount,
     required this.percentage,
+  });
+}
+
+class DailyMetrics {
+  final double todayTotal;
+  final double todayCreditCardTotal;
+  final double averageDaily;
+
+  DailyMetrics({
+    required this.todayTotal,
+    required this.todayCreditCardTotal,
+    required this.averageDaily,
   });
 }
 
@@ -151,5 +164,49 @@ class ExpenseAnalyticsService {
     }
 
     return monthlyTotals;
+  }
+
+  DailyMetrics getDailyMetrics(List<Expense> expenses) {
+    if (expenses.isEmpty) {
+      return DailyMetrics(
+        todayTotal: 0.0,
+        todayCreditCardTotal: 0.0,
+        averageDaily: 0.0,
+      );
+    }
+
+    final now = DateTime.now();
+    
+    double todayTotal = 0.0;
+    double todayCreditCardTotal = 0.0;
+    double monthlyTotal = 0.0;
+    var daysWithExpenses = <int>{};  // Using int for day of month instead of DateTime
+
+    for (final expense in expenses) {
+      // Skip expenses from other months early
+      if (expense.date.year != now.year || expense.date.month != now.month) {
+        continue;
+      }
+
+      final amount = expense.amount;
+      monthlyTotal += amount;
+      daysWithExpenses.add(expense.date.day);
+
+      // Check if expense is from today
+      if (expense.date.day == now.day) {
+        todayTotal += amount;
+        if (expense.accountId == DefaultAccounts.creditCard.id) {
+          todayCreditCardTotal += amount;
+        }
+      }
+    }
+
+    final averageDaily = daysWithExpenses.isEmpty ? 0.0 : monthlyTotal / daysWithExpenses.length;
+
+    return DailyMetrics(
+      todayTotal: todayTotal,
+      todayCreditCardTotal: todayCreditCardTotal,
+      averageDaily: averageDaily,
+    );
   }
 } 
