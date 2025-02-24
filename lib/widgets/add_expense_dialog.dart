@@ -418,7 +418,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   final DateTime? picked = await showDatePicker(
                     context: context,
                     initialDate: _dueDate,
-                    firstDate: DateTime.now(),
+                    firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
                   if (picked != null) {
@@ -646,7 +646,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                   final DateTime? picked = await showDatePicker(
                                     context: context,
                                     initialDate: _dueDate,
-                                    firstDate: DateTime.now(),
+                                    firstDate: DateTime(2000),
                                     lastDate: DateTime(2100),
                                   );
                                   if (picked != null) {
