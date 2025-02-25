@@ -6,6 +6,8 @@ import '../services/expense_analytics_service.dart';
 import '../widgets/category_statistics.dart';
 import '../widgets/expense_summary.dart';
 import '../widgets/app_bar.dart';
+import '../utils/icons.dart';
+import 'settings_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -95,6 +97,24 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: Icon(
+              AppIcons.more,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(
+                    categoryRepo: widget.categoryRepo,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 8),
