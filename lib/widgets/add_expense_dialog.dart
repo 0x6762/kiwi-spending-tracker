@@ -589,9 +589,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               const SizedBox(height: 16),
                               InkWell(
                                 onTap: () {
-                                  setState(() {
-                                    _isFixedExpense = !_isFixedExpense;
-                                  });
+                                  _onFixedExpenseChanged(!_isFixedExpense);
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Padding(
