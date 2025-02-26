@@ -417,6 +417,8 @@ class _MainScreenState extends State<MainScreen>
             expenses: _expenses,
             categoryRepo: widget.categoryRepo,
             analyticsService: widget.analyticsService,
+            repository: widget.repository,
+            accountRepo: widget.accountRepo,
           ),
         ],
       ),

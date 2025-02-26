@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/expense.dart';
 import '../services/expense_analytics_service.dart';
+import '../repositories/expense_repository.dart';
+import '../repositories/category_repository.dart';
+import '../repositories/account_repository.dart';
+import '../screens/subscriptions_screen.dart';
 import 'monthly_expense_chart.dart';
 import '../utils/formatters.dart';
 
@@ -12,6 +16,9 @@ class ExpenseSummary extends StatefulWidget {
   final DateTime selectedMonth;
   final bool showChart;
   final ExpenseAnalyticsService analyticsService;
+  final ExpenseRepository? repository;
+  final CategoryRepository? categoryRepo;
+  final AccountRepository? accountRepo;
 
   const ExpenseSummary({
     super.key,
@@ -20,6 +27,9 @@ class ExpenseSummary extends StatefulWidget {
     required this.selectedMonth,
     required this.analyticsService,
     this.showChart = true,
+    this.repository,
+    this.categoryRepo,
+    this.accountRepo,
   });
 
   @override
@@ -156,6 +166,22 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           context: context,
                           iconAsset: 'assets/icons/subscription.svg',
                           iconColor: const Color(0xFF2196F3),
+                          onTap: widget.repository != null && 
+                                 widget.categoryRepo != null && 
+                                 widget.accountRepo != null
+                              ? () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SubscriptionsScreen(
+                                        repository: widget.repository!,
+                                        categoryRepo: widget.categoryRepo!,
+                                        accountRepo: widget.accountRepo!,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              : null,
                         ),
                       ],
                     ),
@@ -176,6 +202,7 @@ class _SummaryRow extends StatelessWidget {
   final BuildContext context;
   final String iconAsset;
   final Color iconColor;
+  final VoidCallback? onTap;
 
   const _SummaryRow({
     required this.label,
@@ -183,45 +210,58 @@ class _SummaryRow extends StatelessWidget {
     required this.context,
     required this.iconAsset,
     required this.iconColor,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            iconAsset,
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(
-              iconColor,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              iconAsset,
+              width: 24,
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                iconColor,
+                BlendMode.srcIn,
               ),
             ),
-          ),
-          Text(
-            formatCurrency(amount),
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
-          ),
-        ],
+            Text(
+              formatCurrency(amount),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

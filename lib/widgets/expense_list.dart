@@ -128,11 +128,17 @@ class _ExpenseListState extends State<ExpenseList> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          _formatDate(expense.date),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _formatDate(expense.date),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

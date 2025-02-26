@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/expense_repository.dart';
+import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/category_statistics.dart';
 import '../widgets/expense_summary.dart';
@@ -13,12 +15,16 @@ class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
   final CategoryRepository categoryRepo;
   final ExpenseAnalyticsService analyticsService;
+  final ExpenseRepository repository;
+  final AccountRepository accountRepo;
 
   const InsightsScreen({
     super.key,
     required this.expenses,
     required this.categoryRepo,
     required this.analyticsService,
+    required this.repository,
+    required this.accountRepo,
   });
 
   @override
@@ -130,6 +136,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 });
               },
               analyticsService: widget.analyticsService,
+              repository: widget.repository,
+              categoryRepo: widget.categoryRepo,
+              accountRepo: widget.accountRepo,
             ),
             const SizedBox(height: 24),
             Padding(
