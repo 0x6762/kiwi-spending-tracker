@@ -18,6 +18,15 @@ extension ExpenseConversions on ExpenseTableData {
       billingCycle: billingCycle,
       nextBillingDate: nextBillingDate,
       dueDate: dueDate,
+      necessity: domain.ExpenseNecessity.values[necessity.index],
+      isRecurring: isRecurring,
+      frequency: domain.ExpenseFrequency.values[frequency.index],
+      status: domain.ExpenseStatus.values[status.index],
+      variableAmount: variableAmount,
+      endDate: endDate,
+      budgetId: budgetId,
+      paymentMethod: paymentMethod,
+      tags: tags,
     );
   }
 }
@@ -32,11 +41,20 @@ extension ExpenseTableConversion on domain.Expense {
       createdAt: Value(createdAt),
       categoryId: Value(categoryId),
       notes: Value(notes),
-      type: Value(tables.ExpenseType.values[type.index]),
+      type: Value(type),
       accountId: Value(accountId),
       billingCycle: Value(billingCycle),
       nextBillingDate: Value(nextBillingDate),
       dueDate: Value(dueDate),
+      necessity: Value(necessity),
+      isRecurring: Value(isRecurring),
+      frequency: Value(frequency),
+      status: Value(status),
+      variableAmount: Value(variableAmount),
+      endDate: Value(endDate),
+      budgetId: Value(budgetId),
+      paymentMethod: Value(paymentMethod),
+      tags: Value(tags),
     );
   }
 } 

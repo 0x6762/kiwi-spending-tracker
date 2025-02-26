@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'tables/expenses_table.dart';
 import 'tables/categories_table.dart';
 import 'tables/accounts_table.dart';
+import '../models/expense.dart';
 
 part 'database.g.dart';
 
@@ -28,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,10 +39,73 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           debugPrint('Upgrading database from version $from to $to');
+          
           // If we're upgrading from a version before 4
           if (from < 4) {
             // Keep existing tables and data
             await m.createAll();
+          }
+          
+          // If we're upgrading to version 5 (adding new expense fields)
+          if (from < 5) {
+            // We need to recreate the table with the new schema
+            // First, create a temporary table with the new schema
+            await m.createTable(expensesTable);
+            
+            // Then, copy data from the old table to the new one
+            await customStatement('''
+              ALTER TABLE expenses_table RENAME TO expenses_table_old;
+            ''');
+            
+            await customStatement('''
+              CREATE TABLE expenses_table (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT,
+                amount REAL NOT NULL,
+                date INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                category_id TEXT,
+                notes TEXT,
+                type INTEGER NOT NULL,
+                account_id TEXT NOT NULL,
+                billing_cycle TEXT,
+                next_billing_date INTEGER,
+                due_date INTEGER,
+                necessity INTEGER NOT NULL DEFAULT 1,
+                is_recurring INTEGER NOT NULL DEFAULT 0,
+                frequency INTEGER NOT NULL DEFAULT 0,
+                status INTEGER NOT NULL DEFAULT 1,
+                variable_amount REAL,
+                end_date INTEGER,
+                budget_id TEXT,
+                payment_method TEXT,
+                tags TEXT
+              );
+            ''');
+            
+            // Copy data from old table to new table
+            await customStatement('''
+              INSERT INTO expenses_table (
+                id, title, description, amount, date, created_at, 
+                category_id, notes, type, account_id, billing_cycle, 
+                next_billing_date, due_date, necessity, is_recurring, 
+                frequency, status
+              )
+              SELECT 
+                id, title, description, amount, date, created_at, 
+                category_id, notes, type, account_id, billing_cycle, 
+                next_billing_date, due_date, 1, 
+                CASE WHEN type = 0 THEN 1 ELSE 0 END,
+                CASE WHEN type = 0 THEN 2 ELSE 0 END,
+                1
+              FROM expenses_table_old;
+            ''');
+            
+            // Drop the old table
+            await customStatement('''
+              DROP TABLE expenses_table_old;
+            ''');
           }
         },
         beforeOpen: (details) async {
@@ -184,6 +248,78 @@ class AppDatabase extends _$AppDatabase {
       
   Future<void> deleteAccount(String id) =>
       (delete(accountsTable)..where((t) => t.id.equals(id))).go();
+
+  // Add new query methods for the enhanced expense model
+  Future<List<ExpenseTableData>> getExpensesByNecessity(int necessityIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.necessity.equals(necessityIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  Future<List<ExpenseTableData>> getRecurringExpenses() {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.isRecurring.equals(true))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  Future<List<ExpenseTableData>> getExpensesByStatus(int statusIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.status.equals(statusIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  Future<List<ExpenseTableData>> getExpensesByFrequency(int frequencyIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.frequency.equals(frequencyIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  Future<List<ExpenseTableData>> getExpensesByBudget(String budgetId) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.budgetId.equals(budgetId))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .get();
+  }
+
+  // Streams for watching changes
+  Stream<List<ExpenseTableData>> watchExpensesByNecessity(int necessityIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.necessity.equals(necessityIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
+
+  Stream<List<ExpenseTableData>> watchRecurringExpenses() {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.isRecurring.equals(true))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
+
+  Stream<List<ExpenseTableData>> watchExpensesByStatus(int statusIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.status.equals(statusIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
+
+  Stream<List<ExpenseTableData>> watchExpensesByFrequency(int frequencyIndex) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.frequency.equals(frequencyIndex))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
+
+  Stream<List<ExpenseTableData>> watchExpensesByBudget(String budgetId) {
+    return (select(expensesTable)
+          ..where((tbl) => tbl.budgetId.equals(budgetId))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
 }
 
 LazyDatabase _openConnection() {
