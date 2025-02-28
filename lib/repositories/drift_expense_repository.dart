@@ -29,6 +29,61 @@ class DriftExpenseRepository implements ExpenseRepository {
     await _db.deleteExpense(id);
   }
 
+  // New methods for enhanced expense structure
+  @override
+  Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((tbl) => tbl.necessity.equals(necessity.index)))
+      .get();
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getRecurringExpenses() async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((tbl) => tbl.isRecurring.equals(true)))
+      .get();
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getExpensesByStatus(ExpenseStatus status) async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((tbl) => tbl.status.equals(status.index)))
+      .get();
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getExpensesByFrequency(ExpenseFrequency frequency) async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((tbl) => tbl.frequency.equals(frequency.index)))
+      .get();
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getExpensesByBudget(String budgetId) async {
+    final expenses = await (_db.select(_db.expensesTable)
+      ..where((tbl) => tbl.budgetId.equals(budgetId)))
+      .get();
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getExpensesByTags(List<String> tags) async {
+    // This is a simple implementation that checks if any of the tags match
+    // A more sophisticated implementation would use SQL LIKE with wildcards
+    final expenses = await _db.getAllExpenses();
+    return expenses
+        .map((e) => e.toDomain())
+        .where((expense) {
+          if (expense.tags == null) return false;
+          return expense.tags!.any((tag) => tags.contains(tag));
+        })
+        .toList();
+  }
+
   // Additional methods that might be useful but not required by the interface
   Stream<List<Expense>> watchAllExpenses() {
     return _db.watchAllExpenses().map(

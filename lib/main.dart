@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'screens/main_screen.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
+import 'services/subscription_service.dart';
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
@@ -28,8 +29,13 @@ void main() async {
   // Wait for repositories to initialize
   await repositoryProvider.initialize();
 
-  // Initialize analytics service
+  // Initialize services
   final analyticsService = ExpenseAnalyticsService(
+    repositoryProvider.expenseRepository,
+    repositoryProvider.categoryRepository,
+  );
+  
+  final subscriptionService = SubscriptionService(
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
   );

@@ -163,6 +163,75 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     }
   }
 
+  String _getNecessityLabel(ExpenseNecessity necessity) {
+    switch (necessity) {
+      case ExpenseNecessity.essential:
+        return 'Essential (Need)';
+      case ExpenseNecessity.discretionary:
+        return 'Discretionary (Want)';
+      case ExpenseNecessity.savings:
+        return 'Savings/Investment';
+    }
+  }
+
+  IconData _getNecessityIcon(ExpenseNecessity necessity) {
+    switch (necessity) {
+      case ExpenseNecessity.essential:
+        return Icons.home_outlined;
+      case ExpenseNecessity.discretionary:
+        return Icons.shopping_bag_outlined;
+      case ExpenseNecessity.savings:
+        return Icons.savings_outlined;
+    }
+  }
+
+  String _getFrequencyLabel(ExpenseFrequency frequency) {
+    switch (frequency) {
+      case ExpenseFrequency.oneTime:
+        return 'One-time';
+      case ExpenseFrequency.daily:
+        return 'Daily';
+      case ExpenseFrequency.weekly:
+        return 'Weekly';
+      case ExpenseFrequency.biWeekly:
+        return 'Bi-weekly';
+      case ExpenseFrequency.monthly:
+        return 'Monthly';
+      case ExpenseFrequency.quarterly:
+        return 'Quarterly';
+      case ExpenseFrequency.yearly:
+        return 'Yearly';
+      case ExpenseFrequency.custom:
+        return 'Custom';
+    }
+  }
+
+  String _getStatusLabel(ExpenseStatus status) {
+    switch (status) {
+      case ExpenseStatus.pending:
+        return 'Pending';
+      case ExpenseStatus.paid:
+        return 'Paid';
+      case ExpenseStatus.overdue:
+        return 'Overdue';
+      case ExpenseStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
+
+  Color _getStatusColor(ExpenseStatus status) {
+    switch (status) {
+      case ExpenseStatus.pending:
+        return Colors.orange;
+      case ExpenseStatus.paid:
+        return Colors.green;
+      case ExpenseStatus.overdue:
+        return Colors.red;
+      case ExpenseStatus.cancelled:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -274,6 +343,40 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                                 'Notes',
                                 _currentExpense.notes!,
                                 AppIcons.notes,
+                              ),
+                            _buildDetailRow(
+                              'Necessity',
+                              _getNecessityLabel(_currentExpense.necessity),
+                              _getNecessityIcon(_currentExpense.necessity),
+                            ),
+                            _buildDetailRow(
+                              'Frequency',
+                              _getFrequencyLabel(_currentExpense.frequency),
+                              Icons.repeat,
+                            ),
+                            _buildDetailRow(
+                              'Status',
+                              _getStatusLabel(_currentExpense.status),
+                              Icons.check_circle_outline,
+                              iconColor: _getStatusColor(_currentExpense.status),
+                            ),
+                            if (_currentExpense.isRecurring)
+                              _buildDetailRow(
+                                'Recurring',
+                                'Yes',
+                                Icons.autorenew,
+                              ),
+                            if (_currentExpense.paymentMethod != null)
+                              _buildDetailRow(
+                                'Payment Method',
+                                _currentExpense.paymentMethod!,
+                                Icons.payment,
+                              ),
+                            if (_currentExpense.tags != null && _currentExpense.tags!.isNotEmpty)
+                              _buildDetailRow(
+                                'Tags',
+                                _currentExpense.tags!.join(', '),
+                                Icons.tag,
                               ),
                           ],
                         ),

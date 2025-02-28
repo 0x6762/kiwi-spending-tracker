@@ -256,6 +256,27 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
     }
     
+    // Determine necessity based on category (this is a simple implementation)
+    // In a real app, you might want to let the user choose or have a more sophisticated algorithm
+    ExpenseNecessity necessity;
+    if (_selectedCategoryInfo!.name.toLowerCase().contains('groceries') ||
+        _selectedCategoryInfo!.name.toLowerCase().contains('utilities') ||
+        _selectedCategoryInfo!.name.toLowerCase().contains('rent') ||
+        _selectedCategoryInfo!.name.toLowerCase().contains('mortgage')) {
+      necessity = ExpenseNecessity.essential;
+    } else if (_selectedCategoryInfo!.name.toLowerCase().contains('savings') ||
+               _selectedCategoryInfo!.name.toLowerCase().contains('investment')) {
+      necessity = ExpenseNecessity.savings;
+    } else {
+      necessity = ExpenseNecessity.discretionary;
+    }
+    
+    // Determine if recurring and frequency
+    final bool isRecurring = expenseType == ExpenseType.subscription || expenseType == ExpenseType.fixed;
+    final ExpenseFrequency frequency = expenseType == ExpenseType.subscription
+        ? (_billingCycle == 'Monthly' ? ExpenseFrequency.monthly : ExpenseFrequency.yearly)
+        : (expenseType == ExpenseType.fixed ? ExpenseFrequency.monthly : ExpenseFrequency.oneTime);
+    
     final expense = Expense(
       id: widget.expense?.id ?? const Uuid().v4(),
       title: _titleController.text.trim().isNotEmpty 
@@ -271,6 +292,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       billingCycle: expenseType == ExpenseType.subscription ? _billingCycle : null,
       nextBillingDate: expenseType == ExpenseType.subscription ? _nextBillingDate : null,
       dueDate: expenseType == ExpenseType.fixed ? _dueDate : null,
+      // Add new fields
+      necessity: necessity,
+      isRecurring: isRecurring,
+      frequency: frequency,
+      status: ExpenseStatus.paid, // Default to paid
+      // These fields could be added in a more advanced UI
+      variableAmount: null,
+      endDate: null,
+      budgetId: null,
+      paymentMethod: null,
+      tags: null,
     );
 
     widget.onExpenseAdded(expense);

@@ -82,6 +82,74 @@ class $ExpensesTableTable extends ExpensesTable
   late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
       'due_date', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _necessityMeta =
+      const VerificationMeta('necessity');
+  @override
+  late final GeneratedColumnWithTypeConverter<ExpenseNecessity, int> necessity =
+      GeneratedColumn<int>('necessity', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(1))
+          .withConverter<ExpenseNecessity>(
+              $ExpensesTableTable.$converternecessity);
+  static const VerificationMeta _isRecurringMeta =
+      const VerificationMeta('isRecurring');
+  @override
+  late final GeneratedColumn<bool> isRecurring = GeneratedColumn<bool>(
+      'is_recurring', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_recurring" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _frequencyMeta =
+      const VerificationMeta('frequency');
+  @override
+  late final GeneratedColumnWithTypeConverter<ExpenseFrequency, int> frequency =
+      GeneratedColumn<int>('frequency', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<ExpenseFrequency>(
+              $ExpensesTableTable.$converterfrequency);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumnWithTypeConverter<ExpenseStatus, int> status =
+      GeneratedColumn<int>('status', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(1))
+          .withConverter<ExpenseStatus>($ExpensesTableTable.$converterstatus);
+  static const VerificationMeta _variableAmountMeta =
+      const VerificationMeta('variableAmount');
+  @override
+  late final GeneratedColumn<double> variableAmount = GeneratedColumn<double>(
+      'variable_amount', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _endDateMeta =
+      const VerificationMeta('endDate');
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+      'end_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _budgetIdMeta =
+      const VerificationMeta('budgetId');
+  @override
+  late final GeneratedColumn<String> budgetId = GeneratedColumn<String>(
+      'budget_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _paymentMethodMeta =
+      const VerificationMeta('paymentMethod');
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+      'payment_method', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>?, String> tags =
+      GeneratedColumn<String>('tags', aliasedName, true,
+              type: DriftSqlType.string, requiredDuringInsert: false)
+          .withConverter<List<String>?>($ExpensesTableTable.$convertertags);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -96,7 +164,16 @@ class $ExpensesTableTable extends ExpensesTable
         accountId,
         billingCycle,
         nextBillingDate,
-        dueDate
+        dueDate,
+        necessity,
+        isRecurring,
+        frequency,
+        status,
+        variableAmount,
+        endDate,
+        budgetId,
+        paymentMethod,
+        tags
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -176,6 +253,36 @@ class $ExpensesTableTable extends ExpensesTable
       context.handle(_dueDateMeta,
           dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta));
     }
+    context.handle(_necessityMeta, const VerificationResult.success());
+    if (data.containsKey('is_recurring')) {
+      context.handle(
+          _isRecurringMeta,
+          isRecurring.isAcceptableOrUnknown(
+              data['is_recurring']!, _isRecurringMeta));
+    }
+    context.handle(_frequencyMeta, const VerificationResult.success());
+    context.handle(_statusMeta, const VerificationResult.success());
+    if (data.containsKey('variable_amount')) {
+      context.handle(
+          _variableAmountMeta,
+          variableAmount.isAcceptableOrUnknown(
+              data['variable_amount']!, _variableAmountMeta));
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(_endDateMeta,
+          endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
+    }
+    if (data.containsKey('budget_id')) {
+      context.handle(_budgetIdMeta,
+          budgetId.isAcceptableOrUnknown(data['budget_id']!, _budgetIdMeta));
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+          _paymentMethodMeta,
+          paymentMethod.isAcceptableOrUnknown(
+              data['payment_method']!, _paymentMethodMeta));
+    }
+    context.handle(_tagsMeta, const VerificationResult.success());
     return context;
   }
 
@@ -212,6 +319,28 @@ class $ExpensesTableTable extends ExpensesTable
           DriftSqlType.dateTime, data['${effectivePrefix}next_billing_date']),
       dueDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}due_date']),
+      necessity: $ExpensesTableTable.$converternecessity.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}necessity'])!),
+      isRecurring: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_recurring'])!,
+      frequency: $ExpensesTableTable.$converterfrequency.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}frequency'])!),
+      status: $ExpensesTableTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
+      variableAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}variable_amount']),
+      endDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
+      budgetId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}budget_id']),
+      paymentMethod: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payment_method']),
+      tags: $ExpensesTableTable.$convertertags.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tags'])),
     );
   }
 
@@ -222,6 +351,14 @@ class $ExpensesTableTable extends ExpensesTable
 
   static JsonTypeConverter2<ExpenseType, int, int> $convertertype =
       const EnumIndexConverter<ExpenseType>(ExpenseType.values);
+  static JsonTypeConverter2<ExpenseNecessity, int, int> $converternecessity =
+      const EnumIndexConverter<ExpenseNecessity>(ExpenseNecessity.values);
+  static JsonTypeConverter2<ExpenseFrequency, int, int> $converterfrequency =
+      const EnumIndexConverter<ExpenseFrequency>(ExpenseFrequency.values);
+  static JsonTypeConverter2<ExpenseStatus, int, int> $converterstatus =
+      const EnumIndexConverter<ExpenseStatus>(ExpenseStatus.values);
+  static TypeConverter<List<String>?, String?> $convertertags =
+      NullAwareTypeConverter.wrap(const TagsConverter());
 }
 
 class ExpenseTableData extends DataClass
@@ -239,6 +376,15 @@ class ExpenseTableData extends DataClass
   final String? billingCycle;
   final DateTime? nextBillingDate;
   final DateTime? dueDate;
+  final ExpenseNecessity necessity;
+  final bool isRecurring;
+  final ExpenseFrequency frequency;
+  final ExpenseStatus status;
+  final double? variableAmount;
+  final DateTime? endDate;
+  final String? budgetId;
+  final String? paymentMethod;
+  final List<String>? tags;
   const ExpenseTableData(
       {required this.id,
       required this.title,
@@ -252,7 +398,16 @@ class ExpenseTableData extends DataClass
       required this.accountId,
       this.billingCycle,
       this.nextBillingDate,
-      this.dueDate});
+      this.dueDate,
+      required this.necessity,
+      required this.isRecurring,
+      required this.frequency,
+      required this.status,
+      this.variableAmount,
+      this.endDate,
+      this.budgetId,
+      this.paymentMethod,
+      this.tags});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -284,6 +439,35 @@ class ExpenseTableData extends DataClass
     if (!nullToAbsent || dueDate != null) {
       map['due_date'] = Variable<DateTime>(dueDate);
     }
+    {
+      map['necessity'] = Variable<int>(
+          $ExpensesTableTable.$converternecessity.toSql(necessity));
+    }
+    map['is_recurring'] = Variable<bool>(isRecurring);
+    {
+      map['frequency'] = Variable<int>(
+          $ExpensesTableTable.$converterfrequency.toSql(frequency));
+    }
+    {
+      map['status'] =
+          Variable<int>($ExpensesTableTable.$converterstatus.toSql(status));
+    }
+    if (!nullToAbsent || variableAmount != null) {
+      map['variable_amount'] = Variable<double>(variableAmount);
+    }
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
+    if (!nullToAbsent || budgetId != null) {
+      map['budget_id'] = Variable<String>(budgetId);
+    }
+    if (!nullToAbsent || paymentMethod != null) {
+      map['payment_method'] = Variable<String>(paymentMethod);
+    }
+    if (!nullToAbsent || tags != null) {
+      map['tags'] =
+          Variable<String>($ExpensesTableTable.$convertertags.toSql(tags));
+    }
     return map;
   }
 
@@ -313,6 +497,23 @@ class ExpenseTableData extends DataClass
       dueDate: dueDate == null && nullToAbsent
           ? const Value.absent()
           : Value(dueDate),
+      necessity: Value(necessity),
+      isRecurring: Value(isRecurring),
+      frequency: Value(frequency),
+      status: Value(status),
+      variableAmount: variableAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(variableAmount),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
+      budgetId: budgetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(budgetId),
+      paymentMethod: paymentMethod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentMethod),
+      tags: tags == null && nullToAbsent ? const Value.absent() : Value(tags),
     );
   }
 
@@ -334,6 +535,18 @@ class ExpenseTableData extends DataClass
       billingCycle: serializer.fromJson<String?>(json['billingCycle']),
       nextBillingDate: serializer.fromJson<DateTime?>(json['nextBillingDate']),
       dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
+      necessity: $ExpensesTableTable.$converternecessity
+          .fromJson(serializer.fromJson<int>(json['necessity'])),
+      isRecurring: serializer.fromJson<bool>(json['isRecurring']),
+      frequency: $ExpensesTableTable.$converterfrequency
+          .fromJson(serializer.fromJson<int>(json['frequency'])),
+      status: $ExpensesTableTable.$converterstatus
+          .fromJson(serializer.fromJson<int>(json['status'])),
+      variableAmount: serializer.fromJson<double?>(json['variableAmount']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
+      budgetId: serializer.fromJson<String?>(json['budgetId']),
+      paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
+      tags: serializer.fromJson<List<String>?>(json['tags']),
     );
   }
   @override
@@ -354,6 +567,18 @@ class ExpenseTableData extends DataClass
       'billingCycle': serializer.toJson<String?>(billingCycle),
       'nextBillingDate': serializer.toJson<DateTime?>(nextBillingDate),
       'dueDate': serializer.toJson<DateTime?>(dueDate),
+      'necessity': serializer.toJson<int>(
+          $ExpensesTableTable.$converternecessity.toJson(necessity)),
+      'isRecurring': serializer.toJson<bool>(isRecurring),
+      'frequency': serializer.toJson<int>(
+          $ExpensesTableTable.$converterfrequency.toJson(frequency)),
+      'status': serializer
+          .toJson<int>($ExpensesTableTable.$converterstatus.toJson(status)),
+      'variableAmount': serializer.toJson<double?>(variableAmount),
+      'endDate': serializer.toJson<DateTime?>(endDate),
+      'budgetId': serializer.toJson<String?>(budgetId),
+      'paymentMethod': serializer.toJson<String?>(paymentMethod),
+      'tags': serializer.toJson<List<String>?>(tags),
     };
   }
 
@@ -370,7 +595,16 @@ class ExpenseTableData extends DataClass
           String? accountId,
           Value<String?> billingCycle = const Value.absent(),
           Value<DateTime?> nextBillingDate = const Value.absent(),
-          Value<DateTime?> dueDate = const Value.absent()}) =>
+          Value<DateTime?> dueDate = const Value.absent(),
+          ExpenseNecessity? necessity,
+          bool? isRecurring,
+          ExpenseFrequency? frequency,
+          ExpenseStatus? status,
+          Value<double?> variableAmount = const Value.absent(),
+          Value<DateTime?> endDate = const Value.absent(),
+          Value<String?> budgetId = const Value.absent(),
+          Value<String?> paymentMethod = const Value.absent(),
+          Value<List<String>?> tags = const Value.absent()}) =>
       ExpenseTableData(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -388,6 +622,17 @@ class ExpenseTableData extends DataClass
             ? nextBillingDate.value
             : this.nextBillingDate,
         dueDate: dueDate.present ? dueDate.value : this.dueDate,
+        necessity: necessity ?? this.necessity,
+        isRecurring: isRecurring ?? this.isRecurring,
+        frequency: frequency ?? this.frequency,
+        status: status ?? this.status,
+        variableAmount:
+            variableAmount.present ? variableAmount.value : this.variableAmount,
+        endDate: endDate.present ? endDate.value : this.endDate,
+        budgetId: budgetId.present ? budgetId.value : this.budgetId,
+        paymentMethod:
+            paymentMethod.present ? paymentMethod.value : this.paymentMethod,
+        tags: tags.present ? tags.value : this.tags,
       );
   ExpenseTableData copyWithCompanion(ExpensesTableCompanion data) {
     return ExpenseTableData(
@@ -410,6 +655,20 @@ class ExpenseTableData extends DataClass
           ? data.nextBillingDate.value
           : this.nextBillingDate,
       dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      necessity: data.necessity.present ? data.necessity.value : this.necessity,
+      isRecurring:
+          data.isRecurring.present ? data.isRecurring.value : this.isRecurring,
+      frequency: data.frequency.present ? data.frequency.value : this.frequency,
+      status: data.status.present ? data.status.value : this.status,
+      variableAmount: data.variableAmount.present
+          ? data.variableAmount.value
+          : this.variableAmount,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      budgetId: data.budgetId.present ? data.budgetId.value : this.budgetId,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      tags: data.tags.present ? data.tags.value : this.tags,
     );
   }
 
@@ -428,26 +687,45 @@ class ExpenseTableData extends DataClass
           ..write('accountId: $accountId, ')
           ..write('billingCycle: $billingCycle, ')
           ..write('nextBillingDate: $nextBillingDate, ')
-          ..write('dueDate: $dueDate')
+          ..write('dueDate: $dueDate, ')
+          ..write('necessity: $necessity, ')
+          ..write('isRecurring: $isRecurring, ')
+          ..write('frequency: $frequency, ')
+          ..write('status: $status, ')
+          ..write('variableAmount: $variableAmount, ')
+          ..write('endDate: $endDate, ')
+          ..write('budgetId: $budgetId, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('tags: $tags')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      title,
-      description,
-      amount,
-      date,
-      createdAt,
-      categoryId,
-      notes,
-      type,
-      accountId,
-      billingCycle,
-      nextBillingDate,
-      dueDate);
+  int get hashCode => Object.hashAll([
+        id,
+        title,
+        description,
+        amount,
+        date,
+        createdAt,
+        categoryId,
+        notes,
+        type,
+        accountId,
+        billingCycle,
+        nextBillingDate,
+        dueDate,
+        necessity,
+        isRecurring,
+        frequency,
+        status,
+        variableAmount,
+        endDate,
+        budgetId,
+        paymentMethod,
+        tags
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -464,7 +742,16 @@ class ExpenseTableData extends DataClass
           other.accountId == this.accountId &&
           other.billingCycle == this.billingCycle &&
           other.nextBillingDate == this.nextBillingDate &&
-          other.dueDate == this.dueDate);
+          other.dueDate == this.dueDate &&
+          other.necessity == this.necessity &&
+          other.isRecurring == this.isRecurring &&
+          other.frequency == this.frequency &&
+          other.status == this.status &&
+          other.variableAmount == this.variableAmount &&
+          other.endDate == this.endDate &&
+          other.budgetId == this.budgetId &&
+          other.paymentMethod == this.paymentMethod &&
+          other.tags == this.tags);
 }
 
 class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
@@ -481,6 +768,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   final Value<String?> billingCycle;
   final Value<DateTime?> nextBillingDate;
   final Value<DateTime?> dueDate;
+  final Value<ExpenseNecessity> necessity;
+  final Value<bool> isRecurring;
+  final Value<ExpenseFrequency> frequency;
+  final Value<ExpenseStatus> status;
+  final Value<double?> variableAmount;
+  final Value<DateTime?> endDate;
+  final Value<String?> budgetId;
+  final Value<String?> paymentMethod;
+  final Value<List<String>?> tags;
   final Value<int> rowid;
   const ExpensesTableCompanion({
     this.id = const Value.absent(),
@@ -496,6 +792,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     this.billingCycle = const Value.absent(),
     this.nextBillingDate = const Value.absent(),
     this.dueDate = const Value.absent(),
+    this.necessity = const Value.absent(),
+    this.isRecurring = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.status = const Value.absent(),
+    this.variableAmount = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.budgetId = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExpensesTableCompanion.insert({
@@ -512,6 +817,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     this.billingCycle = const Value.absent(),
     this.nextBillingDate = const Value.absent(),
     this.dueDate = const Value.absent(),
+    this.necessity = const Value.absent(),
+    this.isRecurring = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.status = const Value.absent(),
+    this.variableAmount = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.budgetId = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -534,6 +848,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     Expression<String>? billingCycle,
     Expression<DateTime>? nextBillingDate,
     Expression<DateTime>? dueDate,
+    Expression<int>? necessity,
+    Expression<bool>? isRecurring,
+    Expression<int>? frequency,
+    Expression<int>? status,
+    Expression<double>? variableAmount,
+    Expression<DateTime>? endDate,
+    Expression<String>? budgetId,
+    Expression<String>? paymentMethod,
+    Expression<String>? tags,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -550,6 +873,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       if (billingCycle != null) 'billing_cycle': billingCycle,
       if (nextBillingDate != null) 'next_billing_date': nextBillingDate,
       if (dueDate != null) 'due_date': dueDate,
+      if (necessity != null) 'necessity': necessity,
+      if (isRecurring != null) 'is_recurring': isRecurring,
+      if (frequency != null) 'frequency': frequency,
+      if (status != null) 'status': status,
+      if (variableAmount != null) 'variable_amount': variableAmount,
+      if (endDate != null) 'end_date': endDate,
+      if (budgetId != null) 'budget_id': budgetId,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (tags != null) 'tags': tags,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -568,6 +900,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       Value<String?>? billingCycle,
       Value<DateTime?>? nextBillingDate,
       Value<DateTime?>? dueDate,
+      Value<ExpenseNecessity>? necessity,
+      Value<bool>? isRecurring,
+      Value<ExpenseFrequency>? frequency,
+      Value<ExpenseStatus>? status,
+      Value<double?>? variableAmount,
+      Value<DateTime?>? endDate,
+      Value<String?>? budgetId,
+      Value<String?>? paymentMethod,
+      Value<List<String>?>? tags,
       Value<int>? rowid}) {
     return ExpensesTableCompanion(
       id: id ?? this.id,
@@ -583,6 +924,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       billingCycle: billingCycle ?? this.billingCycle,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
+      necessity: necessity ?? this.necessity,
+      isRecurring: isRecurring ?? this.isRecurring,
+      frequency: frequency ?? this.frequency,
+      status: status ?? this.status,
+      variableAmount: variableAmount ?? this.variableAmount,
+      endDate: endDate ?? this.endDate,
+      budgetId: budgetId ?? this.budgetId,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      tags: tags ?? this.tags,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -630,6 +980,37 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     if (dueDate.present) {
       map['due_date'] = Variable<DateTime>(dueDate.value);
     }
+    if (necessity.present) {
+      map['necessity'] = Variable<int>(
+          $ExpensesTableTable.$converternecessity.toSql(necessity.value));
+    }
+    if (isRecurring.present) {
+      map['is_recurring'] = Variable<bool>(isRecurring.value);
+    }
+    if (frequency.present) {
+      map['frequency'] = Variable<int>(
+          $ExpensesTableTable.$converterfrequency.toSql(frequency.value));
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(
+          $ExpensesTableTable.$converterstatus.toSql(status.value));
+    }
+    if (variableAmount.present) {
+      map['variable_amount'] = Variable<double>(variableAmount.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (budgetId.present) {
+      map['budget_id'] = Variable<String>(budgetId.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(
+          $ExpensesTableTable.$convertertags.toSql(tags.value));
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -652,6 +1033,15 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
           ..write('billingCycle: $billingCycle, ')
           ..write('nextBillingDate: $nextBillingDate, ')
           ..write('dueDate: $dueDate, ')
+          ..write('necessity: $necessity, ')
+          ..write('isRecurring: $isRecurring, ')
+          ..write('frequency: $frequency, ')
+          ..write('status: $status, ')
+          ..write('variableAmount: $variableAmount, ')
+          ..write('endDate: $endDate, ')
+          ..write('budgetId: $budgetId, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('tags: $tags, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1649,6 +2039,15 @@ typedef $$ExpensesTableTableCreateCompanionBuilder = ExpensesTableCompanion
   Value<String?> billingCycle,
   Value<DateTime?> nextBillingDate,
   Value<DateTime?> dueDate,
+  Value<ExpenseNecessity> necessity,
+  Value<bool> isRecurring,
+  Value<ExpenseFrequency> frequency,
+  Value<ExpenseStatus> status,
+  Value<double?> variableAmount,
+  Value<DateTime?> endDate,
+  Value<String?> budgetId,
+  Value<String?> paymentMethod,
+  Value<List<String>?> tags,
   Value<int> rowid,
 });
 typedef $$ExpensesTableTableUpdateCompanionBuilder = ExpensesTableCompanion
@@ -1666,6 +2065,15 @@ typedef $$ExpensesTableTableUpdateCompanionBuilder = ExpensesTableCompanion
   Value<String?> billingCycle,
   Value<DateTime?> nextBillingDate,
   Value<DateTime?> dueDate,
+  Value<ExpenseNecessity> necessity,
+  Value<bool> isRecurring,
+  Value<ExpenseFrequency> frequency,
+  Value<ExpenseStatus> status,
+  Value<double?> variableAmount,
+  Value<DateTime?> endDate,
+  Value<String?> budgetId,
+  Value<String?> paymentMethod,
+  Value<List<String>?> tags,
   Value<int> rowid,
 });
 
@@ -1719,6 +2127,42 @@ class $$ExpensesTableTableFilterComposer
 
   ColumnFilters<DateTime> get dueDate => $composableBuilder(
       column: $table.dueDate, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ExpenseNecessity, ExpenseNecessity, int>
+      get necessity => $composableBuilder(
+          column: $table.necessity,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ExpenseFrequency, ExpenseFrequency, int>
+      get frequency => $composableBuilder(
+          column: $table.frequency,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<ExpenseStatus, ExpenseStatus, int>
+      get status => $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<double> get variableAmount => $composableBuilder(
+      column: $table.variableAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get budgetId => $composableBuilder(
+      column: $table.budgetId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<List<String>?, List<String>, String>
+      get tags => $composableBuilder(
+          column: $table.tags,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 }
 
 class $$ExpensesTableTableOrderingComposer
@@ -1770,6 +2214,35 @@ class $$ExpensesTableTableOrderingComposer
 
   ColumnOrderings<DateTime> get dueDate => $composableBuilder(
       column: $table.dueDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get necessity => $composableBuilder(
+      column: $table.necessity, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get frequency => $composableBuilder(
+      column: $table.frequency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get variableAmount => $composableBuilder(
+      column: $table.variableAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get budgetId => $composableBuilder(
+      column: $table.budgetId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tags => $composableBuilder(
+      column: $table.tags, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ExpensesTableTableAnnotationComposer
@@ -1819,6 +2292,33 @@ class $$ExpensesTableTableAnnotationComposer
 
   GeneratedColumn<DateTime> get dueDate =>
       $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ExpenseNecessity, int> get necessity =>
+      $composableBuilder(column: $table.necessity, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ExpenseFrequency, int> get frequency =>
+      $composableBuilder(column: $table.frequency, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ExpenseStatus, int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get variableAmount => $composableBuilder(
+      column: $table.variableAmount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get budgetId =>
+      $composableBuilder(column: $table.budgetId, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentMethod => $composableBuilder(
+      column: $table.paymentMethod, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<String>?, String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 }
 
 class $$ExpensesTableTableTableManager extends RootTableManager<
@@ -1860,6 +2360,15 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             Value<String?> billingCycle = const Value.absent(),
             Value<DateTime?> nextBillingDate = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
+            Value<ExpenseNecessity> necessity = const Value.absent(),
+            Value<bool> isRecurring = const Value.absent(),
+            Value<ExpenseFrequency> frequency = const Value.absent(),
+            Value<ExpenseStatus> status = const Value.absent(),
+            Value<double?> variableAmount = const Value.absent(),
+            Value<DateTime?> endDate = const Value.absent(),
+            Value<String?> budgetId = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
+            Value<List<String>?> tags = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ExpensesTableCompanion(
@@ -1876,6 +2385,15 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             billingCycle: billingCycle,
             nextBillingDate: nextBillingDate,
             dueDate: dueDate,
+            necessity: necessity,
+            isRecurring: isRecurring,
+            frequency: frequency,
+            status: status,
+            variableAmount: variableAmount,
+            endDate: endDate,
+            budgetId: budgetId,
+            paymentMethod: paymentMethod,
+            tags: tags,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1892,6 +2410,15 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             Value<String?> billingCycle = const Value.absent(),
             Value<DateTime?> nextBillingDate = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
+            Value<ExpenseNecessity> necessity = const Value.absent(),
+            Value<bool> isRecurring = const Value.absent(),
+            Value<ExpenseFrequency> frequency = const Value.absent(),
+            Value<ExpenseStatus> status = const Value.absent(),
+            Value<double?> variableAmount = const Value.absent(),
+            Value<DateTime?> endDate = const Value.absent(),
+            Value<String?> budgetId = const Value.absent(),
+            Value<String?> paymentMethod = const Value.absent(),
+            Value<List<String>?> tags = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ExpensesTableCompanion.insert(
@@ -1908,6 +2435,15 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             billingCycle: billingCycle,
             nextBillingDate: nextBillingDate,
             dueDate: dueDate,
+            necessity: necessity,
+            isRecurring: isRecurring,
+            frequency: frequency,
+            status: status,
+            variableAmount: variableAmount,
+            endDate: endDate,
+            budgetId: budgetId,
+            paymentMethod: paymentMethod,
+            tags: tags,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
