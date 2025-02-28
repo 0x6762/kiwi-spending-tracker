@@ -177,6 +177,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                                         repository: widget.repository!,
                                         categoryRepo: widget.categoryRepo!,
                                         accountRepo: widget.accountRepo!,
+                                        selectedMonth: widget.selectedMonth,
                                       ),
                                     ),
                                   );

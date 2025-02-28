@@ -6,7 +6,6 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/subscription_service.dart';
-import '../widgets/expense_list.dart';
 import '../widgets/app_bar.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
@@ -15,12 +14,14 @@ class SubscriptionsScreen extends StatefulWidget {
   final ExpenseRepository repository;
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
+  final DateTime selectedMonth;
 
   const SubscriptionsScreen({
     super.key,
     required this.repository,
     required this.categoryRepo,
     required this.accountRepo,
+    required this.selectedMonth,
   });
 
   @override
@@ -33,6 +34,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   SubscriptionSummary? _summary;
   bool _isLoading = true;
   final _dateFormat = DateFormat.yMMMd();
+  final _monthFormat = DateFormat.yMMMM();
 
   @override
   void initState() {
@@ -59,9 +61,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<void> _loadSubscriptions() async {
     setState(() => _isLoading = true);
     try {
-      // Get subscriptions and summary from the service
-      final subscriptions = await _subscriptionService.getSubscriptions();
-      final summary = await _subscriptionService.getSubscriptionSummary();
+      // Get subscriptions and summary for the selected month
+      final subscriptions = await _subscriptionService.getSubscriptionsForMonth(widget.selectedMonth);
+      final summary = await _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth);
       
       setState(() {
         _subscriptions = subscriptions;
@@ -107,20 +109,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   Widget _buildSubscriptionItem(BuildContext context, SubscriptionData subscription) {
     final theme = Theme.of(context);
-    
-    // Define status colors
-    final Color statusColor;
-    switch (subscription.status) {
-      case SubscriptionStatus.overdue:
-        statusColor = theme.colorScheme.error;
-        break;
-      case SubscriptionStatus.dueSoon:
-        statusColor = Colors.orange;
-        break;
-      case SubscriptionStatus.active:
-        statusColor = theme.colorScheme.primary;
-        break;
-    }
     
     return FutureBuilder<ExpenseCategory?>(
       future: widget.categoryRepo.findCategoryById(subscription.expense.categoryId ?? CategoryRepository.uncategorizedId),
@@ -172,27 +160,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            title: Row(
-              children: [
-                // Status indicator
-                Container(
-                  width: 12,
-                  height: 12,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    subscription.expense.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ],
+            title: Text(
+              subscription.expense.title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,20 +173,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: subscription.nextBillingDate != null
-                          ? Text(
-                              'Next billing: ${_formatDate(subscription.nextBillingDate!)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            )
-                          : Text(
-                              'Added: ${_formatDate(subscription.expense.date)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
+                      child: Text(
+                        'Paid on: ${_formatDate(subscription.expense.date)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                     Text(
                       subscription.expense.billingCycle ?? 'Monthly',
@@ -244,8 +208,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     
     // Use the summary from the service if available
     final totalMonthlyAmount = _summary?.totalMonthlyAmount ?? 0.0;
-    final monthlyBillingAmount = _summary?.monthlyBillingAmount ?? 0.0;
-    final yearlyAsMonthly = _summary?.yearlyBillingMonthlyEquivalent ?? 0.0;
     
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 16, 8, 16),
@@ -260,7 +222,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Monthly Subscription Cost',
+              'Total Subscription Costs',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -273,104 +235,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Monthly Billing',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatCurrency(monthlyBillingAmount),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Yearly Billing (Monthly Equiv.)',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatCurrency(yearlyAsMonthly),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (_summary != null && (_summary!.overdueSubscriptions > 0 || _summary!.dueSoonSubscriptions > 0)) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Text(
-                'Subscription Status',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (_summary!.overdueSubscriptions > 0)
-                _buildStatusIndicator(
-                  'Overdue', 
-                  _summary!.overdueSubscriptions, 
-                  theme.colorScheme.error
-                ),
-              if (_summary!.dueSoonSubscriptions > 0)
-                _buildStatusIndicator(
-                  'Due Soon', 
-                  _summary!.dueSoonSubscriptions, 
-                  Colors.orange
-                ),
-            ],
           ],
         ),
-      ),
-    );
-  }
-  
-  Widget _buildStatusIndicator(String label, int count, Color color) {
-    final theme = Theme.of(context);
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          Text(
-            '$label: $count',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -396,7 +262,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             : _subscriptions.isEmpty
                 ? Center(
                     child: Text(
-                      'No active subscriptions',
+                      'No subscriptions paid this month',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -411,7 +277,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                           child: Text(
-                            'Active Subscriptions',
+                            'Subscriptions',
                             style: theme.textTheme.titleSmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

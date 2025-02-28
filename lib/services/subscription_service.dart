@@ -70,6 +70,61 @@ class SubscriptionService {
     return _enhanceSubscriptions(subscriptions);
   }
 
+  /// Retrieves subscriptions for a specific month
+  Future<List<SubscriptionData>> getSubscriptionsForMonth(DateTime month) async {
+    final expenses = await _expenseRepo.getAllExpenses();
+    final subscriptions = expenses
+        .where((expense) => 
+            expense.type == ExpenseType.subscription &&
+            expense.date.year == month.year &&
+            expense.date.month == month.month)
+        .toList();
+    
+    return _enhanceSubscriptions(subscriptions);
+  }
+
+  /// Calculates a summary of subscription costs for a specific month
+  Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
+    final subscriptions = await getSubscriptionsForMonth(month);
+    
+    // Calculate monthly costs
+    final monthlySubscriptions = subscriptions
+        .where((sub) => sub.expense.billingCycle == 'Monthly')
+        .toList();
+    
+    final yearlySubscriptions = subscriptions
+        .where((sub) => sub.expense.billingCycle == 'Yearly')
+        .toList();
+    
+    final monthlyBillingAmount = monthlySubscriptions.fold(
+        0.0, (sum, sub) => sum + sub.expense.amount);
+    
+    final yearlyBillingAmount = yearlySubscriptions.fold(
+        0.0, (sum, sub) => sum + sub.expense.amount);
+    
+    // Count the full yearly amount in the month it was paid
+    // We still keep the monthly equivalent for reference
+    final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
+    
+    // Total is now the sum of monthly subscriptions plus the full yearly amounts
+    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingAmount;
+    
+    // Count subscriptions by status
+    final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
+    final dueSoonCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.dueSoon).length;
+    final overdueCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.overdue).length;
+    
+    return SubscriptionSummary(
+      totalMonthlyAmount: totalMonthlyAmount,
+      monthlyBillingAmount: monthlyBillingAmount,
+      yearlyBillingMonthlyEquivalent: yearlyBillingMonthlyEquivalent,
+      totalSubscriptions: subscriptions.length,
+      activeSubscriptions: activeCount,
+      dueSoonSubscriptions: dueSoonCount,
+      overdueSubscriptions: overdueCount,
+    );
+  }
+
   /// Retrieves subscriptions filtered by status
   Future<List<SubscriptionData>> getSubscriptionsByStatus(SubscriptionStatus status) async {
     final allSubscriptions = await getSubscriptions();
