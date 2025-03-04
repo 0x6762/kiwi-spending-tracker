@@ -178,13 +178,6 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
                         ),
                       ),
                     ),
-                    if (expense.type != null)
-                      Text(
-                        expense.type.toString().split('.').last,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
                   ],
                 ),
               ],
@@ -218,7 +211,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total Upcoming Expenses',
+              'Total Upcoming',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

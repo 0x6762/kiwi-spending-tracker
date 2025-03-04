@@ -28,26 +28,37 @@ class UpcomingExpensesCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     AppIcons.calendar,
                     size: 24,
-                    color: const Color(0xFF4CAF50),
+                    color: Color(0xFF4CAF50),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Upcoming Expenses',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Upcoming Expenses',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '(${analytics.upcomingExpenses.length} upcoming)',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
+                  const Spacer(),
                   Text(
                     formatCurrency(analytics.totalAmount),
                     style: theme.textTheme.titleSmall?.copyWith(
@@ -55,13 +66,6 @@ class UpcomingExpensesCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${analytics.upcomingExpenses.length} upcoming expenses',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
               ),
             ],
           ),
