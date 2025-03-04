@@ -71,11 +71,20 @@ class ExpenseAnalyticsService {
   Future<List<CategorySpending>> getCategorySpending(List<Expense> expenses) async {
     if (expenses.isEmpty) return [];
 
+    final now = DateTime.now();
+    
+    // Filter to only include expenses with dates that have already passed
+    final effectiveExpenses = expenses.where((expense) => 
+      !expense.date.isAfter(now)
+    ).toList();
+    
+    if (effectiveExpenses.isEmpty) return [];
+
     final Map<String, double> totals = {};
-    final double totalSpent = expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    final double totalSpent = effectiveExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
     // Calculate raw totals
-    for (final expense in expenses) {
+    for (final expense in effectiveExpenses) {
       final categoryId = expense.categoryId ?? CategoryRepository.uncategorizedId;
       totals[categoryId] = (totals[categoryId] ?? 0.0) + expense.amount;
     }
@@ -100,7 +109,9 @@ class ExpenseAnalyticsService {
   }
 
   Future<MonthlyAnalytics> getMonthlyAnalytics(DateTime selectedMonth) async {
-    final expenses = await _expenseRepo.getAllExpenses();
+    // Get only expenses with dates that have already passed
+    final now = DateTime.now();
+    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: now);
     
     // Return default values if there are no expenses
     if (expenses.isEmpty) {
@@ -165,7 +176,9 @@ class ExpenseAnalyticsService {
   }
 
   Future<Map<DateTime, double>> getMonthlyTotals(DateTime startDate, DateTime endDate) async {
-    final expenses = await _expenseRepo.getAllExpenses();
+    // Get only expenses with dates that have already passed
+    final now = DateTime.now();
+    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: now);
     final Map<DateTime, double> monthlyTotals = {};
 
     // Filter expenses within date range and group by month
@@ -190,12 +203,25 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
     
+    // Filter to only include expenses with dates that have already passed
+    final effectiveExpenses = expenses.where((expense) => 
+      !expense.date.isAfter(now)
+    ).toList();
+    
+    if (effectiveExpenses.isEmpty) {
+      return DailyMetrics(
+        todayTotal: 0.0,
+        todayCreditCardTotal: 0.0,
+        averageDaily: 0.0,
+      );
+    }
+    
     double todayTotal = 0.0;
     double todayCreditCardTotal = 0.0;
     double monthlyTotal = 0.0;
     var daysWithExpenses = <int>{};  // Using int for day of month instead of DateTime
 
-    for (final expense in expenses) {
+    for (final expense in effectiveExpenses) {
       // Skip expenses from other months early
       if (expense.date.year != now.year || expense.date.month != now.month) {
         continue;
