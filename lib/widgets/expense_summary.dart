@@ -7,6 +7,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../screens/subscriptions_screen.dart';
+import '../screens/upcoming_expenses_screen.dart';
 import 'monthly_expense_chart.dart';
 import 'upcoming_expenses_card.dart';
 import '../utils/formatters.dart';
@@ -205,7 +206,23 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                     
                     return UpcomingExpensesCard(
                       analytics: upcomingAnalytics,
-                      onTap: null,
+                      onTap: widget.repository != null && 
+                             widget.categoryRepo != null && 
+                             widget.accountRepo != null
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UpcomingExpensesScreen(
+                                    repository: widget.repository!,
+                                    categoryRepo: widget.categoryRepo!,
+                                    accountRepo: widget.accountRepo!,
+                                    selectedMonth: widget.selectedMonth,
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
                     );
                   },
                 ),
