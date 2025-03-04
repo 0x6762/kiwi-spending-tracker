@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
     
     <application
-        android:label="Kiwi Spending"
+        android:label="${appName}"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

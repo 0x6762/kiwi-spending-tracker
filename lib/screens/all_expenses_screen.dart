@@ -182,7 +182,6 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
                           color: entry.key == DateTime(9999, 12, 31) 
                               ? theme.colorScheme.onSurfaceVariant 
                               : theme.colorScheme.onSurfaceVariant,
-                          
                         ),
                       ),
                       Text(
