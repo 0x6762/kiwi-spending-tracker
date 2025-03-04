@@ -87,16 +87,32 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     final sortedExpenses = List<Expense>.from(_expenses)
       ..sort((a, b) => b.date.compareTo(a.date));
 
+    // Special key for upcoming expenses
+    final upcomingKey = DateTime(9999, 12, 31); // Far future date as a special key
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
     for (var expense in sortedExpenses) {
       final date = DateTime(
         expense.date.year,
         expense.date.month,
         expense.date.day,
       );
-      if (!groupedExpenses.containsKey(date)) {
-        groupedExpenses[date] = [];
+      
+      // Check if this is an upcoming expense
+      if (date.isAfter(today)) {
+        // Add to the upcoming group
+        if (!groupedExpenses.containsKey(upcomingKey)) {
+          groupedExpenses[upcomingKey] = [];
+        }
+        groupedExpenses[upcomingKey]!.add(expense);
+      } else {
+        // Add to the regular date group
+        if (!groupedExpenses.containsKey(date)) {
+          groupedExpenses[date] = [];
+        }
+        groupedExpenses[date]!.add(expense);
       }
-      groupedExpenses[date]!.add(expense);
     }
 
     return groupedExpenses;
@@ -105,8 +121,11 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
   String _formatSectionTitle(DateTime date) {
     final now = DateTime.now();
     final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final specialUpcomingKey = DateTime(9999, 12, 31);
     
-    if (date.year == now.year && 
+    if (date == specialUpcomingKey) {
+      return 'Upcoming';
+    } else if (date.year == now.year && 
         date.month == now.month && 
         date.day == now.day) {
       return 'Today';
@@ -123,6 +142,16 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final groupedExpenses = _groupExpensesByDate();
+    
+    // Sort the entries to ensure upcoming is first, then by date descending
+    final sortedEntries = groupedExpenses.entries.toList()
+      ..sort((a, b) {
+        // Special case for the upcoming key
+        if (a.key == DateTime(9999, 12, 31)) return -1;
+        if (b.key == DateTime(9999, 12, 31)) return 1;
+        // Otherwise sort by date descending
+        return b.key.compareTo(a.key);
+      });
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -133,7 +162,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8),
         child: Column(
-          children: groupedExpenses.entries.map((entry) {
+          children: sortedEntries.map((entry) {
             // Calculate the sum of expenses for this day
             final dayTotal = entry.value.fold<double>(
               0, (sum, expense) => sum + expense.amount
@@ -150,7 +179,10 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
                       Text(
                         _formatSectionTitle(entry.key),
                         style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: entry.key == DateTime(9999, 12, 31) 
+                              ? theme.colorScheme.onSurfaceVariant 
+                              : theme.colorScheme.onSurfaceVariant,
+                          
                         ),
                       ),
                       Text(
