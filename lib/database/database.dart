@@ -11,6 +11,15 @@ import '../models/expense.dart';
 
 part 'database.g.dart';
 
+LazyDatabase _openConnection() {
+  return LazyDatabase(() async {
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dbFolder.path, 'spending_tracker.db'));
+    debugPrint('Database path: ${file.path}');
+    return NativeDatabase(file);
+  });
+}
+
 @DriftDatabase(
   tables: [
     ExpensesTable,
@@ -320,13 +329,4 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch();
   }
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'spending_tracker.db'));
-    debugPrint('Database path: ${file.path}');
-    return NativeDatabase.createInBackground(file);
-  });
 } 
