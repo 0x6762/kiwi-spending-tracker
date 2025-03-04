@@ -8,6 +8,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../screens/subscriptions_screen.dart';
 import 'monthly_expense_chart.dart';
+import 'upcoming_expenses_card.dart';
 import '../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -187,6 +188,26 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                       ],
                     ),
                   ),
+                ),
+                const SizedBox(height: 8),
+                FutureBuilder<UpcomingExpensesAnalytics>(
+                  future: widget.analyticsService.getUpcomingExpenses(),
+                  builder: (context, upcomingSnapshot) {
+                    if (!upcomingSnapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+                    
+                    final upcomingAnalytics = upcomingSnapshot.data!;
+                    
+                    if (upcomingAnalytics.upcomingExpenses.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    
+                    return UpcomingExpensesCard(
+                      analytics: upcomingAnalytics,
+                      onTap: null,
+                    );
+                  },
                 ),
               ],
             ],

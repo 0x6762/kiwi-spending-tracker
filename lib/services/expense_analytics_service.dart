@@ -49,6 +49,19 @@ class MonthlyAnalytics {
   });
 }
 
+// New class for upcoming expenses
+class UpcomingExpensesAnalytics {
+  final List<Expense> upcomingExpenses;
+  final double totalAmount;
+  final DateTime fromDate;
+
+  UpcomingExpensesAnalytics({
+    required this.upcomingExpenses,
+    required this.totalAmount,
+    required this.fromDate,
+  });
+}
+
 class ExpenseAnalyticsService {
   final ExpenseRepository _expenseRepo;
   final CategoryRepository _categoryRepo;
@@ -207,6 +220,21 @@ class ExpenseAnalyticsService {
       todayTotal: todayTotal,
       todayCreditCardTotal: todayCreditCardTotal,
       averageDaily: averageDaily,
+    );
+  }
+
+  // New method to get upcoming expenses
+  Future<UpcomingExpensesAnalytics> getUpcomingExpenses({DateTime? fromDate}) async {
+    final referenceDate = fromDate ?? DateTime.now();
+    final upcomingExpenses = await _expenseRepo.getUpcomingExpenses(fromDate: referenceDate);
+    
+    // Calculate total amount
+    final totalAmount = upcomingExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    
+    return UpcomingExpensesAnalytics(
+      upcomingExpenses: upcomingExpenses,
+      totalAmount: totalAmount,
+      fromDate: referenceDate,
     );
   }
 } 

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import '../database/database.dart';
 import '../database/extensions/expense_extensions.dart';
 import '../models/expense.dart';
@@ -82,6 +83,21 @@ class DriftExpenseRepository implements ExpenseRepository {
           return expense.tags!.any((tag) => tags.contains(tag));
         })
         .toList();
+  }
+
+  // Implementation of new methods for upcoming expenses
+  @override
+  Future<List<Expense>> getEffectiveExpenses({DateTime? asOfDate}) async {
+    final referenceDate = asOfDate ?? DateTime.now();
+    final expenses = await _db.getEffectiveExpenses(referenceDate);
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<List<Expense>> getUpcomingExpenses({DateTime? fromDate}) async {
+    final referenceDate = fromDate ?? DateTime.now();
+    final expenses = await _db.getUpcomingExpenses(referenceDate);
+    return expenses.map((e) => e.toDomain()).toList();
   }
 
   // Additional methods that might be useful but not required by the interface

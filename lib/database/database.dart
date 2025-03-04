@@ -189,6 +189,19 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(e) => OrderingTerm(expression: e.date)]))
       .watch();
 
+  // New methods for upcoming expenses
+  Future<List<ExpenseTableData>> getEffectiveExpenses(DateTime asOfDate) =>
+      (select(expensesTable)
+        ..where((e) => e.date.isSmallerOrEqual(Variable(asOfDate)))
+        ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)]))
+      .get();
+      
+  Future<List<ExpenseTableData>> getUpcomingExpenses(DateTime fromDate) =>
+      (select(expensesTable)
+        ..where((e) => e.date.isBiggerThan(Variable(fromDate)))
+        ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.asc)]))
+      .get();
+
   Future<List<ExpenseTableData>> getExpensesByCategory(String categoryId) =>
       (select(expensesTable)
         ..where((e) => e.categoryId.equals(categoryId))
