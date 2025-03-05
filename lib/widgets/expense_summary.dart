@@ -168,6 +168,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           context: context,
                           iconAsset: 'assets/icons/subscription.svg',
                           iconColor: const Color(0xFF2196F3),
+                          showArrow: false,
                           onTap: widget.repository != null && 
                                  widget.categoryRepo != null && 
                                  widget.accountRepo != null
@@ -242,6 +243,7 @@ class _SummaryRow extends StatelessWidget {
   final String iconAsset;
   final Color iconColor;
   final VoidCallback? onTap;
+  final bool showArrow;
 
   const _SummaryRow({
     required this.label,
@@ -250,6 +252,7 @@ class _SummaryRow extends StatelessWidget {
     required this.iconAsset,
     required this.iconColor,
     this.onTap,
+    this.showArrow = true,
   });
 
   @override
@@ -291,7 +294,7 @@ class _SummaryRow extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            if (onTap != null) ...[
+            if (onTap != null && showArrow) ...[
               const SizedBox(width: 8),
               Icon(
                 Icons.chevron_right,
