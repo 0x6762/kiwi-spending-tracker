@@ -13,6 +13,8 @@ import '../widgets/app_bar.dart';
 import '../utils/icons.dart';
 import 'dart:math' as math;
 import 'number_pad.dart';
+import 'expense_form_fields.dart';
+import 'amount_display.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
@@ -380,92 +382,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  Widget _buildTypeSpecificFields() {
-    final theme = Theme.of(context);
-    
-    if (widget.type == ExpenseType.subscription) {
-      return Column(
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: PickerButton(
-                    label: _billingCycle,
-                    icon: AppIcons.calendar,
-                    onTap: () {
-                      PickerSheet.show(
-                        context: context,
-                        title: 'Billing Cycle',
-                        children: ['Monthly', 'Yearly'].map(
-                          (cycle) => ListTile(
-                            title: Text(cycle),
-                            selected: _billingCycle == cycle,
-                            onTap: () {
-                              setState(() => _billingCycle = cycle);
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ).toList(),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: PickerButton(
-                    label: _dateFormat.format(_nextBillingDate),
-                    icon: AppIcons.calendar,
-                    onTap: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: _nextBillingDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setState(() => _nextBillingDate = picked);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    } else {
-      // For both variable and fixed expenses
-      return Column(
-        children: [
-          if (_isFixedExpense) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: PickerButton(
-                label: _dateFormat.format(_dueDate),
-                icon: AppIcons.calendar,
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _dueDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    setState(() => _dueDate = picked);
-                  }
-                },
-              ),
-            ),
-          ],
-        ],
-      );
-    }
-  }
-
   void _onFixedExpenseChanged(bool? value) {
     setState(() {
       _isFixedExpense = value ?? false;
@@ -501,47 +417,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ),
           body: Column(
             children: [
-              Container(
-                color: theme.colorScheme.surface,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _dateFormat.format(_selectedDate),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Text(
-                            '\$',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w500,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          _formatAmount(_amountController.text),
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              // Amount display
+              AmountDisplay(
+                amount: _amountController.text,
+                date: _selectedDate,
               ),
+              
+              // Form fields
               Expanded(
                 child: SingleChildScrollView(
                   controller: _scrollController,
@@ -550,187 +432,64 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       Container(
                         color: theme.colorScheme.surface,
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              alignment: Alignment.topLeft,
-                              child: TextFormField(
-                                controller: _titleController,
-                                textAlign: TextAlign.start,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
+                        child: ExpenseFormFields(
+                          titleController: _titleController,
+                          selectedCategory: _selectedCategoryInfo,
+                          selectedAccount: _selectedAccount,
+                          isFixedExpense: _isFixedExpense,
+                          expenseType: widget.type,
+                          onCategoryTap: _showCategoryPicker,
+                          onAccountTap: _showAccountPicker,
+                          onFixedExpenseChanged: _onFixedExpenseChanged,
+                          dueDate: _dueDate,
+                          onDueDateTap: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _dueDate,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => _dueDate = picked);
+                            }
+                          },
+                          billingCycle: _billingCycle,
+                          onBillingCycleTap: () {
+                            PickerSheet.show(
+                              context: context,
+                              title: 'Billing Cycle',
+                              children: ['Monthly', 'Yearly'].map(
+                                (cycle) => ListTile(
+                                  title: Text(cycle),
+                                  selected: _billingCycle == cycle,
+                                  onTap: () {
+                                    setState(() => _billingCycle = cycle);
+                                    Navigator.pop(context);
+                                  },
                                 ),
-                                decoration: InputDecoration(
-                                  hintText: 'Type expense name',
-                                  hintStyle: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  filled: true,
-                                  fillColor: theme.colorScheme.surfaceContainer,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                      color: theme.colorScheme.surfaceContainerLowest,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                      color: theme.colorScheme.error,
-                                    ),
-                                  ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                      color: theme.colorScheme.error,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            if (_selectedAccount != null) PickerButton(
-                              label: _selectedAccount!.name,
-                              icon: _selectedAccount!.icon,
-                              iconColor: _selectedAccount!.color,
-                              onTap: _showAccountPicker,
-                            ),
-                            const SizedBox(height: 8),
-                            PickerButton(
-                              label: _selectedCategoryInfo?.name ?? 'Select Category',
-                              icon: _selectedCategoryInfo?.icon ?? AppIcons.category,
-                              onTap: _showCategoryPicker,
-                            ),
-                            
-                            // Add Fixed Expense checkbox if not subscription
-                            if (widget.type != ExpenseType.subscription) ...[
-                              const SizedBox(height: 16),
-                              InkWell(
-                                onTap: () {
-                                  _onFixedExpenseChanged(!_isFixedExpense);
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Checkbox(
-                                            value: _isFixedExpense,
-                                            onChanged: _onFixedExpenseChanged,
-                                            activeColor: theme.colorScheme.primary,
-                                          ),
-                                          Text(
-                                            'Fixed expense?',
-                                            style: theme.textTheme.bodyLarge?.copyWith(
-                                              color: theme.colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                            
-                            // Show due date field if fixed expense is checked
-                            if (widget.type != ExpenseType.subscription && _isFixedExpense) ...[
-                              const SizedBox(height: 24),
-                              Text(
-                                'Due Date',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              PickerButton(
-                                label: _dateFormat.format(_dueDate),
-                                icon: AppIcons.calendar,
-                                onTap: () async {
-                                  final DateTime? picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _dueDate,
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() => _dueDate = picked);
-                                  }
-                                },
-                              ),
-                            ],
-                            
-                            if (widget.type == ExpenseType.subscription) ...[
-                              const SizedBox(height: 24),
-                              Text(
-                                'Billing Cycle / Due Date',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              PickerButton(
-                                label: _billingCycle,
-                                icon: AppIcons.calendar,
-                                onTap: () {
-                                  PickerSheet.show(
-                                    context: context,
-                                    title: 'Billing Cycle',
-                                    children: ['Monthly', 'Yearly'].map(
-                                      (cycle) => ListTile(
-                                        title: Text(cycle),
-                                        selected: _billingCycle == cycle,
-                                        onTap: () {
-                                          setState(() => _billingCycle = cycle);
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                    ).toList(),
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 8),
-                              PickerButton(
-                                label: _dateFormat.format(_nextBillingDate),
-                                icon: AppIcons.calendar,
-                                onTap: () async {
-                                  final DateTime? picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _nextBillingDate,
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() => _nextBillingDate = picked);
-                                  }
-                                },
-                              ),
-                            ],
-                          ],
+                              ).toList(),
+                            );
+                          },
+                          nextBillingDate: _nextBillingDate,
+                          onNextBillingDateTap: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _nextBillingDate,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => _nextBillingDate = picked);
+                            }
+                          },
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+              
+              // Number pad
               Container(
                 color: theme.colorScheme.surface,
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
@@ -749,15 +508,5 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ),
       ),
     );
-  }
-
-  String _formatAmount(String amount) {
-    if (amount == '0') return '0';
-    if (amount.contains('.')) {
-      final parts = amount.split('.');
-      if (parts[1].isEmpty) return amount; // Just show the decimal point
-      return parts[0] + '.' + parts[1].substring(0, math.min(parts[1].length, 2)); // Limit to 2 decimal places
-    }
-    return amount;
   }
 }
