@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/expense_analytics_service.dart';
-import '../utils/formatters.dart';
-import '../utils/icons.dart';
+import '../../services/expense_analytics_service.dart';
+import '../../utils/formatters.dart';
+import '../../utils/icons.dart';
 
 class UpcomingExpensesCard extends StatelessWidget {
   final UpcomingExpensesAnalytics analytics;

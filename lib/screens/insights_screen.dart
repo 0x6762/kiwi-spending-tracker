@@ -5,9 +5,9 @@ import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
-import '../widgets/category_statistics.dart';
-import '../widgets/expense_summary.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/expense/category_statistics.dart';
+import '../widgets/expense/expense_summary.dart';
+import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
 

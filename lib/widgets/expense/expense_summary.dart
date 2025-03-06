@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../models/expense.dart';
-import '../services/expense_analytics_service.dart';
-import '../repositories/expense_repository.dart';
-import '../repositories/category_repository.dart';
-import '../repositories/account_repository.dart';
-import '../screens/subscriptions_screen.dart';
-import '../screens/upcoming_expenses_screen.dart';
-import 'monthly_expense_chart.dart';
+import '../../models/expense.dart';
+import '../../services/expense_analytics_service.dart';
+import '../../repositories/expense_repository.dart';
+import '../../repositories/category_repository.dart';
+import '../../repositories/account_repository.dart';
+import '../../screens/subscriptions_screen.dart';
+import '../../screens/upcoming_expenses_screen.dart';
+import '../charts/monthly_expense_chart.dart';
 import 'upcoming_expenses_card.dart';
-import '../utils/formatters.dart';
+import '../../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;

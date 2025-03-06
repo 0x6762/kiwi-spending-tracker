@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../models/expense_category.dart';
-import '../repositories/category_repository.dart';
-import '../utils/icons.dart';
+import '../../models/expense_category.dart';
+import '../../repositories/category_repository.dart';
+import '../../utils/icons.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {

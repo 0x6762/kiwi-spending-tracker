@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../models/account.dart';
-import '../repositories/account_repository.dart';
-import '../utils/icons.dart';
+import '../../models/account.dart';
+import '../../repositories/account_repository.dart';
+import '../../utils/icons.dart';
 import 'bottom_sheet.dart';
 import 'color_picker_sheet.dart';
 

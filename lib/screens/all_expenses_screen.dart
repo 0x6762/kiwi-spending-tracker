@@ -4,8 +4,8 @@ import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
-import '../widgets/expense_list.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/expense/expense_list.dart';
+import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 

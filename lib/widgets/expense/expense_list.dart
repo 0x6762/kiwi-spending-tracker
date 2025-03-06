@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/expense.dart';
-import '../models/expense_category.dart';
-import '../models/account.dart';
-import '../utils/formatters.dart';
-import '../repositories/category_repository.dart';
-import 'delete_confirmation_dialog.dart';
+import '../../models/expense.dart';
+import '../../models/expense_category.dart';
+import '../../models/account.dart';
+import '../../utils/formatters.dart';
+import '../../repositories/category_repository.dart';
+import '../dialogs/delete_confirmation_dialog.dart';
 
 class ExpenseList extends StatefulWidget {
   final List<Expense> expenses;

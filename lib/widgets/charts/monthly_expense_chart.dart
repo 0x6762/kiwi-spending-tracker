@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../models/expense.dart';
-import '../services/expense_analytics_service.dart';
-import '../utils/formatters.dart';
+import '../../models/expense.dart';
+import '../../services/expense_analytics_service.dart';
+import '../../utils/formatters.dart';
 
 class MonthlyExpenseChart extends StatelessWidget {
   final List<Expense> expenses;

@@ -6,7 +6,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/subscription_service.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 

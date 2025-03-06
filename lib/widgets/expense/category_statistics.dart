@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/expense.dart';
-import '../models/expense_category.dart';
-import '../repositories/category_repository.dart';
-import '../services/expense_analytics_service.dart';
-import '../utils/formatters.dart';
+import '../../models/expense.dart';
+import '../../models/expense_category.dart';
+import '../../repositories/category_repository.dart';
+import '../../services/expense_analytics_service.dart';
+import '../../utils/formatters.dart';
 
 class CategoryStatistics extends StatelessWidget {
   final List<Expense> expenses;

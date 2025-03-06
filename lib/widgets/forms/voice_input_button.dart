@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
-import '../models/expense.dart';
-import '../repositories/expense_repository.dart';
-import '../repositories/category_repository.dart';
-import '../utils/formatters.dart';
+import '../../models/expense.dart';
+import '../../repositories/expense_repository.dart';
+import '../../repositories/category_repository.dart';
+import '../../utils/formatters.dart';
 
 class VoiceInputButton extends StatefulWidget {
   final ExpenseRepository repository;

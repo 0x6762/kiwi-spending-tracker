@@ -10,9 +10,9 @@ import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/repository_provider.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/common/app_bar.dart';
 import '../theme/theme_provider.dart';
-import '../widgets/picker_sheet.dart';
+import '../widgets/sheets/picker_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/expense_category.dart';
-import '../widgets/add_category_sheet.dart';
+import '../widgets/sheets/add_category_sheet.dart';
 import '../repositories/category_repository.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 
 class CategoryManagementScreen extends StatefulWidget {

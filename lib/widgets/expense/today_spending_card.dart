@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/expense.dart';
-import '../models/account.dart';
-import '../utils/formatters.dart';
-import '../utils/icons.dart';
-import '../services/expense_analytics_service.dart';
+import '../../models/expense.dart';
+import '../../models/account.dart';
+import '../../utils/formatters.dart';
+import '../../utils/icons.dart';
+import '../../services/expense_analytics_service.dart';
 
 class TodaySpendingCard extends StatelessWidget {
   final List<Expense> expenses;

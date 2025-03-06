@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/account.dart';
-import '../widgets/add_account_sheet.dart';
+import '../widgets/sheets/add_account_sheet.dart';
 import '../repositories/account_repository.dart';
-import '../widgets/app_bar.dart';
+import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 
 class AccountManagementScreen extends StatefulWidget {
