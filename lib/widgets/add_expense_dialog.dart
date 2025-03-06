@@ -12,6 +12,7 @@ import '../repositories/account_repository.dart';
 import '../widgets/app_bar.dart';
 import '../utils/icons.dart';
 import 'dart:math' as math;
+import 'number_pad.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
@@ -733,147 +734,21 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               Container(
                 color: theme.colorScheme.surface,
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                child: _buildNumberPad(),
+                child: NumberPad(
+                  onDigitPressed: _addDigit,
+                  onDecimalPointPressed: _addDecimalPoint,
+                  onDoubleZeroPressed: _addDoubleZero,
+                  onBackspacePressed: _deleteDigit,
+                  onDatePressed: _selectDate,
+                  onSubmitPressed: _submit,
+                  submitButtonText: widget.expense != null ? 'Update' : 'Add',
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildNumberPad() {
-    final theme = Theme.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Expanded(child: _buildNumberPadButton('1', onPressed: () => _addDigit('1'))),
-            Expanded(child: _buildNumberPadButton('2', onPressed: () => _addDigit('2'))),
-            Expanded(child: _buildNumberPadButton('3', onPressed: () => _addDigit('3'))),
-            Expanded(
-              child: _buildNumberPadButton(
-                'backspace',
-                onPressed: _deleteDigit,
-                isAction: true,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(child: _buildNumberPadButton('4', onPressed: () => _addDigit('4'))),
-            Expanded(child: _buildNumberPadButton('5', onPressed: () => _addDigit('5'))),
-            Expanded(child: _buildNumberPadButton('6', onPressed: () => _addDigit('6'))),
-            Expanded(
-              child: _buildNumberPadButton(
-                'date',
-                onPressed: _selectDate,
-                isAction: true,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: _buildNumberPadButton('7', onPressed: () => _addDigit('7'))),
-                      Expanded(child: _buildNumberPadButton('8', onPressed: () => _addDigit('8'))),
-                      Expanded(child: _buildNumberPadButton('9', onPressed: () => _addDigit('9'))),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(child: _buildNumberPadButton('.', onPressed: _addDecimalPoint)),
-                      Expanded(child: _buildNumberPadButton('0', onPressed: () => _addDigit('0'))),
-                      Expanded(child: _buildNumberPadButton('00', onPressed: _addDoubleZero)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: _buildNumberPadButton(
-                'save',
-                onPressed: _submit,
-                isAction: true,
-                isLarge: true,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNumberPadButton(
-    String text, {
-    VoidCallback? onPressed,
-    bool isAction = false,
-    bool isLarge = false,
-  }) {
-    final theme = Theme.of(context);
-    return AspectRatio(
-      aspectRatio: isLarge ? 0.7 : 1.4,
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Material(
-          color: text == 'save'
-              ? theme.colorScheme.primary
-              : text == 'date'
-                  ? theme.colorScheme.primary.withOpacity(0.1)
-                  : theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(16),
-            child: Center(
-              child: _buildButtonContent(text, isAction, theme),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButtonContent(String text, bool isAction, ThemeData theme) {
-    switch (text) {
-      case 'backspace':
-        return Icon(
-          AppIcons.backspace,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 24,
-        );
-      case 'date':
-        return Icon(
-          AppIcons.calendar,
-          color: theme.colorScheme.primary,
-          size: 24,
-        );
-      case 'save':
-        return Text(
-          'Add',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.onPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-        );
-      default:
-        return Text(
-          text,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w500,
-          ),
-        );
-    }
   }
 
   String _formatAmount(String amount) {
