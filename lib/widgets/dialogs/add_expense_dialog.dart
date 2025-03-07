@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/expense.dart';
 import '../../models/expense_category.dart';
@@ -12,9 +13,7 @@ import '../../repositories/account_repository.dart';
 import '../common/app_bar.dart';
 import '../../utils/icons.dart';
 import 'dart:math' as math;
-import '../forms/number_pad.dart';
 import '../forms/expense_form_fields.dart';
-import '../forms/amount_display.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
@@ -312,52 +311,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     Navigator.pop(context);
   }
 
-  void _addDigit(String digit) {
-    setState(() {
-      final currentText = _amountController.text;
-      
-      // If current text is '0' and no decimal point, replace the 0
-      if (currentText == '0' && !currentText.contains('.')) {
-        _amountController.text = digit;
-        return;
-      }
-
-      // If we have a decimal point, check number of decimal places
-      if (currentText.contains('.')) {
-        final decimalPlaces = currentText.split('.')[1].length;
-        if (decimalPlaces >= 2) return; // Limit to 2 decimal places
-      }
-
-      _amountController.text += digit;
-    });
-  }
-
-  void _addDoubleZero() {
-    setState(() {
-      if (_amountController.text != '0') {
-        _amountController.text += '00';
-      }
-    });
-  }
-
-  void _addDecimalPoint() {
-    setState(() {
-      if (!_amountController.text.contains('.')) {
-        _amountController.text += '.';
-      }
-    });
-  }
-
-  void _deleteDigit() {
-    setState(() {
-      if (_amountController.text.length > 1) {
-        _amountController.text = _amountController.text.substring(0, _amountController.text.length - 1);
-      } else {
-        _amountController.text = '0';
-      }
-    });
-  }
-
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -408,102 +361,167 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: theme.colorScheme.surface,
-          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomInset: true,
           appBar: KiwiAppBar(
             backgroundColor: theme.colorScheme.surface,
             title: _getDialogTitle(),
             leading: const Icon(AppIcons.close),
             onLeadingPressed: () => Navigator.pop(context),
           ),
-          body: Column(
-            children: [
-              // Amount display
-              AmountDisplay(
-                amount: _amountController.text,
-                date: _selectedDate,
-              ),
-              
-              // Form fields
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    children: [
-                      Container(
-                        color: theme.colorScheme.surface,
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: ExpenseFormFields(
-                          titleController: _titleController,
-                          selectedCategory: _selectedCategoryInfo,
-                          selectedAccount: _selectedAccount,
-                          isFixedExpense: _isFixedExpense,
-                          expenseType: widget.type,
-                          onCategoryTap: _showCategoryPicker,
-                          onAccountTap: _showAccountPicker,
-                          onFixedExpenseChanged: _onFixedExpenseChanged,
-                          dueDate: _dueDate,
-                          onDueDateTap: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _dueDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null) {
-                              setState(() => _dueDate = picked);
-                            }
-                          },
-                          billingCycle: _billingCycle,
-                          onBillingCycleTap: () {
-                            PickerSheet.show(
-                              context: context,
-                              title: 'Billing Cycle',
-                              children: ['Monthly', 'Yearly'].map(
-                                (cycle) => ListTile(
-                                  title: Text(cycle),
-                                  selected: _billingCycle == cycle,
-                                  onTap: () {
-                                    setState(() => _billingCycle = cycle);
-                                    Navigator.pop(context);
-                                  },
+          body: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date selector
+                          Row(
+                            children: [
+                              Icon(
+                                AppIcons.calendar,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _dateFormat.format(_selectedDate),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
-                              ).toList(),
-                            );
-                          },
-                          nextBillingDate: _nextBillingDate,
-                          onNextBillingDateTap: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _nextBillingDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null) {
-                              setState(() => _nextBillingDate = picked);
-                            }
-                          },
-                        ),
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: _selectDate,
+                                child: Text('Change Date'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Amount field
+                          Text(
+                            'Amount',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _amountController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                            ],
+                            decoration: InputDecoration(
+                              prefixText: '\$ ',
+                              filled: true,
+                              fillColor: theme.colorScheme.surfaceContainer,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty || value == '0') {
+                                return 'Please enter an amount';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // Form fields
+                          ExpenseFormFields(
+                            titleController: _titleController,
+                            selectedCategory: _selectedCategoryInfo,
+                            selectedAccount: _selectedAccount,
+                            isFixedExpense: _isFixedExpense,
+                            expenseType: widget.type,
+                            onCategoryTap: _showCategoryPicker,
+                            onAccountTap: _showAccountPicker,
+                            onFixedExpenseChanged: _onFixedExpenseChanged,
+                            dueDate: _dueDate,
+                            onDueDateTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dueDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (picked != null) {
+                                setState(() => _dueDate = picked);
+                              }
+                            },
+                            billingCycle: _billingCycle,
+                            onBillingCycleTap: () {
+                              PickerSheet.show(
+                                context: context,
+                                title: 'Billing Cycle',
+                                children: ['Monthly', 'Yearly'].map(
+                                  (cycle) => ListTile(
+                                    title: Text(cycle),
+                                    selected: _billingCycle == cycle,
+                                    onTap: () {
+                                      setState(() => _billingCycle = cycle);
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ).toList(),
+                              );
+                            },
+                            nextBillingDate: _nextBillingDate,
+                            onNextBillingDateTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _nextBillingDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (picked != null) {
+                                setState(() => _nextBillingDate = picked);
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-              
-              // Number pad
-              Container(
-                color: theme.colorScheme.surface,
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                child: NumberPad(
-                  onDigitPressed: _addDigit,
-                  onDecimalPointPressed: _addDecimalPoint,
-                  onDoubleZeroPressed: _addDoubleZero,
-                  onBackspacePressed: _deleteDigit,
-                  onDatePressed: _selectDate,
-                  onSubmitPressed: _submit,
-                  submitButtonText: widget.expense != null ? 'Update' : 'Add',
+                
+                // Add button
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      widget.expense != null ? 'Update' : 'Add',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
