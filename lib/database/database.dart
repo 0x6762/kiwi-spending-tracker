@@ -189,16 +189,24 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(e) => OrderingTerm(expression: e.date)]))
       .watch();
 
-  // New methods for upcoming expenses
+  // Methods for current and upcoming expenses
   Future<List<ExpenseTableData>> getEffectiveExpenses(DateTime asOfDate) =>
       (select(expensesTable)
-        ..where((e) => e.date.isSmallerOrEqual(Variable(asOfDate)))
+        ..where((e) => 
+            // An expense is "effective" (current) if its date is on or before the reference date
+            e.date.isSmallerOrEqual(Variable(asOfDate)) &
+            // Still exclude cancelled expenses
+            e.status.isNotIn([ExpenseStatus.cancelled.index]))
         ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)]))
       .get();
       
   Future<List<ExpenseTableData>> getUpcomingExpenses(DateTime fromDate) =>
       (select(expensesTable)
-        ..where((e) => e.date.isBiggerThan(Variable(fromDate)))
+        ..where((e) => 
+            // An expense is "upcoming" if its date is after the reference date
+            e.date.isBiggerThan(Variable(fromDate)) &
+            // Still exclude cancelled expenses
+            e.status.isNotIn([ExpenseStatus.cancelled.index]))
         ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.asc)]))
       .get();
 

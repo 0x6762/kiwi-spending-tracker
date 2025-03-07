@@ -14,10 +14,13 @@ class ExpenseFormFields extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onAccountTap;
   final Function(bool?) onFixedExpenseChanged;
-  final DateTime dueDate;
-  final VoidCallback onDueDateTap;
   final String billingCycle;
   final VoidCallback onBillingCycleTap;
+  
+  // We still keep these parameters to maintain backward compatibility
+  // but they're not used in the UI anymore
+  final DateTime dueDate;
+  final VoidCallback onDueDateTap;
   final DateTime nextBillingDate;
   final VoidCallback onNextBillingDateTap;
 
@@ -46,6 +49,14 @@ class ExpenseFormFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Title field
+        Text(
+          'Title',
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
         Container(
           width: double.infinity,
           alignment: Alignment.topLeft,
@@ -96,6 +107,15 @@ class ExpenseFormFields extends StatelessWidget {
             ),
           ),
         ),
+        
+        // Account and Category selectors
+        const SizedBox(height: 24),
+        Text(
+          'Account & Category',
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 8),
         if (selectedAccount != null) PickerButton(
           label: selectedAccount!.name,
@@ -144,49 +164,23 @@ class ExpenseFormFields extends StatelessWidget {
           ),
         ],
         
-        // Show due date field if fixed expense is checked
-        if (expenseType != ExpenseType.subscription && isFixedExpense) ...[
+        // Only keep the billing cycle selector for subscription expenses
+        if (expenseType == ExpenseType.subscription) ...[
           const SizedBox(height: 24),
           Text(
-            'Due Date',
+            'Billing Cycle',
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          PickerButton(
-            label: _formatDate(dueDate),
-            icon: AppIcons.calendar,
-            onTap: onDueDateTap,
-          ),
-        ],
-        
-        if (expenseType == ExpenseType.subscription) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Billing Cycle / Due Date',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
           PickerButton(
             label: billingCycle,
             icon: AppIcons.calendar,
             onTap: onBillingCycleTap,
           ),
-          const SizedBox(height: 8),
-          PickerButton(
-            label: _formatDate(nextBillingDate),
-            icon: AppIcons.calendar,
-            onTap: onNextBillingDateTap,
-          ),
         ],
       ],
     );
-  }
-  
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
   }
 } 

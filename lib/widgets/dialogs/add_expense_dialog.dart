@@ -50,9 +50,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   
   // New state variables for type-specific fields
   String _billingCycle = 'Monthly'; // For subscriptions
-  DateTime _nextBillingDate = DateTime.now(); // For subscriptions
-  DateTime _dueDate = DateTime.now(); // For fixed expenses
-  bool _isFixedExpense = false; // New state variable for fixed expense checkbox
+  bool _isFixedExpense = false; // State variable for fixed expense checkbox
 
   @override
   void initState() {
@@ -62,12 +60,19 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _titleController.text = widget.expense!.title;
       _amountController.text = widget.expense!.amount.toString();
       _notesController.text = widget.expense!.notes ?? '';
-      _selectedDate = widget.expense!.date;
+      
+      // Use the due date if available, otherwise use the expense date
+      if (widget.expense!.type == ExpenseType.fixed && widget.expense!.dueDate != null) {
+        _selectedDate = widget.expense!.dueDate!;
+      } else if (widget.expense!.type == ExpenseType.subscription && widget.expense!.nextBillingDate != null) {
+        _selectedDate = widget.expense!.nextBillingDate!;
+      } else {
+        _selectedDate = widget.expense!.date;
+      }
+      
       _selectedAccountId = widget.expense!.accountId;
       _billingCycle = widget.expense!.billingCycle ?? 'Monthly';
-      _nextBillingDate = widget.expense!.nextBillingDate ?? DateTime.now();
-      _dueDate = widget.expense!.dueDate ?? DateTime.now();
-      _isFixedExpense = widget.expense!.type == ExpenseType.fixed; // Initialize checkbox state
+      _isFixedExpense = widget.expense!.type == ExpenseType.fixed;
       
       // Load category and account
       _loadCategory(widget.expense!.categoryId);
@@ -233,82 +238,89 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  Future<void> _submit() async {
-    if (_selectedCategoryInfo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
+  void _submit() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      if (_selectedCategoryInfo == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a category')),
+        );
+        return;
+      }
+
+      if (_amountController.text == '0') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter an amount')),
+        );
+        return;
+      }
+
+      final amount = double.parse(_amountController.text);
+
+      // Determine the expense type based on widget.type and _isFixedExpense
+      ExpenseType expenseType;
+      if (widget.type == ExpenseType.subscription) {
+        expenseType = ExpenseType.subscription;
+      } else {
+        expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
+      }
+      
+      // Determine necessity based on category (this is a simple implementation)
+      // In a real app, you might want to let the user choose or have a more sophisticated algorithm
+      ExpenseNecessity necessity;
+      if (_selectedCategoryInfo!.name.toLowerCase().contains('groceries') ||
+          _selectedCategoryInfo!.name.toLowerCase().contains('utilities') ||
+          _selectedCategoryInfo!.name.toLowerCase().contains('rent') ||
+          _selectedCategoryInfo!.name.toLowerCase().contains('mortgage')) {
+        necessity = ExpenseNecessity.essential;
+      } else if (_selectedCategoryInfo!.name.toLowerCase().contains('savings') ||
+                 _selectedCategoryInfo!.name.toLowerCase().contains('investment')) {
+        necessity = ExpenseNecessity.savings;
+      } else {
+        necessity = ExpenseNecessity.discretionary;
+      }
+      
+      // Determine if recurring and frequency
+      final bool isRecurring = expenseType == ExpenseType.subscription || expenseType == ExpenseType.fixed;
+      final ExpenseFrequency frequency = expenseType == ExpenseType.subscription
+          ? (_billingCycle == 'Monthly' ? ExpenseFrequency.monthly : ExpenseFrequency.yearly)
+          : (expenseType == ExpenseType.fixed ? ExpenseFrequency.monthly : ExpenseFrequency.oneTime);
+
+      // Always set status to paid, regardless of date
+      final ExpenseStatus status = ExpenseStatus.paid;
+      
+      final expense = Expense(
+        id: widget.expense?.id ?? const Uuid().v4(),
+        title: _titleController.text.trim().isNotEmpty 
+          ? _titleController.text.trim()
+          : _selectedCategoryInfo!.name,
+        amount: amount,
+        date: _selectedDate,
+        createdAt: widget.expense?.createdAt ?? DateTime.now(),
+        categoryId: _selectedCategoryInfo!.id,
+        notes: _notesController.text.trim(),
+        type: expenseType,
+        accountId: _selectedAccountId,
+        billingCycle: expenseType == ExpenseType.subscription ? _billingCycle : null,
+        nextBillingDate: null,
+        dueDate: null,
+        // Add new fields
+        necessity: necessity,
+        isRecurring: isRecurring,
+        frequency: frequency,
+        status: status,
+        // These fields could be added in a more advanced UI
+        variableAmount: null,
+        endDate: null,
+        budgetId: null,
+        paymentMethod: null,
+        tags: null,
       );
-      return;
-    }
 
-    if (_amountController.text == '0') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an amount')),
-      );
-      return;
+      widget.onExpenseAdded(expense);
+      Navigator.pop(context);
     }
-
-    final amount = double.parse(_amountController.text);
-    
-    // Determine the expense type based on widget.type and _isFixedExpense
-    ExpenseType expenseType;
-    if (widget.type == ExpenseType.subscription) {
-      expenseType = ExpenseType.subscription;
-    } else {
-      expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
-    }
-    
-    // Determine necessity based on category (this is a simple implementation)
-    // In a real app, you might want to let the user choose or have a more sophisticated algorithm
-    ExpenseNecessity necessity;
-    if (_selectedCategoryInfo!.name.toLowerCase().contains('groceries') ||
-        _selectedCategoryInfo!.name.toLowerCase().contains('utilities') ||
-        _selectedCategoryInfo!.name.toLowerCase().contains('rent') ||
-        _selectedCategoryInfo!.name.toLowerCase().contains('mortgage')) {
-      necessity = ExpenseNecessity.essential;
-    } else if (_selectedCategoryInfo!.name.toLowerCase().contains('savings') ||
-               _selectedCategoryInfo!.name.toLowerCase().contains('investment')) {
-      necessity = ExpenseNecessity.savings;
-    } else {
-      necessity = ExpenseNecessity.discretionary;
-    }
-    
-    // Determine if recurring and frequency
-    final bool isRecurring = expenseType == ExpenseType.subscription || expenseType == ExpenseType.fixed;
-    final ExpenseFrequency frequency = expenseType == ExpenseType.subscription
-        ? (_billingCycle == 'Monthly' ? ExpenseFrequency.monthly : ExpenseFrequency.yearly)
-        : (expenseType == ExpenseType.fixed ? ExpenseFrequency.monthly : ExpenseFrequency.oneTime);
-    
-    final expense = Expense(
-      id: widget.expense?.id ?? const Uuid().v4(),
-      title: _titleController.text.trim().isNotEmpty 
-        ? _titleController.text.trim()
-        : _selectedCategoryInfo!.name,
-      amount: amount,
-      date: _selectedDate,
-      createdAt: widget.expense?.createdAt ?? DateTime.now(),
-      categoryId: _selectedCategoryInfo!.id,
-      notes: _notesController.text.trim(),
-      type: expenseType,
-      accountId: _selectedAccountId,
-      billingCycle: expenseType == ExpenseType.subscription ? _billingCycle : null,
-      nextBillingDate: expenseType == ExpenseType.subscription ? _nextBillingDate : null,
-      dueDate: expenseType == ExpenseType.fixed ? _dueDate : null,
-      // Add new fields
-      necessity: necessity,
-      isRecurring: isRecurring,
-      frequency: frequency,
-      status: ExpenseStatus.paid, // Default to paid
-      // These fields could be added in a more advanced UI
-      variableAmount: null,
-      endDate: null,
-      budgetId: null,
-      paymentMethod: null,
-      tags: null,
-    );
-
-    widget.onExpenseAdded(expense);
-    Navigator.pop(context);
   }
 
   Future<void> _selectDate() async {
@@ -339,22 +351,34 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     setState(() {
       _isFixedExpense = value ?? false;
     });
+  }
+
+  String _getDateLabel() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     
-    if (_isFixedExpense) {
-      // Wait for the setState to complete and the new field to be added
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      });
+    if (expenseDay.isAfter(today)) {
+      if (widget.type == ExpenseType.subscription) {
+        return 'Next Billing Date';
+      } else if (_isFixedExpense) {
+        return 'Due Date';
+      } else {
+        return 'Future Date';
+      }
+    } else {
+      return 'Date';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final isToday = expenseDay.isAtSameMomentAs(today);
+    final isUpcoming = expenseDay.isAfter(today);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -380,28 +404,90 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Date selector
-                          Row(
-                            children: [
-                              Icon(
-                                AppIcons.calendar,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _dateFormat.format(_selectedDate),
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                          // Date selector with status indicator
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isUpcoming 
+                                ? theme.colorScheme.primary.withOpacity(0.1)
+                                : theme.colorScheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      AppIcons.calendar,
+                                      color: isUpcoming 
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _getDateLabel(),
+                                      style: theme.textTheme.titleSmall?.copyWith(
+                                        color: isUpcoming 
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    if (isUpcoming)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          'Upcoming',
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: theme.colorScheme.onPrimary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                              ),
-                              const Spacer(),
-                              TextButton(
-                                onPressed: _selectDate,
-                                child: Text('Change Date'),
-                              ),
-                            ],
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      _dateFormat.format(_selectedDate),
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    if (isToday)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          'Today',
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: _selectDate,
+                                      child: Text('Change'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           
                           // Amount field
                           Text(
@@ -439,7 +525,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           ),
                           const SizedBox(height: 24),
                           
-                          // Form fields
+                          // Form fields (simplified to remove duplicate date fields)
                           ExpenseFormFields(
                             titleController: _titleController,
                             selectedCategory: _selectedCategoryInfo,
@@ -449,18 +535,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             onCategoryTap: _showCategoryPicker,
                             onAccountTap: _showAccountPicker,
                             onFixedExpenseChanged: _onFixedExpenseChanged,
-                            dueDate: _dueDate,
-                            onDueDateTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: _dueDate,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) {
-                                setState(() => _dueDate = picked);
-                              }
-                            },
+                            // We're not using these date-related fields anymore
+                            dueDate: _selectedDate,
+                            onDueDateTap: _selectDate, // Just in case the component still needs this
                             billingCycle: _billingCycle,
                             onBillingCycleTap: () {
                               PickerSheet.show(
@@ -478,18 +555,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                                 ).toList(),
                               );
                             },
-                            nextBillingDate: _nextBillingDate,
-                            onNextBillingDateTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: _nextBillingDate,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) {
-                                setState(() => _nextBillingDate = picked);
-                              }
-                            },
+                            nextBillingDate: _selectedDate,
+                            onNextBillingDateTap: _selectDate, // Just in case the component still needs this
                           ),
                         ],
                       ),
