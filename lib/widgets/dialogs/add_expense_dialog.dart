@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/expense.dart';
 import '../../models/expense_category.dart';
@@ -78,6 +79,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _loadCategory(widget.expense!.categoryId);
       _loadAccount(widget.expense!.accountId);
     } else {
+      // For new expenses, initialize with default values
+      _amountController.text = '0'; // Will be cleared on tap
+      
       // Load default account
       _loadAccount(_selectedAccountId);
       // Initialize fixed expense checkbox based on the provided type
@@ -347,10 +351,66 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  void _onFixedExpenseChanged(bool? value) {
-    setState(() {
-      _isFixedExpense = value ?? false;
-    });
+  void _onFixedExpenseChanged(bool value) {
+    // Define the colors for expense types
+    final fixedExpenseColor = const Color(0xFFCF5825); // Orange
+    final variableExpenseColor = const Color(0xFF8056E4); // Purple
+    
+    // Instead of directly setting the value, show a picker sheet
+    PickerSheet.show(
+      context: context,
+      title: 'Expense Type',
+      children: [
+        ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: variableExpenseColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SvgPicture.asset(
+              'assets/icons/variable_expense.svg',
+              width: 24,
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                variableExpenseColor,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          title: const Text('Variable'),
+          selected: !_isFixedExpense,
+          onTap: () {
+            setState(() => _isFixedExpense = false);
+            Navigator.pop(context);
+          },
+        ),
+        ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: fixedExpenseColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SvgPicture.asset(
+              'assets/icons/fixed_expense.svg',
+              width: 24,
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                fixedExpenseColor,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          title: const Text('Fixed'),
+          selected: _isFixedExpense,
+          onTap: () {
+            setState(() => _isFixedExpense = true);
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
   }
 
   String _getDateLabel() {
@@ -404,91 +464,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Date selector with status indicator
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isUpcoming 
-                                ? theme.colorScheme.primary.withOpacity(0.1)
-                                : theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      AppIcons.calendar,
-                                      color: isUpcoming 
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _getDateLabel(),
-                                      style: theme.textTheme.titleSmall?.copyWith(
-                                        color: isUpcoming 
-                                          ? theme.colorScheme.primary
-                                          : theme.colorScheme.onSurfaceVariant,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    if (isUpcoming)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          'Upcoming',
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: theme.colorScheme.onPrimary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text(
-                                      _dateFormat.format(_selectedDate),
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        color: theme.colorScheme.onSurface,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    if (isToday)
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          'Today',
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: theme.colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ),
-                                    const Spacer(),
-                                    TextButton(
-                                      onPressed: _selectDate,
-                                      child: Text('Change'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          
                           // Amount field
                           Text(
                             'Amount',
@@ -508,7 +483,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               filled: true,
                               fillColor: theme.colorScheme.surfaceContainer,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide.none,
                               ),
                             ),
@@ -516,12 +491,86 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               color: theme.colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
+                            onTap: () {
+                              // Clear the initial value when the user taps on the field
+                              if (_amountController.text == '0') {
+                                _amountController.clear();
+                              }
+                            },
                             validator: (value) {
                               if (value == null || value.isEmpty || value == '0') {
                                 return 'Please enter an amount';
                               }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: 8),
+                          
+                          // Date selector with status indicator
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: isUpcoming 
+                                  ? theme.colorScheme.primary.withOpacity(0.1)
+                                  : theme.colorScheme.surfaceContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _dateFormat.format(_selectedDate),
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (isToday)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.surfaceContainerHighest,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            'Today',
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                      if (isUpcoming)
+                                        Container(
+                                          margin: isToday ? const EdgeInsets.only(left: 8) : EdgeInsets.zero,
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            'Upcoming',
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onPrimary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 18,
+                                        color: isUpcoming 
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 24),
                           
@@ -534,7 +583,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             expenseType: widget.type,
                             onCategoryTap: _showCategoryPicker,
                             onAccountTap: _showAccountPicker,
-                            onFixedExpenseChanged: _onFixedExpenseChanged,
+                            onExpenseTypeChanged: _onFixedExpenseChanged,
                             // We're not using these date-related fields anymore
                             dueDate: _selectedDate,
                             onDueDateTap: _selectDate, // Just in case the component still needs this
@@ -571,8 +620,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
+                      backgroundColor: theme.colorScheme.surfaceContainerLow,
+                      foregroundColor: theme.colorScheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -580,8 +629,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     ),
                     child: Text(
                       widget.expense != null ? 'Update' : 'Add',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onPrimary,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
