@@ -464,14 +464,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Amount field
-                          Text(
-                            'Amount',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          // Amount field - removed label and modified styling
                           TextFormField(
                             controller: _amountController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -480,17 +473,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             ],
                             decoration: InputDecoration(
                               prefixText: '\$ ',
-                              filled: true,
-                              fillColor: theme.colorScheme.surfaceContainer,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                              prefixStyle: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
+                              filled: false,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            style: theme.textTheme.titleLarge?.copyWith(
+                            style: theme.textTheme.headlineMedium?.copyWith(
                               color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
                             ),
+                            textAlign: TextAlign.left,
                             onTap: () {
                               // Clear the initial value when the user taps on the field
                               if (_amountController.text == '0') {
@@ -504,7 +497,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           
                           // Date selector with status indicator
                           GestureDetector(
