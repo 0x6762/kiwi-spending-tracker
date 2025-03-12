@@ -71,13 +71,6 @@ class ExpenseFormFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title field
-        Text(
-          'Title',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -131,13 +124,6 @@ class ExpenseFormFields extends StatelessWidget {
         ),
         
         // Account and Category selectors
-        const SizedBox(height: 24),
-        Text(
-          'Account & Category',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
         const SizedBox(height: 8),
         if (selectedAccount != null) PickerButton(
           label: selectedAccount!.name,
@@ -154,13 +140,6 @@ class ExpenseFormFields extends StatelessWidget {
         
         // Expense Type selector (if not subscription)
         if (expenseType != ExpenseType.subscription) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Expense Type',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => onExpenseTypeChanged(!isFixedExpense),

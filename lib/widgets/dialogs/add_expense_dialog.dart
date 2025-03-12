@@ -242,6 +242,23 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
+  void _showBillingCyclePicker() {
+    PickerSheet.show(
+      context: context,
+      title: 'Billing Cycle',
+      children: ['Monthly', 'Yearly'].map(
+        (cycle) => ListTile(
+          title: Text(cycle),
+          selected: _billingCycle == cycle,
+          onTap: () {
+            setState(() => _billingCycle = cycle);
+            Navigator.pop(context);
+          },
+        ),
+      ).toList(),
+    );
+  }
+
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -413,32 +430,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  String _getDateLabel() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-    
-    if (expenseDay.isAfter(today)) {
-      if (widget.type == ExpenseType.subscription) {
-        return 'Next Billing Date';
-      } else if (_isFixedExpense) {
-        return 'Due Date';
-      } else {
-        return 'Future Date';
-      }
-    } else {
-      return 'Date';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-    final isToday = expenseDay.isAtSameMomentAs(today);
-    final isUpcoming = expenseDay.isAfter(today);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -464,6 +458,28 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Date selector - simplified and moved to the top
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: Row(
+                              children: [
+                                Text(
+                                  _dateFormat.format(_selectedDate),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          
                           // Amount field - removed label and modified styling
                           TextFormField(
                             controller: _amountController,
@@ -473,15 +489,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             ],
                             decoration: InputDecoration(
                               prefixText: '\$ ',
-                              prefixStyle: theme.textTheme.titleLarge?.copyWith(
+                              prefixStyle: theme.textTheme.headlineMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
                               ),
                               filled: false,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 8),
                             ),
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineLarge?.copyWith(
                               color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
                             ),
                             textAlign: TextAlign.left,
                             onTap: () {
@@ -496,74 +514,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                               }
                               return null;
                             },
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          // Date selector with status indicator
-                          GestureDetector(
-                            onTap: _selectDate,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isUpcoming 
-                                  ? theme.colorScheme.primary.withOpacity(0.1)
-                                  : theme.colorScheme.surfaceContainer,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _dateFormat.format(_selectedDate),
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      if (isToday)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: theme.colorScheme.surfaceContainerHighest,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            'Today',
-                                            style: theme.textTheme.labelSmall?.copyWith(
-                                              color: theme.colorScheme.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ),
-                                      if (isUpcoming)
-                                        Container(
-                                          margin: isToday ? const EdgeInsets.only(left: 8) : EdgeInsets.zero,
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: theme.colorScheme.primary,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            'Upcoming',
-                                            style: theme.textTheme.labelSmall?.copyWith(
-                                              color: theme.colorScheme.onPrimary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      const SizedBox(width: 8),
-                                      Icon(
-                                        Icons.keyboard_arrow_down,
-                                        size: 18,
-                                        color: isUpcoming 
-                                          ? theme.colorScheme.primary
-                                          : theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                           const SizedBox(height: 24),
                           
@@ -581,22 +531,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             dueDate: _selectedDate,
                             onDueDateTap: _selectDate, // Just in case the component still needs this
                             billingCycle: _billingCycle,
-                            onBillingCycleTap: () {
-                              PickerSheet.show(
-                                context: context,
-                                title: 'Billing Cycle',
-                                children: ['Monthly', 'Yearly'].map(
-                                  (cycle) => ListTile(
-                                    title: Text(cycle),
-                                    selected: _billingCycle == cycle,
-                                    onTap: () {
-                                      setState(() => _billingCycle = cycle);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ).toList(),
-                              );
-                            },
+                            onBillingCycleTap: _showBillingCyclePicker,
                             nextBillingDate: _selectedDate,
                             onNextBillingDateTap: _selectDate, // Just in case the component still needs this
                           ),
