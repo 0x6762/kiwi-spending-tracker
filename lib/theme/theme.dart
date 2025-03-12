@@ -4,7 +4,13 @@ import 'package:flutter/services.dart';
 class AppTheme {
   static TextTheme _buildTextTheme(TextTheme base) {
     return base.copyWith(
-      // Used for the total amount in expense summary (largest text)
+      headlineLarge: base.headlineLarge?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 40,
+        height: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
+      // Used for the total amount in expense summary 
       headlineMedium: base.headlineMedium?.copyWith(
         fontFamily: 'Inter',
         fontSize: 32,

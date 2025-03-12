@@ -73,9 +73,9 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
     
-    // Filter to only include expenses with dates that have already passed
+    // Filter to only include paid expenses (not pending or cancelled)
     final effectiveExpenses = expenses.where((expense) => 
-      !expense.date.isAfter(now)
+      expense.status == ExpenseStatus.paid
     ).toList();
     
     if (effectiveExpenses.isEmpty) return [];
@@ -109,9 +109,8 @@ class ExpenseAnalyticsService {
   }
 
   Future<MonthlyAnalytics> getMonthlyAnalytics(DateTime selectedMonth) async {
-    // Get only expenses with dates that have already passed
-    final now = DateTime.now();
-    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: now);
+    // Get only paid expenses
+    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: DateTime.now());
     
     // Return default values if there are no expenses
     if (expenses.isEmpty) {
@@ -176,9 +175,8 @@ class ExpenseAnalyticsService {
   }
 
   Future<Map<DateTime, double>> getMonthlyTotals(DateTime startDate, DateTime endDate) async {
-    // Get only expenses with dates that have already passed
-    final now = DateTime.now();
-    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: now);
+    // Get only paid expenses
+    final expenses = await _expenseRepo.getEffectiveExpenses(asOfDate: DateTime.now());
     final Map<DateTime, double> monthlyTotals = {};
 
     // Filter expenses within date range and group by month
@@ -203,9 +201,9 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
     
-    // Filter to only include expenses with dates that have already passed
+    // Filter to only include paid expenses (not pending or cancelled)
     final effectiveExpenses = expenses.where((expense) => 
-      !expense.date.isAfter(now)
+      expense.status == ExpenseStatus.paid
     ).toList();
     
     if (effectiveExpenses.isEmpty) {

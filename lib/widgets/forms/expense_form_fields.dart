@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/expense.dart';
 import '../../models/expense_category.dart';
 import '../../models/account.dart';
@@ -13,11 +14,14 @@ class ExpenseFormFields extends StatelessWidget {
   final ExpenseType expenseType;
   final VoidCallback onCategoryTap;
   final VoidCallback onAccountTap;
-  final Function(bool?) onFixedExpenseChanged;
-  final DateTime dueDate;
-  final VoidCallback onDueDateTap;
+  final Function(bool) onExpenseTypeChanged;
   final String billingCycle;
   final VoidCallback onBillingCycleTap;
+  
+  // We still keep these parameters to maintain backward compatibility
+  // but they're not used in the UI anymore
+  final DateTime dueDate;
+  final VoidCallback onDueDateTap;
   final DateTime nextBillingDate;
   final VoidCallback onNextBillingDateTap;
 
@@ -30,7 +34,7 @@ class ExpenseFormFields extends StatelessWidget {
     required this.expenseType,
     required this.onCategoryTap,
     required this.onAccountTap,
-    required this.onFixedExpenseChanged,
+    required this.onExpenseTypeChanged,
     required this.dueDate,
     required this.onDueDateTap,
     required this.billingCycle,
@@ -43,9 +47,31 @@ class ExpenseFormFields extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Custom widget for SVG icon in PickerButton
+    Widget _buildSvgIcon(String assetPath, Color color) {
+      return Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: SvgPicture.asset(
+          assetPath,
+          width: 20,
+          height: 20,
+          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        ),
+      );
+    }
+
+    // Define the colors for expense types
+    final fixedExpenseColor = const Color(0xFFCF5825); // Orange
+    final variableExpenseColor = const Color(0xFF8056E4); // Purple
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 8),
         Container(
           width: double.infinity,
           alignment: Alignment.topLeft,
@@ -96,6 +122,8 @@ class ExpenseFormFields extends StatelessWidget {
             ),
           ),
         ),
+        
+        // Account and Category selectors
         const SizedBox(height: 8),
         if (selectedAccount != null) PickerButton(
           label: selectedAccount!.name,
@@ -110,83 +138,62 @@ class ExpenseFormFields extends StatelessWidget {
           onTap: onCategoryTap,
         ),
         
-        // Add Fixed Expense checkbox if not subscription
+        // Expense Type selector (if not subscription)
         if (expenseType != ExpenseType.subscription) ...[
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () {
-              onFixedExpenseChanged(!isFixedExpense);
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: isFixedExpense,
-                        onChanged: onFixedExpenseChanged,
-                        activeColor: theme.colorScheme.primary,
-                      ),
-                      Text(
-                        'Fixed expense?',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => onExpenseTypeChanged(!isFixedExpense),
+            style: TextButton.styleFrom(
+              backgroundColor: theme.colorScheme.surfaceContainer,
+              foregroundColor: theme.colorScheme.onSurfaceVariant,
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 16,
+                top: 12,
+                bottom: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
-          ),
-        ],
-        
-        // Show due date field if fixed expense is checked
-        if (expenseType != ExpenseType.subscription && isFixedExpense) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Due Date',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSvgIcon(
+                  isFixedExpense 
+                    ? 'assets/icons/fixed_expense.svg' 
+                    : 'assets/icons/variable_expense.svg',
+                  isFixedExpense ? fixedExpenseColor : variableExpenseColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    isFixedExpense ? 'Fixed' : 'One time',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          PickerButton(
-            label: _formatDate(dueDate),
-            icon: AppIcons.calendar,
-            onTap: onDueDateTap,
-          ),
         ],
         
+        // Only keep the billing cycle selector for subscription expenses
         if (expenseType == ExpenseType.subscription) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Billing Cycle / Due Date',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           PickerButton(
             label: billingCycle,
             icon: AppIcons.calendar,
             onTap: onBillingCycleTap,
           ),
-          const SizedBox(height: 8),
-          PickerButton(
-            label: _formatDate(nextBillingDate),
-            icon: AppIcons.calendar,
-            onTap: onNextBillingDateTap,
-          ),
         ],
       ],
     );
-  }
-  
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
   }
 } 
