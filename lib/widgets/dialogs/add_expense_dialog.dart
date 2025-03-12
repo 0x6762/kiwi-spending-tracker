@@ -15,6 +15,7 @@ import '../common/app_bar.dart';
 import '../../utils/icons.dart';
 import 'dart:math' as math;
 import '../forms/expense_form_fields.dart';
+import '../forms/number_pad.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseType type;
@@ -395,7 +396,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
             ),
           ),
-          title: const Text('Variable'),
+          title: const Text('One time'),
           selected: !_isFixedExpense,
           onTap: () {
             setState(() => _isFixedExpense = false);
@@ -439,7 +440,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: theme.colorScheme.surface,
-          resizeToAvoidBottomInset: true,
+          resizeToAvoidBottomInset: false,
           appBar: KiwiAppBar(
             backgroundColor: theme.colorScheme.surface,
             title: _getDialogTitle(),
@@ -453,115 +454,147 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _scrollController,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Date selector - simplified and moved to the top
-                          GestureDetector(
-                            onTap: _selectDate,
-                            child: Row(
-                              children: [
-                                Text(
-                                  _dateFormat.format(_selectedDate),
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 18,
+                    padding: EdgeInsets.only(
+                      left: 16.0,
+                      right: 16.0,
+                      top: 16.0,
+                      bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 200 : 16.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Date selector - simplified and moved to the top
+                        GestureDetector(
+                          onTap: _selectDate,
+                          child: Row(
+                            children: [
+                              Text(
+                                _dateFormat.format(_selectedDate),
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          
-                          // Amount field - removed label and modified styling
-                          TextFormField(
-                            controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                            ],
-                            decoration: InputDecoration(
-                              prefixText: '\$ ',
-                              prefixStyle: theme.textTheme.headlineMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
                               ),
-                              filled: false,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                            style: theme.textTheme.headlineLarge?.copyWith(
-                              color: theme.colorScheme.onSurface,
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.keyboard_arrow_down,
+                                size: 18,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // Amount field - removed label and modified styling
+                        TextFormField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          ],
+                          decoration: InputDecoration(
+                            prefixText: '\$ ',
+                            prefixStyle: theme.textTheme.headlineMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
-                            textAlign: TextAlign.left,
-                            onTap: () {
-                              // Clear the initial value when the user taps on the field
-                              if (_amountController.text == '0') {
-                                _amountController.clear();
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty || value == '0') {
-                                return 'Please enter an amount';
-                              }
-                              return null;
-                            },
+                            filled: false,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
                           ),
-                          const SizedBox(height: 24),
-                          
-                          // Form fields (simplified to remove duplicate date fields)
-                          ExpenseFormFields(
-                            titleController: _titleController,
-                            selectedCategory: _selectedCategoryInfo,
-                            selectedAccount: _selectedAccount,
-                            isFixedExpense: _isFixedExpense,
-                            expenseType: widget.type,
-                            onCategoryTap: _showCategoryPicker,
-                            onAccountTap: _showAccountPicker,
-                            onExpenseTypeChanged: _onFixedExpenseChanged,
-                            // We're not using these date-related fields anymore
-                            dueDate: _selectedDate,
-                            onDueDateTap: _selectDate, // Just in case the component still needs this
-                            billingCycle: _billingCycle,
-                            onBillingCycleTap: _showBillingCyclePicker,
-                            nextBillingDate: _selectedDate,
-                            onNextBillingDateTap: _selectDate, // Just in case the component still needs this
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
-                      ),
+                          textAlign: TextAlign.left,
+                          readOnly: true, // Make it read-only since we're using the number pad
+                          onTap: () {
+                            // No need to clear on tap since we're using the number pad
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty || value == '0') {
+                              return 'Please enter an amount';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Form fields (simplified to remove duplicate date fields)
+                        ExpenseFormFields(
+                          titleController: _titleController,
+                          selectedCategory: _selectedCategoryInfo,
+                          selectedAccount: _selectedAccount,
+                          isFixedExpense: _isFixedExpense,
+                          expenseType: widget.type,
+                          onCategoryTap: _showCategoryPicker,
+                          onAccountTap: _showAccountPicker,
+                          onExpenseTypeChanged: _onFixedExpenseChanged,
+                          // We're not using these date-related fields anymore
+                          dueDate: _selectedDate,
+                          onDueDateTap: _selectDate, // Just in case the component still needs this
+                          billingCycle: _billingCycle,
+                          onBillingCycleTap: _showBillingCyclePicker,
+                          nextBillingDate: _selectedDate,
+                          onNextBillingDateTap: _selectDate, // Just in case the component still needs this
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 
-                // Add button
+                // Custom number pad - now in a container with a fixed position at the bottom
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.surfaceContainerLow,
-                      foregroundColor: theme.colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      widget.expense != null ? 'Update' : 'Add',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  color: theme.colorScheme.surface,
+                  child: NumberPad(
+                    onDigitPressed: (digit) {
+                      setState(() {
+                        // If the current value is 0, replace it with the new digit
+                        if (_amountController.text == '0') {
+                          _amountController.text = digit;
+                        } else {
+                          // Check if we already have two decimal places
+                          if (_amountController.text.contains('.')) {
+                            final parts = _amountController.text.split('.');
+                            if (parts.length > 1 && parts[1].length >= 2) {
+                              // Already have two decimal places, don't add more digits
+                              return;
+                            }
+                          }
+                          _amountController.text += digit;
+                        }
+                      });
+                    },
+                    onDecimalPointPressed: () {
+                      setState(() {
+                        // Only add decimal point if it doesn't already contain one
+                        if (!_amountController.text.contains('.')) {
+                          _amountController.text += '.';
+                        }
+                      });
+                    },
+                    onDoubleZeroPressed: () {
+                      setState(() {
+                        // Only add 00 if the current value is not 0
+                        if (_amountController.text != '0') {
+                          _amountController.text += '00';
+                        }
+                      });
+                    },
+                    onBackspacePressed: () {
+                      setState(() {
+                        if (_amountController.text.isNotEmpty) {
+                          _amountController.text = _amountController.text.substring(0, _amountController.text.length - 1);
+                          // If we deleted everything, set it back to 0
+                          if (_amountController.text.isEmpty) {
+                            _amountController.text = '0';
+                          }
+                        }
+                      });
+                    },
+                    onDatePressed: _selectDate,
+                    onSubmitPressed: _submit,
+                    submitButtonText: widget.expense != null ? 'Update' : 'Add',
                   ),
                 ),
               ],

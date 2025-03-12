@@ -168,7 +168,7 @@ class ExpenseFormFields extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    isFixedExpense ? 'Fixed' : 'Variable',
+                    isFixedExpense ? 'Fixed' : 'One time',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),
@@ -186,13 +186,6 @@ class ExpenseFormFields extends StatelessWidget {
         
         // Only keep the billing cycle selector for subscription expenses
         if (expenseType == ExpenseType.subscription) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Billing Cycle',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
           const SizedBox(height: 8),
           PickerButton(
             label: billingCycle,
