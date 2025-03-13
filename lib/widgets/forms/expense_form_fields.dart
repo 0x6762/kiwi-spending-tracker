@@ -125,17 +125,17 @@ class ExpenseFormFields extends StatelessWidget {
         
         // Account and Category selectors
         const SizedBox(height: 8),
+        PickerButton(
+          label: selectedCategory?.name ?? 'Select Category',
+          icon: selectedCategory?.icon ?? AppIcons.category,
+          onTap: onCategoryTap,
+        ),
+        const SizedBox(height: 8),
         if (selectedAccount != null) PickerButton(
           label: selectedAccount!.name,
           icon: selectedAccount!.icon,
           iconColor: selectedAccount!.color,
           onTap: onAccountTap,
-        ),
-        const SizedBox(height: 8),
-        PickerButton(
-          label: selectedCategory?.name ?? 'Select Category',
-          icon: selectedCategory?.icon ?? AppIcons.category,
-          onTap: onCategoryTap,
         ),
         
         // Expense Type selector (if not subscription)
@@ -168,7 +168,7 @@ class ExpenseFormFields extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    isFixedExpense ? 'Fixed' : 'One time',
+                    isFixedExpense ? 'Fixed' : 'Variable',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),

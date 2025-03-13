@@ -396,7 +396,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               ),
             ),
           ),
-          title: const Text('One time'),
+          title: const Text('Variable'),
           selected: !_isFixedExpense,
           onTap: () {
             setState(() => _isFixedExpense = false);
@@ -455,9 +455,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     padding: EdgeInsets.only(
-                      left: 16.0,
-                      right: 16.0,
-                      top: 16.0,
+                      left: 8.0,
+                      right: 8.0,
+                      top: 8.0,
                       bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 200 : 16.0,
                     ),
                     child: Column(
