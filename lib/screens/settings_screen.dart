@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'category_management_screen.dart';
 import 'account_management_screen.dart';
 import '../models/currency_settings.dart';
@@ -13,6 +14,8 @@ import '../repositories/repository_provider.dart';
 import '../widgets/common/app_bar.dart';
 import '../theme/theme_provider.dart';
 import '../widgets/sheets/picker_sheet.dart';
+import '../services/backup_service.dart';
+import '../database/database.dart';
 
 class SettingsScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
@@ -30,6 +33,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedCurrency = 'USD';
   String _version = '';
   bool _isVersionLoading = true;
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
 
   @override
   void initState() {
@@ -151,6 +156,165 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _createBackup() async {
+    try {
+      setState(() => _isBackingUp = true);
+      
+      final backupService = BackupService(AppDatabase());
+      final backupPath = await backupService.createBackup();
+      
+      if (mounted) {
+        // Show options dialog
+        final action = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Backup Created'),
+            content: const Text(
+              'Backup created successfully. How would you like to access your backup file?'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'close'),
+                child: const Text('Close'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'downloads'),
+                child: Text(
+                  'Save to Device',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'share'),
+                child: Text(
+                  'Share',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (action == 'share') {
+          await backupService.shareBackup(backupPath);
+        } else if (action == 'downloads') {
+          final savedPath = await backupService.saveBackupToDownloads(backupPath);
+          if (savedPath != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Backup shared. Please save it to your device.'),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            );
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Failed to share backup file'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating backup: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isBackingUp = false);
+      }
+    }
+  }
+
+  Future<void> _restoreFromBackup() async {
+    try {
+      setState(() => _isRestoring = true);
+      
+      final backupService = BackupService(AppDatabase());
+      final backupPath = await backupService.pickBackupFile();
+      
+      if (backupPath != null) {
+        // Show confirmation dialog
+        final shouldRestore = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Restore Backup'),
+            content: const Text(
+              'This will replace all current data with the backup data. '
+              'This action cannot be undone. Are you sure you want to continue?'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  'Restore',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldRestore == true) {
+          await backupService.restoreFromBackup(backupPath);
+          
+          if (mounted) {
+            // Show dialog informing user to restart the app
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: const Text('Backup Restored'),
+                content: const Text(
+                  'Your backup has been restored successfully. '
+                  'Please restart the app for the changes to take effect.'
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+            
+            // Exit the app
+            SystemNavigator.pop();
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error restoring backup: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRestoring = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -249,8 +413,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ListTile(
                     leading: const Icon(AppIcons.categories),
-                    title: const Text('Categories'),
-                    subtitle: const Text('Manage expense categories'),
+                    title: const Text('Manage Categories'),
+                    subtitle: const Text('Add or edit your categories'),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -261,6 +425,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       );
                     },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: Text(
+                'Backup & Restore',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(AppIcons.backup),
+                    title: const Text('Create Backup'),
+                    subtitle: const Text('Save your data to a file'),
+                    onTap: _isBackingUp ? null : _createBackup,
+                    trailing: _isBackingUp
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : null,
+                  ),
+                  ListTile(
+                    leading: const Icon(AppIcons.restore),
+                    title: const Text('Restore from Backup'),
+                    subtitle: const Text('Load data from a backup file'),
+                    onTap: _isRestoring ? null : _restoreFromBackup,
+                    trailing: _isRestoring
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : null,
                   ),
                 ],
               ),

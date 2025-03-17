@@ -42,6 +42,8 @@ dependencies:
   speech_to_text: ^6.6.0
   permission_handler: ^11.3.0
   provider: ^6.1.1
+  file_picker: ^6.1.1
+  share_plus: ^7.2.1
   
   # Database
   drift: ^2.14.0
