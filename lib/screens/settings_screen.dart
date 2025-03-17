@@ -554,45 +554,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Text(
-                'Data',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            Card(
-              margin: EdgeInsets.zero,
-              color: theme.colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              elevation: 0,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(AppIcons.backup),
-                    title: const Text('Backup & Restore'),
-                    subtitle: const Text('Manage your expense data'),
-                    onTap: () {
-                      // TODO: Implement backup & restore
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(AppIcons.clearData),
-                    title: const Text('Clear Data'),
-                    subtitle: const Text('Delete all expenses'),
-                    textColor: theme.colorScheme.error,
-                    iconColor: theme.colorScheme.error,
-                    onTap: () {
-                      // TODO: Implement clear data
-                    },
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 48),
             Center(
               child: _isVersionLoading
