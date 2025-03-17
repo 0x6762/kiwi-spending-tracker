@@ -235,7 +235,6 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
                 formatCurrency(expense.amount),
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -316,52 +315,25 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
                     ),
                   ),
                   Expanded(
-                    child: _expenses.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: 64,
-                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No expenses found for this category',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Try selecting a different month or category',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : SingleChildScrollView(
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: theme.colorScheme.surfaceContainer,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              elevation: 0,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                itemCount: _expenses.length,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  return _buildExpenseItem(context, _expenses[index]);
-                                },
-                              ),
-                            ),
-                          ),
+                    child: SingleChildScrollView(
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        color: theme.colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        elevation: 0,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: _expenses.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            return _buildExpenseItem(context, _expenses[index]);
+                          },
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

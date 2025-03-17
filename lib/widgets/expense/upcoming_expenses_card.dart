@@ -49,13 +49,6 @@ class UpcomingExpensesCard extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '(${analytics.upcomingExpenses.length} upcoming)',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
                     ],
                   ),
                   const Spacer(),
