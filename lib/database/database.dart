@@ -40,6 +40,10 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 5;
 
+  Future<void> open() async {
+    await _openConnection();
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {

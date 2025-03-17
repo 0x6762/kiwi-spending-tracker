@@ -37,6 +37,7 @@ class AppIcons {
   static const theme = Icons.palette_rounded;
   static const accounts = Icons.account_balance_rounded;
   static const backup = Icons.backup_rounded;
+  static const restore = Icons.restore_rounded;
   static const clearData = Icons.delete_rounded;
   static const categories = Icons.category_rounded;
   static const security = Icons.security_rounded;
