@@ -315,6 +315,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _manageBackups() async {
+    final backupService = BackupService(AppDatabase());
+    final backupInfo = await backupService.getBackupInfo();
+    
+    if (!mounted) return;
+    
+    // Format the size in a readable way
+    String formatSize(int bytes) {
+      if (bytes < 1024) return '$bytes B';
+      if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Backup Management'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Stored backups: ${backupInfo['count']}'),
+            Text('Total size: ${formatSize(backupInfo['totalSize'])}'),
+            const SizedBox(height: 16),
+            const Text(
+              'The app automatically keeps the 5 most recent backups. '
+              'Older backups are deleted when new ones are created.'
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Note: These are only the backups stored within the app. '
+              'Backups you\'ve saved to other locations are not affected.'
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: backupInfo['count'] > 0 
+              ? () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete All Backups'),
+                      content: const Text(
+                        'Are you sure you want to delete all backups stored within the app? '
+                        'This action cannot be undone.\n\n'
+                        'Note: Backups you\'ve saved to other locations will not be affected.'
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                  
+                  if (confirmed == true) {
+                    await backupService.deleteAllBackups();
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('All stored backups deleted'),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    }
+                  }
+                }
+              : null,
+            child: Text(
+              'Delete All',
+              style: TextStyle(
+                color: backupInfo['count'] > 0 
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).disabledColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -472,6 +570,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : null,
+                  ),
+                  ListTile(
+                    leading: const Icon(AppIcons.clearData),
+                    title: const Text('Manage Backups'),
+                    subtitle: const Text('View and delete stored backups'),
+                    onTap: _manageBackups,
                   ),
                 ],
               ),

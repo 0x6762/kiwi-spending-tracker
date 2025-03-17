@@ -9,6 +9,9 @@ import '../database/database.dart';
 
 class BackupService {
   final AppDatabase _database;
+  
+  // Maximum number of backup files to keep in the private directory
+  static const int _maxBackupFiles = 5;
 
   BackupService(this._database);
 
@@ -36,10 +39,45 @@ class BackupService {
       // Copy database file to backup location
       await dbFile.copy(backupFile.path);
       
+      // Clean up old backup files
+      await _cleanupOldBackups(backupDir);
+      
       return backupFile.path;
     } catch (e) {
       debugPrint('Error creating backup: $e');
       rethrow;
+    }
+  }
+
+  /// Cleans up old backup files, keeping only the most recent ones
+  Future<void> _cleanupOldBackups(Directory backupDir) async {
+    try {
+      // Get all backup files
+      final files = await backupDir.list().where((entity) => 
+        entity is File && 
+        p.basename(entity.path).startsWith('kiwi_backup_') && 
+        entity.path.endsWith('.db')
+      ).toList();
+      
+      // Sort files by last modified time (newest first)
+      files.sort((a, b) {
+        final aTime = (a as File).lastModifiedSync();
+        final bTime = (b as File).lastModifiedSync();
+        return bTime.compareTo(aTime);
+      });
+      
+      // Delete older files if we have more than the maximum
+      if (files.length > _maxBackupFiles) {
+        for (var i = _maxBackupFiles; i < files.length; i++) {
+          await (files[i] as File).delete();
+          debugPrint('Deleted old backup: ${files[i].path}');
+        }
+      }
+      
+      debugPrint('Backup cleanup complete. Keeping ${_maxBackupFiles} most recent backups.');
+    } catch (e) {
+      // Just log the error but don't rethrow - this is a background operation
+      debugPrint('Error cleaning up old backups: $e');
     }
   }
 
@@ -119,6 +157,86 @@ class BackupService {
     } catch (e) {
       debugPrint('Error picking backup file: $e');
       return null;
+    }
+  }
+  
+  /// Gets information about backups stored in the app's private directory
+  Future<Map<String, dynamic>> getBackupInfo() async {
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final backupDir = Directory(p.join(dbFolder.path, 'backups'));
+      
+      if (!await backupDir.exists()) {
+        return {
+          'count': 0,
+          'totalSize': 0,
+          'oldestBackup': null,
+          'newestBackup': null,
+        };
+      }
+      
+      // Get all backup files
+      final files = await backupDir.list().where((entity) => 
+        entity is File && 
+        p.basename(entity.path).startsWith('kiwi_backup_') && 
+        entity.path.endsWith('.db')
+      ).toList();
+      
+      if (files.isEmpty) {
+        return {
+          'count': 0,
+          'totalSize': 0,
+          'oldestBackup': null,
+          'newestBackup': null,
+        };
+      }
+      
+      // Calculate total size
+      int totalSize = 0;
+      for (var file in files) {
+        totalSize += await (file as File).length();
+      }
+      
+      // Sort files by last modified time
+      files.sort((a, b) {
+        final aTime = (a as File).lastModifiedSync();
+        final bTime = (b as File).lastModifiedSync();
+        return aTime.compareTo(bTime);
+      });
+      
+      return {
+        'count': files.length,
+        'totalSize': totalSize,
+        'oldestBackup': files.first.path,
+        'newestBackup': files.last.path,
+      };
+    } catch (e) {
+      debugPrint('Error getting backup info: $e');
+      return {
+        'count': 0,
+        'totalSize': 0,
+        'oldestBackup': null,
+        'newestBackup': null,
+        'error': e.toString(),
+      };
+    }
+  }
+  
+  /// Deletes all backup files from the app's private directory
+  Future<bool> deleteAllBackups() async {
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final backupDir = Directory(p.join(dbFolder.path, 'backups'));
+      
+      if (await backupDir.exists()) {
+        await backupDir.delete(recursive: true);
+        await backupDir.create(); // Recreate the empty directory
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting all backups: $e');
+      return false;
     }
   }
 } 
