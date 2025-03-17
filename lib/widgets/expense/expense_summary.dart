@@ -60,7 +60,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
           const SizedBox(width: 4),
           Text(
             '${analytics.percentageChange.toStringAsFixed(1)}%',
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               color: analytics.isIncrease
                   ? theme.colorScheme.error
                   : theme.colorScheme.primary,
@@ -68,7 +68,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
           ),
           Text(
             ' ${analytics.isIncrease ? 'more' : 'less'} than last month',
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),

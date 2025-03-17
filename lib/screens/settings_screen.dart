@@ -405,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Text(
                 'Appearance',
                 style: theme.textTheme.titleSmall?.copyWith(
