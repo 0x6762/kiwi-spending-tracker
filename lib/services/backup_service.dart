@@ -91,25 +91,6 @@ class BackupService {
     }
   }
 
-  Future<String?> saveBackupToDownloads(String backupPath) async {
-    try {
-      // For Android 11+ (API level 30+), we need to use a different approach
-      // We'll use the share functionality to let the user save the file
-      final file = XFile(backupPath);
-      await Share.shareXFiles(
-        [file], 
-        text: 'Save your Kiwi Spending Tracker backup file',
-        subject: 'Kiwi Spending Tracker Backup'
-      );
-      
-      // Since we're using the share functionality, we don't know where the user saved it
-      return 'File shared for saving. Please check your device storage.';
-    } catch (e) {
-      debugPrint('Error saving backup to downloads: $e');
-      return null;
-    }
-  }
-
   Future<void> restoreFromBackup(String backupPath) async {
     try {
       final backupFile = File(backupPath);

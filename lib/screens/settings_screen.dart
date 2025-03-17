@@ -170,21 +170,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Backup Created'),
             content: const Text(
-              'Backup created successfully. How would you like to access your backup file?'
+              'Backup created successfully. Would you like to share it to save it to your device?'
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, 'close'),
                 child: const Text('Close'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'downloads'),
-                child: Text(
-                  'Save to Device',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, 'share'),
@@ -201,23 +192,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         if (action == 'share') {
           await backupService.shareBackup(backupPath);
-        } else if (action == 'downloads') {
-          final savedPath = await backupService.saveBackupToDownloads(backupPath);
-          if (savedPath != null && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Backup shared. Please save it to your device.'),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-              ),
-            );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Failed to share backup file'),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
-          }
         }
       }
     } catch (e) {
