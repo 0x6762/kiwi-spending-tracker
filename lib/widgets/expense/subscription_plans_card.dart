@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/subscription_service.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
@@ -32,42 +33,25 @@ class SubscriptionPlansCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.subscriptions_rounded,
-                size: 24,
-                color: Color(0xFF2196F3),
+              SvgPicture.asset(
+                'assets/icons/subscription.svg',
+                width: 24,
+                height: 24,
+                color: const Color(0xFF2196F3),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Subscriptions',
-                style: theme.textTheme.labelMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${summary.totalSubscriptions} plans',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 formatCurrency(summary.totalMonthlyAmount),
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'monthly equivalent',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10,
                 ),
               ),
             ],

@@ -37,37 +37,19 @@ class UpcomingExpensesCard extends StatelessWidget {
                 size: 24,
                 color: Color(0xFF4CAF50),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Upcoming',
-                style: theme.textTheme.labelMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${analytics.upcomingExpenses.length} expenses',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 formatCurrency(analytics.totalAmount),
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'coming soon',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 10,
                 ),
               ),
             ],
