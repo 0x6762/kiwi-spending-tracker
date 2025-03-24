@@ -84,7 +84,7 @@ class MonthlyExpenseChart extends StatelessWidget {
             : monthlyTotals.values.reduce((max, value) => value > max ? value : max);
 
         return AspectRatio(
-          aspectRatio: 2.5,
+          aspectRatio: 2.8,
           child: Padding(
             padding: const EdgeInsets.only(top: 24, bottom: 0),
             child: BarChart(

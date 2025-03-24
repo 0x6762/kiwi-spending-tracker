@@ -125,11 +125,10 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         Text(
                           formatCurrency(analytics.totalSpent),
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.titleLarge?.copyWith(
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
