@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/expense.dart';
 import '../../services/expense_analytics_service.dart';
+import '../../services/subscription_service.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/category_repository.dart';
 import '../../repositories/account_repository.dart';
@@ -10,6 +11,7 @@ import '../../screens/subscriptions_screen.dart';
 import '../../screens/upcoming_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import 'upcoming_expenses_card.dart';
+import 'subscription_plans_card.dart';
 import '../../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -40,6 +42,15 @@ class ExpenseSummary extends StatefulWidget {
 
 class _ExpenseSummaryState extends State<ExpenseSummary> {
   final _monthFormat = DateFormat.yMMMM();
+  late SubscriptionService _subscriptionService;
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.repository != null && widget.categoryRepo != null) {
+      _subscriptionService = SubscriptionService(widget.repository!, widget.categoryRepo!);
+    }
+  }
 
   Widget _buildMonthComparison(BuildContext context, MonthlyAnalytics analytics) {
     if (analytics.previousMonthTotal == 0) return const SizedBox.shrink();
@@ -161,37 +172,50 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           iconAsset: 'assets/icons/variable_expense.svg',
                           iconColor: const Color(0xFF8056E4),
                         ),
-                        const SizedBox(height: 0),
-                        _SummaryRow(
-                          label: 'Subscriptions',
-                          amount: analytics.subscriptionExpenses,
-                          context: context,
-                          iconAsset: 'assets/icons/subscription.svg',
-                          iconColor: const Color(0xFF2196F3),
-                          showArrow: false,
-                          onTap: widget.repository != null && 
-                                 widget.categoryRepo != null && 
-                                 widget.accountRepo != null
-                              ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SubscriptionsScreen(
-                                        repository: widget.repository!,
-                                        categoryRepo: widget.categoryRepo!,
-                                        accountRepo: widget.accountRepo!,
-                                        selectedMonth: widget.selectedMonth,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              : null,
-                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
+                // Subscription Plans Card
+                if (widget.repository != null && widget.categoryRepo != null)
+                  FutureBuilder<SubscriptionSummary>(
+                    future: _subscriptionService.getSubscriptionSummary(),
+                    builder: (context, subscriptionSnapshot) {
+                      if (!subscriptionSnapshot.hasData) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      final subscriptionSummary = subscriptionSnapshot.data!;
+                      
+                      if (subscriptionSummary.totalSubscriptions == 0) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      return SubscriptionPlansCard(
+                        summary: subscriptionSummary,
+                        onTap: widget.repository != null && 
+                               widget.categoryRepo != null && 
+                               widget.accountRepo != null
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SubscriptionsScreen(
+                                      repository: widget.repository!,
+                                      categoryRepo: widget.categoryRepo!,
+                                      accountRepo: widget.accountRepo!,
+                                      selectedMonth: widget.selectedMonth,
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
+                      );
+                    },
+                  ),
+                const SizedBox(height: 8),
+                // Upcoming Expenses Card
                 FutureBuilder<UpcomingExpensesAnalytics>(
                   future: widget.analyticsService.getUpcomingExpenses(),
                   builder: (context, upcomingSnapshot) {

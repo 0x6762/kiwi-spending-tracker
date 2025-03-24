@@ -61,8 +61,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<void> _loadSubscriptions() async {
     setState(() => _isLoading = true);
     try {
-      // Get subscriptions and summary for the selected month
-      final subscriptions = await _subscriptionService.getSubscriptionsForMonth(widget.selectedMonth);
+      // Get all subscriptions instead of just those for the selected month
+      final subscriptions = await _subscriptionService.getSubscriptions();
+      // Still get the summary for the selected month
       final summary = await _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth);
       
       setState(() {
@@ -244,7 +245,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total Subscription Costs',
+              'Estimated Cost for ${_monthFormat.format(widget.selectedMonth)}',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -255,6 +256,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Monthly cost including yearly plans converted to monthly equivalent.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -270,7 +278,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
-        title: 'Subscriptions',
+        backgroundColor: theme.colorScheme.surface,
+        title: 'Subscription Plans',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -284,46 +293,35 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             : _subscriptions.isEmpty
                 ? Center(
                     child: Text(
-                      'No subscriptions paid this month',
+                      'No subscription plans found',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildSubscriptionSummary(),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                          child: Text(
-                            'Subscriptions',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildSubscriptionSummary(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Text(
+                          'All your subscription plans are shown below, including future ones. Actual payments will appear in your expenses list when they are due.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          color: theme.colorScheme.surfaceContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          elevation: 0,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: _subscriptions.length,
-                            itemBuilder: (context, index) {
-                              return _buildSubscriptionItem(context, _subscriptions[index]);
-                            },
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _subscriptions.length,
+                          itemBuilder: (context, index) => _buildSubscriptionItem(
+                            context, 
+                            _subscriptions[index],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
       ),
     );

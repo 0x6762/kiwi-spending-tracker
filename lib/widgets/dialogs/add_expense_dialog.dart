@@ -543,24 +543,39 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         if (widget.type == ExpenseType.subscription)
                           Padding(
                             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    'Recurring Subscription',
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      color: theme.colorScheme.onSurface,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Recurring Subscription',
+                                        style: theme.textTheme.bodyLarge?.copyWith(
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: _isRecurringSubscription,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _isRecurringSubscription = value;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                if (_isRecurringSubscription)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+                                    child: Text(
+                                      'This will create a subscription plan. Expenses will be generated automatically when payments are due.',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Switch(
-                                  value: _isRecurringSubscription,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isRecurringSubscription = value;
-                                    });
-                                  },
-                                ),
                               ],
                             ),
                           ),

@@ -110,8 +110,8 @@ class SubscriptionService {
     // We still keep the monthly equivalent for reference
     final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
     
-    // Total is now the sum of monthly subscriptions plus the full yearly amounts
-    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingAmount;
+    // Use the monthly equivalent approach to match what getSubscriptionSummary() does
+    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
     
     // Count subscriptions by status
     final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
@@ -267,12 +267,16 @@ class SubscriptionService {
            nextBillingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
         
         // Create a new expense entry based on the subscription
+        // But mark it as a regular fixed expense (not a subscription)
+        // This way it appears in expenses and counts toward totals
         final newExpense = subscription.copyWith(
           id: _uuid.v4(),
           date: nextBillingDate,
           createdAt: now,
           isRecurring: false, // This is a generated instance
           nextBillingDate: null, // Clear this for the instance
+          type: ExpenseType.fixed, // Change to fixed expense type for actual payment
+          // Carry over all other properties from the subscription
         );
         
         await _expenseRepo.addExpense(newExpense);
