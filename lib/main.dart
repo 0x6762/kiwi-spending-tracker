@@ -39,6 +39,14 @@ void main() async {
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
   );
+  
+  // Process any pending recurring subscriptions
+  try {
+    final processedCount = await subscriptionService.processRecurringSubscriptions();
+    debugPrint('Processed $processedCount recurring subscriptions');
+  } catch (e) {
+    debugPrint('Error processing recurring subscriptions: $e');
+  }
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
@@ -59,17 +67,20 @@ void main() async {
   runApp(MyApp(
     repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
+    subscriptionService: subscriptionService,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
+  final SubscriptionService subscriptionService;
 
   const MyApp({
     super.key,
     required this.repositoryProvider,
     required this.analyticsService,
+    required this.subscriptionService,
   });
 
   @override
@@ -78,6 +89,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: repositoryProvider),
+        Provider.value(value: subscriptionService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) => AnnotatedRegion<SystemUiOverlayStyle>(

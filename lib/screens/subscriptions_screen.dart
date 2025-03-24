@@ -160,11 +160,31 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            title: Text(
-              subscription.expense.title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    subscription.expense.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                if (subscription.isRecurring)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Recurring',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +194,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Paid on: ${_formatDate(subscription.expense.date)}',
+                        subscription.isRecurring && subscription.nextBillingDate != null
+                            ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
+                            : 'Paid on: ${_formatDate(subscription.expense.date)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
