@@ -177,79 +177,105 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Subscription Plans Card
-                if (widget.repository != null && widget.categoryRepo != null)
-                  FutureBuilder<SubscriptionSummary>(
-                    future: _subscriptionService.getSubscriptionSummary(),
-                    builder: (context, subscriptionSnapshot) {
-                      if (!subscriptionSnapshot.hasData) {
-                        return const SizedBox.shrink();
-                      }
-                      
-                      final subscriptionSummary = subscriptionSnapshot.data!;
-                      
-                      if (subscriptionSummary.totalSubscriptions == 0) {
-                        return const SizedBox.shrink();
-                      }
-                      
-                      return SubscriptionPlansCard(
-                        summary: subscriptionSummary,
-                        onTap: widget.repository != null && 
-                               widget.categoryRepo != null && 
-                               widget.accountRepo != null
-                            ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SubscriptionsScreen(
-                                      repository: widget.repository!,
-                                      categoryRepo: widget.categoryRepo!,
-                                      accountRepo: widget.accountRepo!,
-                                      selectedMonth: widget.selectedMonth,
-                                    ),
-                                  ),
-                                );
-                              }
-                            : null,
-                      );
-                    },
-                  ),
-                const SizedBox(height: 8),
-                // Upcoming Expenses Card
-                FutureBuilder<UpcomingExpensesAnalytics>(
-                  future: widget.analyticsService.getUpcomingExpenses(),
-                  builder: (context, upcomingSnapshot) {
-                    if (!upcomingSnapshot.hasData) {
-                      return const SizedBox.shrink();
-                    }
-                    
-                    final upcomingAnalytics = upcomingSnapshot.data!;
-                    
-                    if (upcomingAnalytics.upcomingExpenses.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    
-                    return UpcomingExpensesCard(
-                      analytics: upcomingAnalytics,
-                      onTap: widget.repository != null && 
-                             widget.categoryRepo != null && 
-                             widget.accountRepo != null
-                          ? () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => UpcomingExpensesScreen(
-                                    repository: widget.repository!,
-                                    categoryRepo: widget.categoryRepo!,
-                                    accountRepo: widget.accountRepo!,
-                                    selectedMonth: widget.selectedMonth,
-                                  ),
-                                ),
-                              );
+                // Cards Row: Subscription Plans and Upcoming Expenses side by side
+                Row(
+                  children: [
+                    // Subscription Plans Card
+                    if (widget.repository != null && widget.categoryRepo != null)
+                      Expanded(
+                        child: FutureBuilder<SubscriptionSummary>(
+                          future: _subscriptionService.getSubscriptionSummary(),
+                          builder: (context, subscriptionSnapshot) {
+                            if (!subscriptionSnapshot.hasData || 
+                                subscriptionSnapshot.data!.totalSubscriptions == 0) {
+                              return const SizedBox.shrink();
                             }
+                            
+                            final subscriptionSummary = subscriptionSnapshot.data!;
+                            
+                            return SubscriptionPlansCard(
+                              summary: subscriptionSummary,
+                              onTap: widget.repository != null && 
+                                     widget.categoryRepo != null && 
+                                     widget.accountRepo != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SubscriptionsScreen(
+                                            repository: widget.repository!,
+                                            categoryRepo: widget.categoryRepo!,
+                                            accountRepo: widget.accountRepo!,
+                                            selectedMonth: widget.selectedMonth,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                            );
+                          },
+                        ),
+                      ),
+                    
+                    // Add space between cards when both are visible
+                    FutureBuilder<SubscriptionSummary>(
+                      future: widget.repository != null && widget.categoryRepo != null
+                          ? _subscriptionService.getSubscriptionSummary()
                           : null,
-                    );
-                  },
+                      builder: (context, subscriptionSnapshot) {
+                        return FutureBuilder<UpcomingExpensesAnalytics>(
+                          future: widget.analyticsService.getUpcomingExpenses(),
+                          builder: (context, upcomingSnapshot) {
+                            final hasSubscriptions = subscriptionSnapshot.hasData && 
+                                                    subscriptionSnapshot.data!.totalSubscriptions > 0;
+                            final hasUpcoming = upcomingSnapshot.hasData && 
+                                              upcomingSnapshot.data!.upcomingExpenses.isNotEmpty;
+                            
+                            // Only show spacing if both cards are visible
+                            return (hasSubscriptions && hasUpcoming) 
+                                ? const SizedBox(width: 8) 
+                                : const SizedBox.shrink();
+                          },
+                        );
+                      },
+                    ),
+                    
+                    // Upcoming Expenses Card
+                    Expanded(
+                      child: FutureBuilder<UpcomingExpensesAnalytics>(
+                        future: widget.analyticsService.getUpcomingExpenses(),
+                        builder: (context, upcomingSnapshot) {
+                          if (!upcomingSnapshot.hasData || 
+                              upcomingSnapshot.data!.upcomingExpenses.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          
+                          final upcomingAnalytics = upcomingSnapshot.data!;
+                          
+                          return UpcomingExpensesCard(
+                            analytics: upcomingAnalytics,
+                            onTap: widget.repository != null && 
+                                   widget.categoryRepo != null && 
+                                   widget.accountRepo != null
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UpcomingExpensesScreen(
+                                          repository: widget.repository!,
+                                          categoryRepo: widget.categoryRepo!,
+                                          accountRepo: widget.accountRepo!,
+                                          selectedMonth: widget.selectedMonth,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ],
