@@ -54,7 +54,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   // New state variables for type-specific fields
   String _billingCycle = 'Monthly'; // For subscriptions
   bool _isFixedExpense = false; // State variable for fixed expense checkbox
-  bool _isRecurringSubscription = false; // New state variable for recurring subscriptions
+  bool _isRecurringSubscription = true; // Always true for subscriptions
 
   @override
   void initState() {
@@ -77,7 +77,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _selectedAccountId = widget.expense!.accountId;
       _billingCycle = widget.expense!.billingCycle ?? 'Monthly';
       _isFixedExpense = widget.expense!.type == ExpenseType.fixed;
-      _isRecurringSubscription = widget.expense!.isRecurring;
+      _isRecurringSubscription = true;
       
       // Load category and account
       _loadCategory(widget.expense!.categoryId);
@@ -90,8 +90,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _loadAccount(_selectedAccountId);
       // Initialize fixed expense checkbox based on the provided type
       _isFixedExpense = widget.type == ExpenseType.fixed;
-      // For subscriptions, default to recurring
-      _isRecurringSubscription = widget.type == ExpenseType.subscription;
+      // For subscriptions, always set to recurring
+      _isRecurringSubscription = true;
     }
   }
 
@@ -309,7 +309,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       }
       
       // Determine if recurring and frequency
-      final bool isRecurring = (expenseType == ExpenseType.subscription && _isRecurringSubscription) || expenseType == ExpenseType.fixed;
+      final bool isRecurring = expenseType == ExpenseType.subscription || expenseType == ExpenseType.fixed;
       final ExpenseFrequency frequency = expenseType == ExpenseType.subscription
           ? (_billingCycle == 'Monthly' ? ExpenseFrequency.monthly : ExpenseFrequency.yearly)
           : (expenseType == ExpenseType.fixed ? ExpenseFrequency.monthly : ExpenseFrequency.oneTime);
@@ -319,7 +319,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       
       // Calculate next billing date for recurring subscriptions
       DateTime? nextBillingDate;
-      if (expenseType == ExpenseType.subscription && _isRecurringSubscription) {
+      if (expenseType == ExpenseType.subscription) {
         if (_billingCycle == 'Monthly') {
           nextBillingDate = DateTime(
             _selectedDate.year, 
@@ -537,48 +537,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           onBillingCycleTap: _showBillingCyclePicker,
                           nextBillingDate: _selectedDate,
                           onNextBillingDateTap: _selectDate, // Just in case the component still needs this
-                        ),
-                        
-                        // Only show recurring subscription checkbox for subscription type
-                        if (widget.type == ExpenseType.subscription)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Recurring Subscription',
-                                        style: theme.textTheme.bodyLarge?.copyWith(
-                                          color: theme.colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: _isRecurringSubscription,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _isRecurringSubscription = value;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                if (_isRecurringSubscription)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-                                    child: Text(
-                                      'This will create a subscription plan. Expenses will be generated automatically when payments are due.',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                        ),                    
                       ],
                     ),
                   ),

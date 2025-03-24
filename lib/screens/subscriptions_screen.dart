@@ -171,20 +171,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     ),
                   ),
                 ),
-                if (subscription.isRecurring)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Recurring',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
               ],
             ),
             subtitle: Column(
@@ -195,7 +181,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        subscription.isRecurring && subscription.nextBillingDate != null
+                        subscription.nextBillingDate != null
                             ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
                             : 'Paid on: ${_formatDate(subscription.expense.date)}',
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -306,12 +292,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       children: [
                         _buildSubscriptionSummary(),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                          child: Text(
-                            'Active Subscription Plans',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Active Subscription Plans',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
                           ),
                         ),
                         Card(
