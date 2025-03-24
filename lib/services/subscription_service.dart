@@ -4,6 +4,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../utils/formatters.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 /// Enum representing the status of a subscription
 enum SubscriptionStatus {
@@ -20,6 +21,7 @@ class SubscriptionData {
   final String formattedNextBillingDate;
   final String billingCycle;
   final double monthlyEquivalentCost;
+  final bool isRecurring;
 
   SubscriptionData({
     required this.expense,
@@ -28,6 +30,7 @@ class SubscriptionData {
     required this.formattedNextBillingDate,
     required this.billingCycle,
     required this.monthlyEquivalentCost,
+    required this.isRecurring,
   });
 }
 
@@ -57,6 +60,7 @@ class SubscriptionService {
   final ExpenseRepository _expenseRepo;
   final CategoryRepository _categoryRepo;
   final _dateFormat = DateFormat.yMMMd();
+  final _uuid = Uuid();
 
   SubscriptionService(this._expenseRepo, this._categoryRepo);
 
@@ -106,8 +110,8 @@ class SubscriptionService {
     // We still keep the monthly equivalent for reference
     final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
     
-    // Total is now the sum of monthly subscriptions plus the full yearly amounts
-    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingAmount;
+    // Use the monthly equivalent approach to match what getSubscriptionSummary() does
+    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
     
     // Count subscriptions by status
     final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
@@ -240,6 +244,56 @@ class SubscriptionService {
     }
   }
 
+  /// Process recurring subscriptions to create new expense entries for due/overdue subscriptions
+  Future<int> processRecurringSubscriptions() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    int processedCount = 0;
+    
+    // Get all active recurring subscription templates
+    final expenses = await _expenseRepo.getAllExpenses();
+    final subscriptions = expenses.where((expense) => 
+      expense.type == ExpenseType.subscription && 
+      expense.isRecurring == true &&
+      (expense.endDate == null || expense.endDate!.isAfter(today))
+    ).toList();
+    
+    for (final subscription in subscriptions) {
+      final nextBillingDate = subscription.nextBillingDate;
+      
+      // If next billing date is null, in the past, or today - process it
+      if (nextBillingDate != null && 
+          (nextBillingDate.isBefore(today) || 
+           nextBillingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
+        
+        // Create a new expense entry based on the subscription
+        // But mark it as a regular fixed expense (not a subscription)
+        // This way it appears in expenses and counts toward totals
+        final newExpense = subscription.copyWith(
+          id: _uuid.v4(),
+          date: nextBillingDate,
+          createdAt: now,
+          isRecurring: false, // This is a generated instance
+          nextBillingDate: null, // Clear this for the instance
+          type: ExpenseType.fixed, // Change to fixed expense type for actual payment
+          // Carry over all other properties from the subscription
+        );
+        
+        await _expenseRepo.addExpense(newExpense);
+        
+        // Update the subscription template with the next billing date
+        final updatedSubscription = subscription.copyWith(
+          nextBillingDate: calculateNextBillingDate(subscription),
+        );
+        
+        await _expenseRepo.updateExpense(updatedSubscription);
+        processedCount++;
+      }
+    }
+    
+    return processedCount;
+  }
+
   /// Enhances a list of subscription expenses with additional data and status
   List<SubscriptionData> _enhanceSubscriptions(List<Expense> subscriptions) {
     return subscriptions.map((subscription) {
@@ -260,6 +314,7 @@ class SubscriptionService {
         formattedNextBillingDate: formatDate(nextBillingDate),
         billingCycle: billingCycle,
         monthlyEquivalentCost: monthlyEquivalentCost,
+        isRecurring: subscription.isRecurring,
       );
     }).toList()
       ..sort((a, b) {

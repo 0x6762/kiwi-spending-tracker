@@ -13,6 +13,7 @@ import '../../repositories/category_repository.dart';
 import '../../repositories/account_repository.dart';
 import '../common/app_bar.dart';
 import '../../utils/icons.dart';
+import '../../utils/formatters.dart';
 import 'dart:math' as math;
 import '../forms/expense_form_fields.dart';
 import '../forms/number_pad.dart';
@@ -53,6 +54,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   // New state variables for type-specific fields
   String _billingCycle = 'Monthly'; // For subscriptions
   bool _isFixedExpense = false; // State variable for fixed expense checkbox
+  bool _isRecurringSubscription = true; // Always true for subscriptions
 
   @override
   void initState() {
@@ -75,6 +77,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _selectedAccountId = widget.expense!.accountId;
       _billingCycle = widget.expense!.billingCycle ?? 'Monthly';
       _isFixedExpense = widget.expense!.type == ExpenseType.fixed;
+      _isRecurringSubscription = true;
       
       // Load category and account
       _loadCategory(widget.expense!.categoryId);
@@ -87,6 +90,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       _loadAccount(_selectedAccountId);
       // Initialize fixed expense checkbox based on the provided type
       _isFixedExpense = widget.type == ExpenseType.fixed;
+      // For subscriptions, always set to recurring
+      _isRecurringSubscription = true;
     }
   }
 
@@ -312,6 +317,24 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       // Always set status to paid, regardless of date
       final ExpenseStatus status = ExpenseStatus.paid;
       
+      // Calculate next billing date for recurring subscriptions
+      DateTime? nextBillingDate;
+      if (expenseType == ExpenseType.subscription) {
+        if (_billingCycle == 'Monthly') {
+          nextBillingDate = DateTime(
+            _selectedDate.year, 
+            _selectedDate.month + 1, 
+            _selectedDate.day,
+          );
+        } else if (_billingCycle == 'Yearly') {
+          nextBillingDate = DateTime(
+            _selectedDate.year + 1, 
+            _selectedDate.month, 
+            _selectedDate.day,
+          );
+        }
+      }
+      
       final expense = Expense(
         id: widget.expense?.id ?? const Uuid().v4(),
         title: _titleController.text.trim().isNotEmpty 
@@ -325,7 +348,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         type: expenseType,
         accountId: _selectedAccountId,
         billingCycle: expenseType == ExpenseType.subscription ? _billingCycle : null,
-        nextBillingDate: null,
+        nextBillingDate: nextBillingDate,
         dueDate: null,
         // Add new fields
         necessity: necessity,
@@ -458,45 +481,22 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       left: 8.0,
                       right: 8.0,
                       top: 8.0,
-                      bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 200 : 16.0,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Date selector - simplified and moved to the top
-                        GestureDetector(
-                          onTap: _selectDate,
-                          child: Row(
-                            children: [
-                              Text(
-                                _dateFormat.format(_selectedDate),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 18,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        
-                        // Amount field - removed label and modified styling
+                        // Amount field with currency symbol
                         TextFormField(
                           controller: _amountController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                          ],
                           decoration: InputDecoration(
-                            prefixText: '\$ ',
-                            prefixStyle: theme.textTheme.headlineMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
+                            prefix: Text(
+                              formatCurrency(0).replaceAll(RegExp(r'[0-9.,]'), ''), // Extract just the currency symbol
+                              style: theme.textTheme.headlineLarge?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             filled: false,
                             border: InputBorder.none,
@@ -537,7 +537,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           onBillingCycleTap: _showBillingCyclePicker,
                           nextBillingDate: _selectedDate,
                           onNextBillingDateTap: _selectDate, // Just in case the component still needs this
-                        ),
+                        ),                    
                       ],
                     ),
                   ),

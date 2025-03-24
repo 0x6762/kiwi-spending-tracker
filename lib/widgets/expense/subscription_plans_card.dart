@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../services/expense_analytics_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../services/subscription_service.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
 
-class UpcomingExpensesCard extends StatelessWidget {
-  final UpcomingExpensesAnalytics analytics;
+class SubscriptionPlansCard extends StatelessWidget {
+  final SubscriptionSummary summary;
   final VoidCallback? onTap;
 
-  const UpcomingExpensesCard({
+  const SubscriptionPlansCard({
     super.key,
-    required this.analytics,
+    required this.summary,
     this.onTap,
   });
 
@@ -32,14 +33,15 @@ class UpcomingExpensesCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                AppIcons.calendar,
-                size: 24,
-                color: Color(0xFF4CAF50),
+              SvgPicture.asset(
+                'assets/icons/subscription.svg',
+                width: 24,
+                height: 24,
+                color: const Color(0xFF2196F3),
               ),
               const SizedBox(height: 12),
               Text(
-                'Upcoming',
+                'Subscriptions',
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -47,7 +49,7 @@ class UpcomingExpensesCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                formatCurrency(analytics.totalAmount),
+                formatCurrency(summary.totalMonthlyAmount),
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),

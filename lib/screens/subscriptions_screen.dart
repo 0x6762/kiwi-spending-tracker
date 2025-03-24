@@ -61,8 +61,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<void> _loadSubscriptions() async {
     setState(() => _isLoading = true);
     try {
-      // Get subscriptions and summary for the selected month
-      final subscriptions = await _subscriptionService.getSubscriptionsForMonth(widget.selectedMonth);
+      // Get all subscriptions instead of just those for the selected month
+      final subscriptions = await _subscriptionService.getSubscriptions();
+      // Still get the summary for the selected month
       final summary = await _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth);
       
       setState(() {
@@ -160,11 +161,17 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            title: Text(
-              subscription.expense.title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    subscription.expense.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +181,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Paid on: ${_formatDate(subscription.expense.date)}',
+                        subscription.nextBillingDate != null
+                            ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
+                            : 'Paid on: ${_formatDate(subscription.expense.date)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -222,7 +231,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Total Subscription Costs',
+              'Total Monthly Cost',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -233,6 +242,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${_summary?.totalSubscriptions} active plans',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -248,7 +264,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
-        title: 'Subscriptions',
+        backgroundColor: theme.colorScheme.surface,
+        title: 'Subscription Plans',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -262,7 +279,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             : _subscriptions.isEmpty
                 ? Center(
                     child: Text(
-                      'No subscriptions paid this month',
+                      'No subscription plans found',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -275,12 +292,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       children: [
                         _buildSubscriptionSummary(),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                          child: Text(
-                            'Subscriptions',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Active Subscription Plans',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
                           ),
                         ),
                         Card(

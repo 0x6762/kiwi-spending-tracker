@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/expense.dart';
 import '../../services/expense_analytics_service.dart';
+import '../../services/subscription_service.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/category_repository.dart';
 import '../../repositories/account_repository.dart';
@@ -10,6 +11,7 @@ import '../../screens/subscriptions_screen.dart';
 import '../../screens/upcoming_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import 'upcoming_expenses_card.dart';
+import 'subscription_plans_card.dart';
 import '../../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -40,6 +42,15 @@ class ExpenseSummary extends StatefulWidget {
 
 class _ExpenseSummaryState extends State<ExpenseSummary> {
   final _monthFormat = DateFormat.yMMMM();
+  late SubscriptionService _subscriptionService;
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.repository != null && widget.categoryRepo != null) {
+      _subscriptionService = SubscriptionService(widget.repository!, widget.categoryRepo!);
+    }
+  }
 
   Widget _buildMonthComparison(BuildContext context, MonthlyAnalytics analytics) {
     if (analytics.previousMonthTotal == 0) return const SizedBox.shrink();
@@ -114,11 +125,10 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         Text(
                           formatCurrency(analytics.totalSpent),
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.titleLarge?.copyWith(
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
@@ -161,71 +171,98 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           iconAsset: 'assets/icons/variable_expense.svg',
                           iconColor: const Color(0xFF8056E4),
                         ),
-                        const SizedBox(height: 0),
-                        _SummaryRow(
-                          label: 'Subscriptions',
-                          amount: analytics.subscriptionExpenses,
-                          context: context,
-                          iconAsset: 'assets/icons/subscription.svg',
-                          iconColor: const Color(0xFF2196F3),
-                          showArrow: false,
-                          onTap: widget.repository != null && 
-                                 widget.categoryRepo != null && 
-                                 widget.accountRepo != null
-                              ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SubscriptionsScreen(
-                                        repository: widget.repository!,
-                                        categoryRepo: widget.categoryRepo!,
-                                        accountRepo: widget.accountRepo!,
-                                        selectedMonth: widget.selectedMonth,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              : null,
-                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                FutureBuilder<UpcomingExpensesAnalytics>(
-                  future: widget.analyticsService.getUpcomingExpenses(),
-                  builder: (context, upcomingSnapshot) {
-                    if (!upcomingSnapshot.hasData) {
-                      return const SizedBox.shrink();
-                    }
+                // Cards Row: Subscription Plans and Upcoming Expenses side by side
+                Row(
+                  children: [
+                    // Subscription Plans Card
+                    if (widget.repository != null && widget.categoryRepo != null)
+                      Expanded(
+                        child: FutureBuilder<SubscriptionSummary>(
+                          future: _subscriptionService.getSubscriptionSummary(),
+                          builder: (context, subscriptionSnapshot) {
+                            // Create a default summary if no data is available
+                            final subscriptionSummary = subscriptionSnapshot.hasData
+                                ? subscriptionSnapshot.data!
+                                : SubscriptionSummary(
+                                    totalMonthlyAmount: 0,
+                                    monthlyBillingAmount: 0,
+                                    yearlyBillingMonthlyEquivalent: 0,
+                                    totalSubscriptions: 0,
+                                    activeSubscriptions: 0,
+                                    dueSoonSubscriptions: 0,
+                                    overdueSubscriptions: 0,
+                                  );
+                            
+                            return SubscriptionPlansCard(
+                              summary: subscriptionSummary,
+                              onTap: widget.repository != null && 
+                                     widget.categoryRepo != null && 
+                                     widget.accountRepo != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SubscriptionsScreen(
+                                            repository: widget.repository!,
+                                            categoryRepo: widget.categoryRepo!,
+                                            accountRepo: widget.accountRepo!,
+                                            selectedMonth: widget.selectedMonth,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                            );
+                          },
+                        ),
+                      ),
                     
-                    final upcomingAnalytics = upcomingSnapshot.data!;
+                    // Always show spacing between cards
+                    const SizedBox(width: 8),
                     
-                    if (upcomingAnalytics.upcomingExpenses.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    
-                    return UpcomingExpensesCard(
-                      analytics: upcomingAnalytics,
-                      onTap: widget.repository != null && 
-                             widget.categoryRepo != null && 
-                             widget.accountRepo != null
-                          ? () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => UpcomingExpensesScreen(
-                                    repository: widget.repository!,
-                                    categoryRepo: widget.categoryRepo!,
-                                    accountRepo: widget.accountRepo!,
-                                    selectedMonth: widget.selectedMonth,
-                                  ),
-                                ),
-                              );
-                            }
-                          : null,
-                    );
-                  },
+                    // Upcoming Expenses Card
+                    Expanded(
+                      child: FutureBuilder<UpcomingExpensesAnalytics>(
+                        future: widget.analyticsService.getUpcomingExpenses(),
+                        builder: (context, upcomingSnapshot) {
+                          // Create a default analytics if no data is available
+                          final upcomingAnalytics = upcomingSnapshot.hasData
+                              ? upcomingSnapshot.data!
+                              : UpcomingExpensesAnalytics(
+                                  upcomingExpenses: [],
+                                  totalAmount: 0,
+                                  fromDate: DateTime.now(),
+                                );
+                          
+                          return UpcomingExpensesCard(
+                            analytics: upcomingAnalytics,
+                            onTap: widget.repository != null && 
+                                   widget.categoryRepo != null && 
+                                   widget.accountRepo != null
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UpcomingExpensesScreen(
+                                          repository: widget.repository!,
+                                          categoryRepo: widget.categoryRepo!,
+                                          accountRepo: widget.accountRepo!,
+                                          selectedMonth: widget.selectedMonth,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ],

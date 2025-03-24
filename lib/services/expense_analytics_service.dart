@@ -132,7 +132,18 @@ class ExpenseAnalyticsService {
 
     // Calculate totals for each expense type
     final subscriptionTotal = monthlyExpenses
-        .where((expense) => expense.type == ExpenseType.subscription)
+        .where((expense) => 
+          expense.type == ExpenseType.subscription && 
+          (
+            // Either it's not a recurring subscription (actual payment)
+            expense.isRecurring == false ||
+            // OR it's a template but has today's date (new subscription created for current month)
+            (expense.isRecurring == true && 
+             expense.date.year == DateTime.now().year && 
+             expense.date.month == DateTime.now().month &&
+             expense.date.day == DateTime.now().day)
+          )
+        )
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
     final fixedTotal = monthlyExpenses
@@ -181,7 +192,22 @@ class ExpenseAnalyticsService {
 
     // Filter expenses within date range and group by month
     for (final expense in expenses) {
-      if (expense.date.isAfter(startDate) && expense.date.isBefore(endDate)) {
+      if (expense.date.isAfter(startDate.subtract(const Duration(days: 1))) && 
+          expense.date.isBefore(endDate.add(const Duration(days: 1)))) {
+        
+        // Skip recurring subscription templates, except for those created today
+        if (expense.type == ExpenseType.subscription && expense.isRecurring == true) {
+          // BUT include templates with today's date (new subscription created for current month)
+          final today = DateTime.now();
+          final isToday = expense.date.year == today.year && 
+                          expense.date.month == today.month &&
+                          expense.date.day == today.day;
+          
+          if (!isToday) {
+            continue;
+          }
+        }
+        
         final monthKey = DateTime(expense.date.year, expense.date.month);
         monthlyTotals[monthKey] = (monthlyTotals[monthKey] ?? 0.0) + expense.amount;
       }
