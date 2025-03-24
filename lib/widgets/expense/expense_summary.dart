@@ -186,12 +186,18 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                         child: FutureBuilder<SubscriptionSummary>(
                           future: _subscriptionService.getSubscriptionSummary(),
                           builder: (context, subscriptionSnapshot) {
-                            if (!subscriptionSnapshot.hasData || 
-                                subscriptionSnapshot.data!.totalSubscriptions == 0) {
-                              return const SizedBox.shrink();
-                            }
-                            
-                            final subscriptionSummary = subscriptionSnapshot.data!;
+                            // Create a default summary if no data is available
+                            final subscriptionSummary = subscriptionSnapshot.hasData
+                                ? subscriptionSnapshot.data!
+                                : SubscriptionSummary(
+                                    totalMonthlyAmount: 0,
+                                    monthlyBillingAmount: 0,
+                                    yearlyBillingMonthlyEquivalent: 0,
+                                    totalSubscriptions: 0,
+                                    activeSubscriptions: 0,
+                                    dueSoonSubscriptions: 0,
+                                    overdueSubscriptions: 0,
+                                  );
                             
                             return SubscriptionPlansCard(
                               summary: subscriptionSummary,
@@ -217,40 +223,22 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                         ),
                       ),
                     
-                    // Add space between cards when both are visible
-                    FutureBuilder<SubscriptionSummary>(
-                      future: widget.repository != null && widget.categoryRepo != null
-                          ? _subscriptionService.getSubscriptionSummary()
-                          : null,
-                      builder: (context, subscriptionSnapshot) {
-                        return FutureBuilder<UpcomingExpensesAnalytics>(
-                          future: widget.analyticsService.getUpcomingExpenses(),
-                          builder: (context, upcomingSnapshot) {
-                            final hasSubscriptions = subscriptionSnapshot.hasData && 
-                                                    subscriptionSnapshot.data!.totalSubscriptions > 0;
-                            final hasUpcoming = upcomingSnapshot.hasData && 
-                                              upcomingSnapshot.data!.upcomingExpenses.isNotEmpty;
-                            
-                            // Only show spacing if both cards are visible
-                            return (hasSubscriptions && hasUpcoming) 
-                                ? const SizedBox(width: 8) 
-                                : const SizedBox.shrink();
-                          },
-                        );
-                      },
-                    ),
+                    // Always show spacing between cards
+                    const SizedBox(width: 8),
                     
                     // Upcoming Expenses Card
                     Expanded(
                       child: FutureBuilder<UpcomingExpensesAnalytics>(
                         future: widget.analyticsService.getUpcomingExpenses(),
                         builder: (context, upcomingSnapshot) {
-                          if (!upcomingSnapshot.hasData || 
-                              upcomingSnapshot.data!.upcomingExpenses.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          
-                          final upcomingAnalytics = upcomingSnapshot.data!;
+                          // Create a default analytics if no data is available
+                          final upcomingAnalytics = upcomingSnapshot.hasData
+                              ? upcomingSnapshot.data!
+                              : UpcomingExpensesAnalytics(
+                                  upcomingExpenses: [],
+                                  totalAmount: 0,
+                                  fromDate: DateTime.now(),
+                                );
                           
                           return UpcomingExpensesCard(
                             analytics: upcomingAnalytics,
