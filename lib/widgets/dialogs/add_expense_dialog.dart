@@ -486,6 +486,27 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Date display
+                        GestureDetector(
+                          onTap: _selectDate,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                
+                                
+                                Text(
+                                  _dateFormat.format(_selectedDate),
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
                         // Amount field with currency symbol
                         TextFormField(
                           controller: _amountController,
@@ -493,9 +514,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           decoration: InputDecoration(
                             prefix: Text(
                               formatCurrency(0).replaceAll(RegExp(r'[0-9.,]'), ''), // Extract just the currency symbol
-                              style: theme.textTheme.headlineLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             filled: false,
