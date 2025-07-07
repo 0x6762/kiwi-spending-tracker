@@ -132,7 +132,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: lightColorScheme,
       textTheme: textTheme,
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         clipBehavior: Clip.antiAlias,
       ),
       appBarTheme: AppBarTheme(
@@ -159,7 +159,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: darkColorScheme,
       textTheme: darkTextTheme,
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         clipBehavior: Clip.antiAlias,
       ),
       appBarTheme: AppBarTheme(
