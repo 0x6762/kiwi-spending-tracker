@@ -107,14 +107,29 @@ class AmountStepWidget extends StatelessWidget {
                 ),
               ),
             ),
-            // Account picker
+            // Payment method section
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: PickerButton(
-                label: controller.selectedAccount?.name ?? 'Loading...',
-                icon: controller.selectedAccount?.icon ?? AppIcons.wallet,
-                iconColor: controller.selectedAccount?.color,
-                onTap: () => _showAccountPicker(context, controller),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Payment method',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Account picker
+                  PickerButton(
+                    label: controller.selectedAccount?.name ?? 'Loading...',
+                    icon: controller.selectedAccount?.icon ?? AppIcons.wallet,
+                    iconColor: controller.selectedAccount?.color,
+                    onTap: () => _showAccountPicker(context, controller),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
             // Number pad

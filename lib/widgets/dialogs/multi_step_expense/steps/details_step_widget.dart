@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense.dart';
 import '../../../forms/picker_button.dart';
@@ -16,15 +17,22 @@ class DetailsStepWidget extends StatelessWidget {
     required this.onSubmit,
   });
 
-
-
   void _showExpenseTypePicker(BuildContext context, ExpenseFormController controller) {
     PickerSheet.show(
       context: context,
       title: 'Expense Type',
       children: [
         ListTile(
-          title: const Text('Variable'),
+          leading: SvgPicture.asset(
+            'assets/icons/variable_expense.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              const Color(0xFF8056E4),
+              BlendMode.srcIn,
+            ),
+          ),
+          title: const Text('Variable Expense'),
           selected: !controller.isFixedExpense,
           onTap: () {
             controller.setFixedExpense(false);
@@ -32,7 +40,16 @@ class DetailsStepWidget extends StatelessWidget {
           },
         ),
         ListTile(
-          title: const Text('Fixed'),
+          leading: SvgPicture.asset(
+            'assets/icons/fixed_expense.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              const Color(0xFFCF5825),
+              BlendMode.srcIn,
+            ),
+          ),
+          title: const Text('Fixed Expense'),
           selected: controller.isFixedExpense,
           onTap: () {
             controller.setFixedExpense(true);
@@ -49,6 +66,15 @@ class DetailsStepWidget extends StatelessWidget {
       title: 'Billing Cycle',
       children: ['Monthly', 'Yearly'].map(
         (cycle) => ListTile(
+          leading: SvgPicture.asset(
+            'assets/icons/subscription.svg',
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              const Color(0xFF2196F3),
+              BlendMode.srcIn,
+            ),
+          ),
           title: Text(cycle),
           selected: controller.billingCycle == cycle,
           onTap: () {
@@ -89,12 +115,29 @@ class DetailsStepWidget extends StatelessWidget {
                   children: [
                     // Question text
                     Text(
-                      'More details',
+                      'Pick a date',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.secondary,
                       ),
                     ),
                     const SizedBox(height: 24),
+                    
+                    // Date picker
+                    PickerButton(
+                      label: dateFormat.format(controller.selectedDate),
+                      icon: AppIcons.calendar,
+                      onTap: () => _selectDate(context, controller),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Optional detail section
+                    Text(
+                      'Optional detail',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     
                     // Expense name
                     TextFormField(
@@ -119,30 +162,21 @@ class DetailsStepWidget extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Date picker
-                    PickerButton(
-                      label: dateFormat.format(controller.selectedDate),
-                      icon: AppIcons.calendar,
-                      onTap: () => _selectDate(context, controller),
-                    ),
                     const SizedBox(height: 12),
                     
                     // Expense type picker (if not subscription)
                     if (controller.initialType != ExpenseType.subscription)
-                      PickerButton(
-                        label: controller.isFixedExpense ? 'Fixed' : 'Variable',
-                        icon: AppIcons.category,
+                      _ExpenseTypePickerButton(
+                        label: controller.isFixedExpense ? 'Fixed Expense' : 'Variable Expense',
+                        isFixed: controller.isFixedExpense,
                         onTap: () => _showExpenseTypePicker(context, controller),
                       ),
                     const SizedBox(height: 12),
                     
                     // Billing cycle picker (if subscription)
                     if (controller.initialType == ExpenseType.subscription)
-                      PickerButton(
+                      _SubscriptionPickerButton(
                         label: controller.billingCycle,
-                        icon: AppIcons.calendar,
                         onTap: () => _showBillingCyclePicker(context, controller),
                       ),
                   ],
@@ -161,6 +195,145 @@ class DetailsStepWidget extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _ExpenseTypePickerButton extends StatelessWidget {
+  final String label;
+  final bool isFixed;
+  final VoidCallback onTap;
+
+  const _ExpenseTypePickerButton({
+    required this.label,
+    required this.isFixed,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final iconPath = isFixed ? 'assets/icons/fixed_expense.svg' : 'assets/icons/variable_expense.svg';
+    final iconColor = isFixed ? const Color(0xFFCF5825) : const Color(0xFF8056E4);
+    
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: theme.colorScheme.surfaceContainer,
+        foregroundColor: theme.colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.only(
+          left: 12,
+          right: 16,
+          top: 12,
+          bottom: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SvgPicture.asset(
+              iconPath,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(
+                iconColor,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubscriptionPickerButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _SubscriptionPickerButton({
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const subscriptionColor = Color(0xFF2196F3);
+    
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: theme.colorScheme.surfaceContainer,
+        foregroundColor: theme.colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.only(
+          left: 12,
+          right: 16,
+          top: 12,
+          bottom: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: subscriptionColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SvgPicture.asset(
+              'assets/icons/subscription.svg',
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(
+                subscriptionColor,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+        ],
+      ),
     );
   }
 } 
