@@ -593,14 +593,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         }
                       });
                     },
-                    onDoubleZeroPressed: () {
-                      setState(() {
-                        // Only add 00 if the current value is not 0
-                        if (_amountController.text != '0') {
-                          _amountController.text += '00';
-                        }
-                      });
-                    },
                     onBackspacePressed: () {
                       setState(() {
                         if (_amountController.text.isNotEmpty) {

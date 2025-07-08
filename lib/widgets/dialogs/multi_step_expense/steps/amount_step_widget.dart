@@ -25,14 +25,22 @@ class AmountStepWidget extends StatelessWidget {
         return Column(
           children: [
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Amount display
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Question text
+                    Text(
+                      'How much did you spend?',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Amount display
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
@@ -54,13 +62,14 @@ class AmountStepWidget extends StatelessWidget {
                           ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // Number pad
             Container(
               color: theme.colorScheme.surface,
+              padding: const EdgeInsets.all(16),
               child: NumberPad(
                 onDigitPressed: (digit) {
                   String newAmount = controller.amount;
@@ -80,11 +89,6 @@ class AmountStepWidget extends StatelessWidget {
                 onDecimalPointPressed: () {
                   if (!controller.amount.contains('.')) {
                     controller.setAmount(controller.amount + '.');
-                  }
-                },
-                onDoubleZeroPressed: () {
-                  if (controller.amount != '0') {
-                    controller.setAmount(controller.amount + '00');
                   }
                 },
                 onBackspacePressed: () {

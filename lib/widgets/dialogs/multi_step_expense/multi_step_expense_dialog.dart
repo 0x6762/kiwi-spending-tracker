@@ -90,19 +90,7 @@ class _MultiStepExpenseDialogState extends State<MultiStepExpenseDialog> {
     }
   }
 
-  String _getStepTitle() {
-    final action = widget.expense != null ? 'Edit' : 'Add';
-    switch (_currentStep) {
-      case 0:
-        return '$action Expense';
-      case 1:
-        return 'Select Category';
-      case 2:
-        return 'Expense Details';
-      default:
-        return '$action Expense';
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +106,7 @@ class _MultiStepExpenseDialogState extends State<MultiStepExpenseDialog> {
             resizeToAvoidBottomInset: false,
             appBar: KiwiAppBar(
               backgroundColor: theme.colorScheme.surface,
-              title: _getStepTitle(),
+              title: '',
               leading: _currentStep > 0 
                   ? const Icon(AppIcons.back)
                   : const Icon(AppIcons.close),

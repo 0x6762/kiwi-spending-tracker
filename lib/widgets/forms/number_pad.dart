@@ -4,7 +4,6 @@ import '../../utils/icons.dart';
 class NumberPad extends StatelessWidget {
   final void Function(String) onDigitPressed;
   final VoidCallback onDecimalPointPressed;
-  final VoidCallback onDoubleZeroPressed;
   final VoidCallback onBackspacePressed;
   final VoidCallback onDatePressed;
   final VoidCallback onSubmitPressed;
@@ -15,7 +14,6 @@ class NumberPad extends StatelessWidget {
     super.key,
     required this.onDigitPressed,
     required this.onDecimalPointPressed,
-    required this.onDoubleZeroPressed,
     required this.onBackspacePressed,
     required this.onDatePressed,
     required this.onSubmitPressed,
@@ -30,76 +28,51 @@ class NumberPad extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
+        // 3x4 Number pad grid
+        Column(
           children: [
-            Expanded(child: _buildNumberPadButton(context, '1', onPressed: () => onDigitPressed('1'))),
-            Expanded(child: _buildNumberPadButton(context, '2', onPressed: () => onDigitPressed('2'))),
-            Expanded(child: _buildNumberPadButton(context, '3', onPressed: () => onDigitPressed('3'))),
-            Expanded(
-              child: _buildNumberPadButton(
-                context,
-                'backspace',
-                onPressed: onBackspacePressed,
-                isAction: true,
-              ),
+            Row(
+              children: [
+                Expanded(child: _buildNumberPadButton(context, '1', onPressed: () => onDigitPressed('1'))),
+                Expanded(child: _buildNumberPadButton(context, '2', onPressed: () => onDigitPressed('2'))),
+                Expanded(child: _buildNumberPadButton(context, '3', onPressed: () => onDigitPressed('3'))),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(child: _buildNumberPadButton(context, '4', onPressed: () => onDigitPressed('4'))),
+                Expanded(child: _buildNumberPadButton(context, '5', onPressed: () => onDigitPressed('5'))),
+                Expanded(child: _buildNumberPadButton(context, '6', onPressed: () => onDigitPressed('6'))),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(child: _buildNumberPadButton(context, '7', onPressed: () => onDigitPressed('7'))),
+                Expanded(child: _buildNumberPadButton(context, '8', onPressed: () => onDigitPressed('8'))),
+                Expanded(child: _buildNumberPadButton(context, '9', onPressed: () => onDigitPressed('9'))),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(child: _buildNumberPadButton(context, '.', onPressed: onDecimalPointPressed)),
+                Expanded(child: _buildNumberPadButton(context, '0', onPressed: () => onDigitPressed('0'))),
+                Expanded(
+                  child: _buildNumberPadButton(
+                    context,
+                    'backspace',
+                    onPressed: onBackspacePressed,
+                    isAction: true,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        Row(
-          children: [
-            Expanded(child: _buildNumberPadButton(context, '4', onPressed: () => onDigitPressed('4'))),
-            Expanded(child: _buildNumberPadButton(context, '5', onPressed: () => onDigitPressed('5'))),
-            Expanded(child: _buildNumberPadButton(context, '6', onPressed: () => onDigitPressed('6'))),
-            Expanded(
-              child: showDateButton 
-                ? _buildNumberPadButton(
-                    context,
-                    'date',
-                    onPressed: onDatePressed,
-                    isAction: true,
-                  )
-                : _buildNumberPadButton(
-                    context,
-                    'empty',
-                    onPressed: null,
-                    isAction: true,
-                  ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: _buildNumberPadButton(context, '7', onPressed: () => onDigitPressed('7'))),
-                      Expanded(child: _buildNumberPadButton(context, '8', onPressed: () => onDigitPressed('8'))),
-                      Expanded(child: _buildNumberPadButton(context, '9', onPressed: () => onDigitPressed('9'))),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(child: _buildNumberPadButton(context, '.', onPressed: onDecimalPointPressed)),
-                      Expanded(child: _buildNumberPadButton(context, '0', onPressed: () => onDigitPressed('0'))),
-                      Expanded(child: _buildNumberPadButton(context, '00', onPressed: onDoubleZeroPressed)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: _buildNumberPadButton(
-                context,
-                'save',
-                onPressed: onSubmitPressed,
-                isAction: true,
-                isLarge: true,
-              ),
-            ),
-          ],
+        const SizedBox(height: 16),
+        // Separate submit button
+        Container(
+          width: double.infinity,
+          child: _buildSubmitButton(context),
         ),
       ],
     );
@@ -114,17 +87,11 @@ class NumberPad extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return AspectRatio(
-      aspectRatio: isLarge ? 0.7 : 1.4,
+      aspectRatio: 1.4,
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Material(
-          color: text == 'save'
-              ? theme.colorScheme.primary
-              : text == 'date'
-                  ? theme.colorScheme.primary.withOpacity(0.1)
-                  : text == 'empty'
-                      ? Colors.transparent
-                      : theme.colorScheme.surfaceContainer,
+          color: theme.colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onPressed,
@@ -132,6 +99,31 @@ class NumberPad extends StatelessWidget {
             child: Center(
               child: _buildButtonContent(context, text, isAction),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 56, // Standard button height
+      child: ElevatedButton(
+        onPressed: onSubmitPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          submitButtonText,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onPrimary,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -146,22 +138,6 @@ class NumberPad extends StatelessWidget {
           AppIcons.backspace,
           color: theme.colorScheme.onSurfaceVariant,
           size: 24,
-        );
-      case 'date':
-        return Icon(
-          AppIcons.calendar,
-          color: theme.colorScheme.primary,
-          size: 24,
-        );
-      case 'empty':
-        return const SizedBox.shrink(); // Empty space
-      case 'save':
-        return Text(
-          submitButtonText,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.onPrimary,
-            fontWeight: FontWeight.w800,
-          ),
         );
       default:
         return Text(
