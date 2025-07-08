@@ -49,7 +49,6 @@ class AmountStepWidget extends StatelessWidget {
                               .split('.')[0],
                           style: theme.textTheme.displayLarge?.copyWith(
                             color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         if (controller.amount.contains('.'))
@@ -57,7 +56,6 @@ class AmountStepWidget extends StatelessWidget {
                             '.${controller.amount.split('.')[1]}',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                       ],
