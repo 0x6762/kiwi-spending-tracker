@@ -10,7 +10,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
-import '../widgets/dialogs/add_expense_dialog.dart';
+import '../widgets/dialogs/multi_step_expense_dialog.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
@@ -47,7 +47,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, secondaryAnimation) => AddExpenseDialog(
+      pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseDialog(
         type: _currentExpense.type,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
