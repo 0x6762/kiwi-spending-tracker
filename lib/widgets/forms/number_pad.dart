@@ -69,7 +69,7 @@ class NumberPad extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         // Separate submit button
         Container(
           width: double.infinity,
@@ -88,7 +88,7 @@ class NumberPad extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     return AspectRatio(
-      aspectRatio: 1.4,
+      aspectRatio: 1.6,
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Material(
@@ -125,7 +125,7 @@ class NumberPad extends StatelessWidget {
       default:
         return Text(
           text,
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             color: theme.colorScheme.onSurface,
           ),
         );

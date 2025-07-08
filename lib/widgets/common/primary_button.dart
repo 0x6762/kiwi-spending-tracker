@@ -13,7 +13,7 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     this.isLoading = false,
     this.width,
-    this.height = 56,
+    this.height = 64,
   });
 
   @override
@@ -31,7 +31,7 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.12),
           disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.38),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(56),
           ),
           elevation: 0,
           shadowColor: Colors.transparent,
@@ -50,7 +50,9 @@ class PrimaryButton extends StatelessWidget {
             : Text(
                 text,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
+                  color: (onPressed == null || isLoading)
+                      ? theme.colorScheme.onSurfaceVariant.withOpacity(0.38)
+                      : theme.colorScheme.onPrimary,
                 ),
               ),
       ),

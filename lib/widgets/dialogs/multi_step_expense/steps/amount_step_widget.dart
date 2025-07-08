@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../forms/number_pad.dart';
 import '../../../../utils/formatters.dart';
+import '../../../../models/account.dart';
+import '../../../forms/picker_button.dart';
+import '../../../sheets/picker_sheet.dart';
+import '../../../../utils/icons.dart';
 
 class AmountStepWidget extends StatelessWidget {
   final VoidCallback? onNext;
@@ -14,6 +18,45 @@ class AmountStepWidget extends StatelessWidget {
 
   void _dummyCallback() {
     // Empty callback (not used when showDateButton is false)
+  }
+
+  void _showAccountPicker(BuildContext context, ExpenseFormController controller) async {
+    await controller.accountRepo.loadAccounts();
+    final accounts = await controller.accountRepo.getAllAccounts();
+    accounts.sort((a, b) {
+      if (a.isDefault != b.isDefault) {
+        return a.isDefault ? -1 : 1;
+      }
+      return a.name.compareTo(b.name);
+    });
+
+    if (!context.mounted) return;
+
+    PickerSheet.show(
+      context: context,
+      title: 'Select Account',
+      children: accounts.map(
+        (account) => ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: account.color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              account.icon,
+              color: account.color,
+            ),
+          ),
+          title: Text(account.name),
+          selected: controller.selectedAccount?.id == account.id,
+          onTap: () {
+            controller.setAccount(account);
+            Navigator.pop(context);
+          },
+        ),
+      ).toList(),
+    );
   }
 
   @override
@@ -37,7 +80,7 @@ class AmountStepWidget extends StatelessWidget {
                         color: theme.colorScheme.secondary,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     
                     // Amount display
                     Row(
@@ -64,6 +107,17 @@ class AmountStepWidget extends StatelessWidget {
                 ),
               ),
             ),
+            // Account picker
+            if (controller.selectedAccount != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: PickerButton(
+                  label: controller.selectedAccount!.name,
+                  icon: controller.selectedAccount!.icon,
+                  iconColor: controller.selectedAccount!.color,
+                  onTap: () => _showAccountPicker(context, controller),
+                ),
+              ),
             // Number pad
             Container(
               color: theme.colorScheme.surface,
