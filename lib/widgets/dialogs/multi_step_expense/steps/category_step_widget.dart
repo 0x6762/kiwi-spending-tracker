@@ -102,7 +102,7 @@ class CategoryStepWidget extends StatelessWidget {
                   children: [
                     // Question text
                     Text(
-                      'What was this for?',
+                      'What was it for?',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.secondary,
                       ),
@@ -112,7 +112,7 @@ class CategoryStepWidget extends StatelessWidget {
                     // Select Category button
                     Container(
                       width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 24),
+                      margin: const EdgeInsets.only(bottom: 40),
                       child: PickerButton(
                         label: controller.selectedCategory?.name ?? 'Select Category',
                         icon: controller.selectedCategory?.icon ?? AppIcons.category,
@@ -164,7 +164,7 @@ class CategoryStepWidget extends StatelessWidget {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
                                       side: controller.selectedCategory?.id == category.id
-                                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                                          ? BorderSide(color: theme.colorScheme.primary.withOpacity(0.3), width: 1.5)
                                           : BorderSide.none,
                                     ),
                                   ),

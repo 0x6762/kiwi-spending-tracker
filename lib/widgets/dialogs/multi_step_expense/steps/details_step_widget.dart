@@ -115,7 +115,7 @@ class DetailsStepWidget extends StatelessWidget {
                   children: [
                     // Question text
                     Text(
-                      'Pick a date',
+                      'Expense date',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.secondary,
                       ),
@@ -161,13 +161,11 @@ class DetailsStepWidget extends StatelessWidget {
                       onChanged: controller.setExpenseName,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Expense name (optional)',
                         hintStyle: theme.textTheme.titleSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
                         ),
                         filled: true,
                         fillColor: theme.colorScheme.surfaceContainer,
@@ -175,7 +173,7 @@ class DetailsStepWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                       ),
                     ),
                   ],

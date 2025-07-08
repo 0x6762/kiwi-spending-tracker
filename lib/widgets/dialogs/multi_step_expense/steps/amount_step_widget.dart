@@ -128,7 +128,7 @@ class AmountStepWidget extends StatelessWidget {
                     iconColor: controller.selectedAccount?.color,
                     onTap: () => _showAccountPicker(context, controller),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
