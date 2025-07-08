@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense.dart';
 import '../../../../models/account.dart';
@@ -96,9 +97,22 @@ class DetailsStepWidget extends StatelessWidget {
     );
   }
 
+  Future<void> _selectDate(BuildContext context, ExpenseFormController controller) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: controller.selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      controller.setDate(picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dateFormat = DateFormat.yMMMd();
 
     return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
@@ -134,6 +148,14 @@ class DetailsStepWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    
+                    // Date picker
+                    PickerButton(
+                      label: dateFormat.format(controller.selectedDate),
+                      icon: AppIcons.calendar,
+                      onTap: () => _selectDate(context, controller),
+                    ),
+                    const SizedBox(height: 12),
                     
                     // Account picker
                     if (controller.selectedAccount != null)

@@ -9,6 +9,7 @@ class NumberPad extends StatelessWidget {
   final VoidCallback onDatePressed;
   final VoidCallback onSubmitPressed;
   final String submitButtonText;
+  final bool showDateButton;
   
   const NumberPad({
     super.key,
@@ -19,6 +20,7 @@ class NumberPad extends StatelessWidget {
     required this.onDatePressed,
     required this.onSubmitPressed,
     this.submitButtonText = 'Add',
+    this.showDateButton = true,
   });
 
   @override
@@ -49,12 +51,19 @@ class NumberPad extends StatelessWidget {
             Expanded(child: _buildNumberPadButton(context, '5', onPressed: () => onDigitPressed('5'))),
             Expanded(child: _buildNumberPadButton(context, '6', onPressed: () => onDigitPressed('6'))),
             Expanded(
-              child: _buildNumberPadButton(
-                context,
-                'date',
-                onPressed: onDatePressed,
-                isAction: true,
-              ),
+              child: showDateButton 
+                ? _buildNumberPadButton(
+                    context,
+                    'date',
+                    onPressed: onDatePressed,
+                    isAction: true,
+                  )
+                : _buildNumberPadButton(
+                    context,
+                    'empty',
+                    onPressed: null,
+                    isAction: true,
+                  ),
             ),
           ],
         ),
@@ -113,7 +122,9 @@ class NumberPad extends StatelessWidget {
               ? theme.colorScheme.primary
               : text == 'date'
                   ? theme.colorScheme.primary.withOpacity(0.1)
-                  : theme.colorScheme.surfaceContainer,
+                  : text == 'empty'
+                      ? Colors.transparent
+                      : theme.colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onPressed,
@@ -142,6 +153,8 @@ class NumberPad extends StatelessWidget {
           color: theme.colorScheme.primary,
           size: 24,
         );
+      case 'empty':
+        return const SizedBox.shrink(); // Empty space
       case 'save':
         return Text(
           submitButtonText,

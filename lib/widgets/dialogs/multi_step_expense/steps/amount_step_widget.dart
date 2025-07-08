@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../forms/number_pad.dart';
 import '../../../../utils/formatters.dart';
@@ -13,22 +12,13 @@ class AmountStepWidget extends StatelessWidget {
     required this.onNext,
   });
 
-  Future<void> _selectDate(BuildContext context, ExpenseFormController controller) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: controller.selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      controller.setDate(picked);
-    }
+  void _dummyCallback() {
+    // Empty callback (not used when showDateButton is false)
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd();
 
     return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
@@ -38,24 +28,6 @@ class AmountStepWidget extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Date display
-                  GestureDetector(
-                    onTap: () => _selectDate(context, controller),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        dateFormat.format(controller.selectedDate),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
                   // Amount display
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -121,9 +93,10 @@ class AmountStepWidget extends StatelessWidget {
                     controller.setAmount(newAmount.isEmpty ? '0' : newAmount);
                   }
                 },
-                onDatePressed: () => _selectDate(context, controller),
+                onDatePressed: _dummyCallback,
                 onSubmitPressed: onNext ?? () {},
                 submitButtonText: 'Next',
+                showDateButton: false,
               ),
             ),
           ],
