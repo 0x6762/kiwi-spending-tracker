@@ -139,6 +139,22 @@ class DetailsStepWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     
+                    // Expense type picker (if not subscription)
+                    if (controller.initialType != ExpenseType.subscription)
+                      _ExpenseTypePickerButton(
+                        label: controller.isFixedExpense ? 'Fixed Expense' : 'Variable Expense',
+                        isFixed: controller.isFixedExpense,
+                        onTap: () => _showExpenseTypePicker(context, controller),
+                      ),
+                    
+                    // Billing cycle picker (if subscription)
+                    if (controller.initialType == ExpenseType.subscription)
+                      _SubscriptionPickerButton(
+                        label: controller.billingCycle,
+                        onTap: () => _showBillingCyclePicker(context, controller),
+                      ),
+                    const SizedBox(height: 12),
+                    
                     // Expense name
                     TextFormField(
                       initialValue: controller.expenseName,
@@ -162,23 +178,6 @@ class DetailsStepWidget extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    
-                    // Expense type picker (if not subscription)
-                    if (controller.initialType != ExpenseType.subscription)
-                      _ExpenseTypePickerButton(
-                        label: controller.isFixedExpense ? 'Fixed Expense' : 'Variable Expense',
-                        isFixed: controller.isFixedExpense,
-                        onTap: () => _showExpenseTypePicker(context, controller),
-                      ),
-                    const SizedBox(height: 12),
-                    
-                    // Billing cycle picker (if subscription)
-                    if (controller.initialType == ExpenseType.subscription)
-                      _SubscriptionPickerButton(
-                        label: controller.billingCycle,
-                        onTap: () => _showBillingCyclePicker(context, controller),
-                      ),
                   ],
                 ),
               ),
