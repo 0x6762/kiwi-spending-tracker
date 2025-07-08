@@ -7,6 +7,7 @@ import '../../../../models/account.dart';
 import '../../../forms/picker_button.dart';
 import '../../../sheets/picker_sheet.dart';
 import '../../../../utils/icons.dart';
+import '../../../common/primary_button.dart';
 
 class DetailsStepWidget extends StatelessWidget {
   final VoidCallback? onSubmit;
@@ -191,23 +192,9 @@ class DetailsStepWidget extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
+              child: PrimaryButton(
+                text: controller.isEditMode ? 'Update' : 'Add Expense',
                 onPressed: onSubmit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  controller.isEditMode ? 'Update' : 'Add Expense',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ),
             ),
           ],

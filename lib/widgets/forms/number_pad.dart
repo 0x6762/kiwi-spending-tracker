@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/icons.dart';
+import '../common/primary_button.dart';
 
 class NumberPad extends StatelessWidget {
   final void Function(String) onDigitPressed;
@@ -106,27 +107,9 @@ class NumberPad extends StatelessWidget {
   }
 
   Widget _buildSubmitButton(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      height: 56, // Standard button height
-      child: ElevatedButton(
-        onPressed: onSubmitPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          submitButtonText,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.onPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+    return PrimaryButton(
+      text: submitButtonText,
+      onPressed: onSubmitPressed,
     );
   }
 
@@ -144,7 +127,6 @@ class NumberPad extends StatelessWidget {
           text,
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w500,
           ),
         );
     }
