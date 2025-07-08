@@ -7,7 +7,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense/expense_list.dart';
-import '../widgets/dialogs/multi_step_expense_dialog.dart';
+import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
 import '../widgets/sheets/expense_type_sheet.dart';
 import '../widgets/forms/voice_input_button.dart';
 import '../widgets/expense/today_spending_card.dart';

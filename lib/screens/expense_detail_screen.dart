@@ -10,7 +10,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
-import '../widgets/dialogs/multi_step_expense_dialog.dart';
+import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
