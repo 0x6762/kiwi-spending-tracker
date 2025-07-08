@@ -47,9 +47,8 @@ class CategoryStepWidget extends StatelessWidget {
           ),
           title: Text(
             'Create Category',
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w500,
             ),
           ),
           onTap: () async {
@@ -101,6 +100,15 @@ class CategoryStepWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Question text
+                    Text(
+                      'What was this for?',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
                     // Select Category button
                     Container(
                       width: double.infinity,
@@ -130,75 +138,68 @@ class CategoryStepWidget extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Recently Used',
+                              'Frequently Used',
                               style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.secondary,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 2.5,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                              ),
-                              itemCount: recentCategories.length,
-                              itemBuilder: (context, index) {
-                                final category = recentCategories[index];
-                                final isSelected = controller.selectedCategory?.id == category.id;
-                                
-                                return Material(
-                                  color: isSelected 
-                                      ? theme.colorScheme.primary.withOpacity(0.1)
-                                      : theme.colorScheme.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: InkWell(
-                                    onTap: () => controller.setCategory(category),
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: isSelected
-                                            ? Border.all(color: theme.colorScheme.primary, width: 2)
-                                            : null,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme.primary.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Icon(
-                                              category.icon,
-                                              color: theme.colorScheme.primary,
-                                              size: 20,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              category.name,
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                color: theme.colorScheme.onSurface,
-                                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            const SizedBox(height: 16),
+                            ...recentCategories.map(
+                              (category) => Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: TextButton(
+                                  onPressed: () => controller.setCategory(category),
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: controller.selectedCategory?.id == category.id
+                                        ? theme.colorScheme.primary.withOpacity(0.1)
+                                        : theme.colorScheme.surfaceContainer,
+                                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                                    padding: const EdgeInsets.only(
+                                      left: 12,
+                                      right: 16,
+                                      top: 12,
+                                      bottom: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      side: controller.selectedCategory?.id == category.id
+                                          ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                                          : BorderSide.none,
                                     ),
                                   ),
-                                );
-                              },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: controller.selectedCategory?.id == category.id
+                                              ? theme.colorScheme.primary.withOpacity(0.1)
+                                              : theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(
+                                          category.icon,
+                                          size: 20,
+                                          color: controller.selectedCategory?.id == category.id
+                                              ? theme.colorScheme.primary
+                                              : theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          category.name,
+                                          style: theme.textTheme.bodyLarge?.copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         );
@@ -230,8 +231,8 @@ class CategoryStepWidget extends StatelessWidget {
       await controller.categoryRepo.loadCategories();
       final categories = await controller.categoryRepo.getAllCategories();
       
-      // Return up to 6 categories as recent ones
-      return categories.take(6).toList();
+      // Return up to 3 categories as recent ones
+      return categories.take(3).toList();
     } catch (e) {
       return [];
     }

@@ -108,16 +108,15 @@ class AmountStepWidget extends StatelessWidget {
               ),
             ),
             // Account picker
-            if (controller.selectedAccount != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: PickerButton(
-                  label: controller.selectedAccount!.name,
-                  icon: controller.selectedAccount!.icon,
-                  iconColor: controller.selectedAccount!.color,
-                  onTap: () => _showAccountPicker(context, controller),
-                ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: PickerButton(
+                label: controller.selectedAccount?.name ?? 'Loading...',
+                icon: controller.selectedAccount?.icon ?? AppIcons.wallet,
+                iconColor: controller.selectedAccount?.color,
+                onTap: () => _showAccountPicker(context, controller),
               ),
+            ),
             // Number pad
             Container(
               color: theme.colorScheme.surface,

@@ -87,6 +87,15 @@ class DetailsStepWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Question text
+                    Text(
+                      'More details',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
                     // Expense name
                     TextFormField(
                       initialValue: controller.expenseName,

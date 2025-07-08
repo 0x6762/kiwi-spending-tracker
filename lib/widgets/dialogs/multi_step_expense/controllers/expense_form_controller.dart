@@ -43,11 +43,12 @@ class ExpenseFormController extends ChangeNotifier {
   }
 
   void _initialize() {
-    _loadAccount(_selectedAccountId);
     _isFixedExpense = initialType == ExpenseType.fixed;
     
     if (initialExpense != null) {
       _initializeFromExpense();
+    } else {
+      _loadDefaultAccount();
     }
   }
 
@@ -75,6 +76,27 @@ class ExpenseFormController extends ChangeNotifier {
   Future<void> _loadAccount(String accountId) async {
     final account = await accountRepo.findAccountById(accountId);
     _selectedAccount = account;
+  }
+
+  Future<void> _loadDefaultAccount() async {
+    await accountRepo.loadAccounts();
+    final accounts = await accountRepo.getAllAccounts();
+    
+    if (accounts.isNotEmpty) {
+      // Sort accounts to prioritize default account first
+      accounts.sort((a, b) {
+        if (a.isDefault != b.isDefault) {
+          return a.isDefault ? -1 : 1;
+        }
+        return a.name.compareTo(b.name);
+      });
+      
+      // Select the first account (which will be the default if one exists)
+      final defaultAccount = accounts.first;
+      _selectedAccount = defaultAccount;
+      _selectedAccountId = defaultAccount.id;
+      notifyListeners();
+    }
   }
 
   // Setters

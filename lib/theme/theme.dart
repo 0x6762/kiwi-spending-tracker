@@ -51,6 +51,13 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w400,
       ),
+      // Used for standard body text and category names
+      bodyMedium: base.bodyMedium?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 14,
+        height: 1.4,
+        fontWeight: FontWeight.w400,
+      ),
       // Used for dates, account names, and secondary text
       bodySmall: base.bodySmall?.copyWith(
         fontFamily: 'Inter',
