@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense.dart';
-import '../../../../models/account.dart';
 import '../../../forms/picker_button.dart';
 import '../../../sheets/picker_sheet.dart';
 import '../../../../utils/icons.dart';
@@ -14,45 +13,6 @@ class DetailsStepWidget extends StatelessWidget {
     super.key,
     required this.onSubmit,
   });
-
-  void _showAccountPicker(BuildContext context, ExpenseFormController controller) async {
-    await controller.accountRepo.loadAccounts();
-    final accounts = await controller.accountRepo.getAllAccounts();
-    accounts.sort((a, b) {
-      if (a.isDefault != b.isDefault) {
-        return a.isDefault ? -1 : 1;
-      }
-      return a.name.compareTo(b.name);
-    });
-
-    if (!context.mounted) return;
-
-    PickerSheet.show(
-      context: context,
-      title: 'Select Account',
-      children: accounts.map(
-        (account) => ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: account.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              account.icon,
-              color: account.color,
-            ),
-          ),
-          title: Text(account.name),
-          selected: controller.selectedAccount?.id == account.id,
-          onTap: () {
-            controller.setAccount(account);
-            Navigator.pop(context);
-          },
-        ),
-      ).toList(),
-    );
-  }
 
   void _showExpenseTypePicker(BuildContext context, ExpenseFormController controller) {
     PickerSheet.show(
@@ -135,16 +95,6 @@ class DetailsStepWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     
-                    // Account picker
-                    if (controller.selectedAccount != null)
-                      PickerButton(
-                        label: controller.selectedAccount!.name,
-                        icon: controller.selectedAccount!.icon,
-                        iconColor: controller.selectedAccount!.color,
-                        onTap: () => _showAccountPicker(context, controller),
-                      ),
-                    const SizedBox(height: 12),
-                    
                     // Expense type picker (if not subscription)
                     if (controller.initialType != ExpenseType.subscription)
                       PickerButton(
@@ -152,7 +102,10 @@ class DetailsStepWidget extends StatelessWidget {
                         icon: AppIcons.category,
                         onTap: () => _showExpenseTypePicker(context, controller),
                       ),
-                    const SizedBox(height: 12),
+                    
+                    // Add spacing only if expense type picker is shown
+                    if (controller.initialType != ExpenseType.subscription)
+                      const SizedBox(height: 12),
                     
                     // Billing cycle picker (if subscription)
                     if (controller.initialType == ExpenseType.subscription)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/expense_analytics_service.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
+import '../../theme/theme.dart';
 
 class UpcomingExpensesCard extends StatelessWidget {
   final UpcomingExpensesAnalytics analytics;
@@ -32,10 +33,17 @@ class UpcomingExpensesCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                AppIcons.calendar,
-                size: 24,
-                color: Color(0xFF4CAF50),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.upcomingExpenseColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.schedule,
+                  color: theme.colorScheme.upcomingExpenseColor,
+                  size: 20,
+                ),
               ),
               const SizedBox(height: 12),
               Text(

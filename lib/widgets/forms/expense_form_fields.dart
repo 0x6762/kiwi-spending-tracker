@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import '../../models/expense.dart';
 import '../../models/expense_category.dart';
-import '../../models/account.dart';
+import '../../repositories/category_repository.dart';
 import 'picker_button.dart';
+import '../sheets/picker_sheet.dart';
+import '../sheets/add_category_sheet.dart';
 import '../../utils/icons.dart';
+import '../../theme/theme.dart';
 
 class ExpenseFormFields extends StatelessWidget {
   final TextEditingController titleController;
@@ -46,6 +50,8 @@ class ExpenseFormFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fixedExpenseColor = theme.colorScheme.fixedExpenseColor;
+    final variableExpenseColor = theme.colorScheme.variableExpenseColor;
 
     // Custom widget for SVG icon in PickerButton
     Widget _buildSvgIcon(String assetPath, Color color) {
@@ -63,10 +69,6 @@ class ExpenseFormFields extends StatelessWidget {
         ),
       );
     }
-
-    // Define the colors for expense types
-    final fixedExpenseColor = const Color(0xFFCF5825); // Orange
-    final variableExpenseColor = const Color(0xFF8056E4); // Purple
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,19 +125,12 @@ class ExpenseFormFields extends StatelessWidget {
           ),
         ),
         
-        // Account and Category selectors
+        // Category selector
         const SizedBox(height: 8),
         PickerButton(
           label: selectedCategory?.name ?? 'Select Category',
           icon: selectedCategory?.icon ?? AppIcons.category,
           onTap: onCategoryTap,
-        ),
-        const SizedBox(height: 8),
-        if (selectedAccount != null) PickerButton(
-          label: selectedAccount!.name,
-          icon: selectedAccount!.icon,
-          iconColor: selectedAccount!.color,
-          onTap: onAccountTap,
         ),
         
         // Expense Type selector (if not subscription)

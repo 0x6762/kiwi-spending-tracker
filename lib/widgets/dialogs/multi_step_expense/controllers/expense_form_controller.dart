@@ -118,11 +118,11 @@ class ExpenseFormController extends ChangeNotifier {
   bool canProceedFromStep(int step) {
     switch (step) {
       case 0: // Amount step
-        return _amount != '0' && _amount.isNotEmpty;
+        return _amount != '0' && _amount.isNotEmpty && _selectedAccount != null;
       case 1: // Category step
         return _selectedCategory != null;
       case 2: // Details step
-        return _selectedAccount != null;
+        return true; // All required fields are now validated in previous steps
       default:
         return false;
     }

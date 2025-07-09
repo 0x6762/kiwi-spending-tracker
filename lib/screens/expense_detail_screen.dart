@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
@@ -11,6 +12,7 @@ import '../repositories/account_repository.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
+import '../theme/theme.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
@@ -153,13 +155,16 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   }
 
   Color _getExpenseTypeColor(ExpenseType type) {
+    final theme = Theme.of(context);
     switch (type) {
       case ExpenseType.subscription:
-        return const Color(0xFF2196F3); // Blue
+        return theme.colorScheme.subscriptionColor;
       case ExpenseType.fixed:
-        return const Color(0xFFCF5825); // Orange
+        return theme.colorScheme.fixedExpenseColor;
       case ExpenseType.variable:
-        return const Color(0xFF8056E4); // Purple
+        return theme.colorScheme.variableExpenseColor;
+      default:
+        return theme.colorScheme.primary;
     }
   }
 

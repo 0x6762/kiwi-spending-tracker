@@ -4,6 +4,13 @@ import 'package:flutter/services.dart';
 class AppTheme {
   static TextTheme _buildTextTheme(TextTheme base) {
     return base.copyWith(
+      // Used for large amounts in amount step
+      displayLarge: base.displayLarge?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 48,
+        height: 1.1,
+        fontWeight: FontWeight.w700,
+      ),
       headlineLarge: base.headlineLarge?.copyWith(
         fontFamily: 'Inter',
         fontSize: 40,
@@ -127,6 +134,12 @@ class AppTheme {
     outlineVariant: Color(0xFF343741),
   );
 
+  // Expense type colors
+  static const Color subscriptionColor = Color(0xFF2196F3); // Blue
+  static const Color fixedExpenseColor = Color(0xFFCF5825); // Orange
+  static const Color variableExpenseColor = Color(0xFF8056E4); // Purple
+  static const Color upcomingExpenseColor = Color(0xFF4CAF50); // Green
+
   static ThemeData light() {
     return ThemeData(
       useMaterial3: true,
@@ -179,5 +192,29 @@ class AppTheme {
         foregroundColor: const Color(0xFFffffff),
       ),
     );
+  }
+}
+
+// Extension to add expense type colors to ColorScheme
+extension ExpenseTypeColors on ColorScheme {
+  Color get subscriptionColor => AppTheme.subscriptionColor;
+  Color get fixedExpenseColor => AppTheme.fixedExpenseColor;
+  Color get variableExpenseColor => AppTheme.variableExpenseColor;
+  Color get upcomingExpenseColor => AppTheme.upcomingExpenseColor;
+  
+  // Utility function to get color for expense type
+  Color getExpenseTypeColor(String expenseType) {
+    switch (expenseType.toLowerCase()) {
+      case 'subscription':
+        return subscriptionColor;
+      case 'fixed':
+        return fixedExpenseColor;
+      case 'variable':
+        return variableExpenseColor;
+      case 'upcoming':
+        return upcomingExpenseColor;
+      default:
+        return primary;
+    }
   }
 }

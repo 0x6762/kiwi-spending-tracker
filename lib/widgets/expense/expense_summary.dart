@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import '../../models/expense.dart';
+import '../../models/expense_category.dart';
+import '../../repositories/category_repository.dart';
+import '../../utils/formatters.dart';
+import '../../theme/theme.dart';
 import '../../services/expense_analytics_service.dart';
 import '../../services/subscription_service.dart';
 import '../../repositories/expense_repository.dart';
-import '../../repositories/category_repository.dart';
 import '../../repositories/account_repository.dart';
 import '../../screens/subscriptions_screen.dart';
 import '../../screens/upcoming_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import 'upcoming_expenses_card.dart';
 import 'subscription_plans_card.dart';
-import '../../utils/formatters.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
@@ -161,7 +163,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           amount: analytics.fixedExpenses,
                           context: context,
                           iconAsset: 'assets/icons/fixed_expense.svg',
-                          iconColor: const Color(0xFFCF5825),
+                          iconColor: theme.colorScheme.fixedExpenseColor,
                         ),
                         const SizedBox(height: 0),
                         _SummaryRow(
@@ -169,7 +171,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           amount: analytics.variableExpenses,
                           context: context,
                           iconAsset: 'assets/icons/variable_expense.svg',
-                          iconColor: const Color(0xFF8056E4),
+                          iconColor: theme.colorScheme.variableExpenseColor,
                         ),
                       ],
                     ),
