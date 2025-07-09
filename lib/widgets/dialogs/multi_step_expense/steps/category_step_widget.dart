@@ -103,7 +103,7 @@ class CategoryStepWidget extends StatelessWidget {
                     // Select Category button
                     Container(
                       width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 24),
+                      margin: const EdgeInsets.only(bottom: 40),
                       child: PickerButton(
                         label: controller.selectedCategory?.name ?? 'Select Category',
                         icon: controller.selectedCategory?.icon ?? AppIcons.category,
@@ -131,8 +131,7 @@ class CategoryStepWidget extends StatelessWidget {
                             Text(
                               'Recently Used',
                               style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -141,7 +140,7 @@ class CategoryStepWidget extends StatelessWidget {
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 2.5,
+                                childAspectRatio: 2.0,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
@@ -163,34 +162,34 @@ class CategoryStepWidget extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(16),
                                         border: isSelected
-                                            ? Border.all(color: theme.colorScheme.primary, width: 2)
-                                            : null,
+                                            ? Border.all(color: theme.colorScheme.primary.withOpacity(0.3), width: 1.5)
+                                            : Border.all(color: theme.colorScheme.surfaceContainer, width: 1.5),
                                       ),
-                                      child: Row(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
+                                          // Icon at the top
                                           Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme.primary.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
+                                            padding: const EdgeInsets.all(0),
+                                            
                                             child: Icon(
                                               category.icon,
-                                              color: theme.colorScheme.primary,
-                                              size: 20,
+                                              color: isSelected 
+                                                  ? theme.colorScheme.primary
+                                                  : theme.colorScheme.onSurfaceVariant,
+                                              size: 24,
                                             ),
                                           ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              category.name,
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                color: theme.colorScheme.onSurface,
-                                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                          // Category name below
+                                          Text(
+                                            category.name,
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              color: theme.colorScheme.onSurface,
                                             ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.left,
                                           ),
                                         ],
                                       ),
