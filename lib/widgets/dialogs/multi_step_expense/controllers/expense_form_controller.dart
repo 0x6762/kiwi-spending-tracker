@@ -22,7 +22,7 @@ class ExpenseFormController extends ChangeNotifier {
   bool _isFixedExpense = false;
   String _billingCycle = 'Monthly';
   bool _isRecurring = false;
-  ExpenseFrequency _frequency = ExpenseFrequency.monthly;
+  ExpenseFrequency _frequency = ExpenseFrequency.oneTime;
 
   // Getters
   String get amount => _amount;
