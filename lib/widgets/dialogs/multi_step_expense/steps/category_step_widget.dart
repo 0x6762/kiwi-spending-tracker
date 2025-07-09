@@ -134,15 +134,15 @@ class CategoryStepWidget extends StatelessWidget {
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 2.0,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
+                                childAspectRatio: 1.8,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
                               ),
                               itemCount: recentCategories.length,
                               itemBuilder: (context, index) {
@@ -185,7 +185,7 @@ class CategoryStepWidget extends StatelessWidget {
                                           Text(
                                             category.name,
                                             style: theme.textTheme.labelSmall?.copyWith(
-                                              color: theme.colorScheme.onSurface,
+                                              color: theme.colorScheme.onSurfaceVariant,
                                             ),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
