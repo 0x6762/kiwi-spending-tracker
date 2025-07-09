@@ -39,21 +39,49 @@ class DetailsStepWidget extends StatelessWidget {
     );
   }
 
-  void _showBillingCyclePicker(BuildContext context, ExpenseFormController controller) {
+  void _showFrequencyPicker(BuildContext context, ExpenseFormController controller) {
+    const frequencyOptions = [
+      {'label': 'One-time', 'value': ExpenseFrequency.oneTime},
+      {'label': 'Weekly', 'value': ExpenseFrequency.weekly},
+      {'label': 'Bi-weekly', 'value': ExpenseFrequency.biWeekly},
+      {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
+      {'label': 'Quarterly', 'value': ExpenseFrequency.quarterly},
+      {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
+    ];
+
     PickerSheet.show(
       context: context,
-      title: 'Billing Cycle',
-      children: ['Monthly', 'Yearly'].map(
-        (cycle) => ListTile(
-          title: Text(cycle),
-          selected: controller.billingCycle == cycle,
+      title: 'Frequency',
+      children: frequencyOptions.map(
+        (option) => ListTile(
+          title: Text(option['label'] as String),
+          selected: controller.frequency == option['value'],
           onTap: () {
-            controller.setBillingCycle(cycle);
+            controller.setFrequency(option['value'] as ExpenseFrequency);
             Navigator.pop(context);
           },
         ),
       ).toList(),
     );
+  }
+
+  String _getFrequencyLabel(ExpenseFrequency frequency) {
+    switch (frequency) {
+      case ExpenseFrequency.oneTime:
+        return 'One-time';
+      case ExpenseFrequency.weekly:
+        return 'Weekly';
+      case ExpenseFrequency.biWeekly:
+        return 'Bi-weekly';
+      case ExpenseFrequency.monthly:
+        return 'Monthly';
+      case ExpenseFrequency.quarterly:
+        return 'Quarterly';
+      case ExpenseFrequency.yearly:
+        return 'Yearly';
+      default:
+        return 'One-time';
+    }
   }
 
   @override
@@ -70,19 +98,55 @@ class DetailsStepWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Expense type section with label
+                    // Expense type label
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 16),
+                      child: Text(
+                        'Expense type',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    // Expense type picker
+                    PickerButton(
+                      label: controller.isFixedExpense ? 'Fixed' : 'Variable',
+                      icon: AppIcons.category,
+                      onTap: () => _showExpenseTypePicker(context, controller),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Recurrency section
+                    // Frequency label
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 16),
+                      child: Text(
+                        'Frequency',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    // Frequency picker
+                    PickerButton(
+                      label: _getFrequencyLabel(controller.frequency),
+                      icon: AppIcons.calendar,
+                      onTap: () => _showFrequencyPicker(context, controller),
+                    ),
+                    const SizedBox(height: 24),
+                    
                     // Expense name
                     TextFormField(
                       initialValue: controller.expenseName,
                       onChanged: controller.setExpenseName,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Expense name (optional)',
                         hintStyle: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                         ),
                         filled: true,
                         fillColor: theme.colorScheme.surfaceContainer,
@@ -93,27 +157,6 @@ class DetailsStepWidget extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Expense type picker (if not subscription)
-                    if (controller.initialType != ExpenseType.subscription)
-                      PickerButton(
-                        label: controller.isFixedExpense ? 'Fixed' : 'Variable',
-                        icon: AppIcons.category,
-                        onTap: () => _showExpenseTypePicker(context, controller),
-                      ),
-                    
-                    // Add spacing only if expense type picker is shown
-                    if (controller.initialType != ExpenseType.subscription)
-                      const SizedBox(height: 12),
-                    
-                    // Billing cycle picker (if subscription)
-                    if (controller.initialType == ExpenseType.subscription)
-                      PickerButton(
-                        label: controller.billingCycle,
-                        icon: AppIcons.calendar,
-                        onTap: () => _showBillingCyclePicker(context, controller),
-                      ),
                   ],
                 ),
               ),
