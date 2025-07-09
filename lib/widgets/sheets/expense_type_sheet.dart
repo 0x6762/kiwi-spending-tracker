@@ -37,14 +37,6 @@ class ExpenseTypeSheet extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _ExpenseTypeButton(
-          title: 'Subscription',
-          subtitle: 'Fixed recurring payments like Netflix, Spotify',
-          icon: 'assets/icons/subscription.svg',
-          iconColor: const Color(0xFF2196F3),
-          onTap: () => onTypeSelected(ExpenseType.subscription),
-        ),
-        const SizedBox(height: 8),
-        _ExpenseTypeButton(
           title: 'Voice Input',
           subtitle: 'Add an expense using your voice',
           icon: AppIcons.mic,

@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/subscription_service.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
+import '../../theme/theme.dart';
 
 class SubscriptionPlansCard extends StatelessWidget {
   final SubscriptionSummary summary;
@@ -33,11 +34,17 @@ class SubscriptionPlansCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.asset(
-                'assets/icons/subscription.svg',
-                width: 24,
-                height: 24,
-                color: const Color(0xFF2196F3),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.subscriptionColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.repeat,
+                  color: theme.colorScheme.subscriptionColor,
+                  size: 20,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
