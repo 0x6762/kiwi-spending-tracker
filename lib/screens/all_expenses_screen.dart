@@ -193,19 +193,11 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
                     ],
                   ),
                 ),
-                Card(
-                  margin: EdgeInsets.zero,
-                  color: theme.colorScheme.surfaceContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  elevation: 0,
-                  child: ExpenseList(
-                    expenses: entry.value,
-                    categoryRepo: widget.categoryRepo,
-                    onTap: _viewExpenseDetails,
-                    onDelete: widget.onDelete,
-                  ),
+                ExpenseList(
+                  expenses: entry.value,
+                  categoryRepo: widget.categoryRepo,
+                  onTap: _viewExpenseDetails,
+                  onDelete: widget.onDelete,
                 ),
                 const SizedBox(height: 8),
               ],

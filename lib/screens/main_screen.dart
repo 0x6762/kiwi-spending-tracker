@@ -187,6 +187,15 @@ class _MainScreenState extends State<MainScreen>
       padding: const EdgeInsets.only(top: 32, bottom: 32),
       child: Column(
         children: [
+          Opacity(
+            opacity: 0.7,
+            child: Image.asset(
+              'assets/imgs/empty-state-kiwi.png',
+              width: double.infinity,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(height: 40),
           Text(
             'Start by adding an expense',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -335,67 +344,60 @@ class _MainScreenState extends State<MainScreen>
                     ),
               const SizedBox(height: 8),
               if (!_isLoading) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Recent expenses',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AllExpensesScreen(
-                                expenses: _expenses,
-                                categoryRepo: widget.categoryRepo,
-                                repository: widget.repository,
-                                accountRepo: widget.accountRepo,
-                                onDelete: _deleteExpense,
-                                onExpenseUpdated: _loadExpenses,
-                              ),
-                            ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                        ),
-                        child: Text(
-                          'See all',
-                          style: theme.textTheme.labelMedium?.copyWith(
+                if (_expenses.isEmpty)
+                  _buildEmptyState()
+                else ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Recent expenses',
+                          style: theme.textTheme.titleSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_expenses.isEmpty)
-                  _buildEmptyState()
-                else
-                  Card(
-                    margin: EdgeInsets.zero,
-                    color: theme.colorScheme.surfaceContainer,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AllExpensesScreen(
+                                  expenses: _expenses,
+                                  categoryRepo: widget.categoryRepo,
+                                  repository: widget.repository,
+                                  accountRepo: widget.accountRepo,
+                                  onDelete: _deleteExpense,
+                                  onExpenseUpdated: _loadExpenses,
+                                ),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                          ),
+                          child: Text(
+                            'See all',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    elevation: 0,
-                    child: ExpenseList(
-                      expenses: todayExpenses,
-                      categoryRepo: widget.categoryRepo,
-                      onTap: _viewExpenseDetails,
-                      onDelete: _deleteExpense,
-                    ),
                   ),
+                  ExpenseList(
+                    expenses: todayExpenses,
+                    categoryRepo: widget.categoryRepo,
+                    onTap: _viewExpenseDetails,
+                    onDelete: _deleteExpense,
+                  ),
+                ],
               ],
             ],
           ),

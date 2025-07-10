@@ -162,31 +162,54 @@ class _ExpenseListState extends State<ExpenseList> {
   @override
   Widget build(BuildContext context) {
     final expenses = _sortedExpenses;
+    final theme = Theme.of(context);
 
     if (expenses.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
-          child: Text(
-            'Nothing here so far.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Opacity(
+                opacity: 0.7,
+                child: Image.asset(
+                  'assets/imgs/empty-state-kiwi.png',
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Nothing spent so far today.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      controller: widget.scrollController,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: expenses.length,
-      itemBuilder: (context, index) {
-        final expense = expenses[index];
-        return _buildExpenseItem(context, expense);
-      },
+    return Card(
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      elevation: 0,
+      child: ListView.builder(
+        controller: widget.scrollController,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: expenses.length,
+        itemBuilder: (context, index) {
+          final expense = expenses[index];
+          return _buildExpenseItem(context, expense);
+        },
+      ),
     );
   }
 }
