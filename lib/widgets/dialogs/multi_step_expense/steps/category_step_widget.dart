@@ -208,7 +208,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
     }
     
     return categories.where((category) {
-      return category.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      return category.name.toLowerCase().startsWith(_searchQuery.toLowerCase());
     }).toList();
   }
 
