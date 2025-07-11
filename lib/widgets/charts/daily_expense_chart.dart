@@ -104,19 +104,19 @@ class DailyExpenseChart extends StatelessWidget {
                    extraLinesData: ExtraLinesData(
                      horizontalLines: [
                        // Baseline at y=0
-                       HorizontalLine(
-                         y: 0,
-                         color: theme.colorScheme.onSurfaceVariant.withOpacity(0.3),
-                         strokeWidth: 1,
-                         dashArray: [3, 3],
-                       ),
+                      //  HorizontalLine(
+                      //    y: 0,
+                      //    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.3),
+                      //    strokeWidth: 1,
+                      //    dashArray: [3, 3],
+                      //  ),
                        // Daily average line
                        if (avgValue > 0)
                          HorizontalLine(
                            y: avgValue,
                            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
-                           strokeWidth: 1.5,
-                           dashArray: [5, 5],
+                           strokeWidth: 1,
+                           dashArray: [1, 5],
                            label: HorizontalLineLabel(
                              show: true,
                              labelResolver: (line) => isCompact ? 'Avg' : 'Daily Average',
@@ -149,11 +149,19 @@ class DailyExpenseChart extends StatelessWidget {
                           // Check if this is today's data point (last index)
                           final isToday = index == days.length - 1;
                           
+                          // Only show dot for today's data point
+                          if (!isToday) {
+                            return FlDotCirclePainter(
+                              radius: 0,
+                              color: Colors.transparent,
+                            );
+                          }
+                          
                           return FlDotCirclePainter(
-                            radius: isToday ? (isCompact ? 5 : 6) : (isCompact ? 3 : 4),
-                            color: isToday ? theme.colorScheme.primary : theme.colorScheme.primary.withOpacity(0.7),
-                            strokeWidth: isToday ? 3 : 2,
-                            strokeColor: isToday ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerLowest,
+                            radius: isCompact ? 4 : 4,
+                            color: theme.colorScheme.onSurface,
+                            strokeWidth: 2,
+                            strokeColor: theme.colorScheme.primary,
                           );
                         },
                       ),
