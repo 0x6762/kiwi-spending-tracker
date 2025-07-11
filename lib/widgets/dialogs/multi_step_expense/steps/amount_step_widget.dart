@@ -127,8 +127,26 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
 
   Widget _buildDynamicAmountDisplay(ThemeData theme, String amount, double availableWidth) {
     final formattedAmount = formatCurrency(double.tryParse(amount) ?? 0);
-    final integerPart = formattedAmount.split('.')[0];
-    final decimalPart = amount.contains('.') ? '.${amount.split('.')[1]}' : '';
+    
+    // Detect decimal separator (could be '.' or ',' depending on locale)
+    String integerPart;
+    String decimalPart = '';
+    
+    if (formattedAmount.contains(',') && formattedAmount.lastIndexOf(',') > formattedAmount.lastIndexOf('.')) {
+      // BRL format: "R$ 1.234,56" - comma is decimal separator
+      final parts = formattedAmount.split(',');
+      integerPart = parts[0];
+      if (amount.contains('.') && parts.length > 1) {
+        decimalPart = ',${amount.split('.')[1]}';
+      }
+    } else {
+      // USD format: "$1,234.56" - period is decimal separator
+      final parts = formattedAmount.split('.');
+      integerPart = parts[0];
+      if (amount.contains('.') && parts.length > 1) {
+        decimalPart = '.${amount.split('.')[1]}';
+      }
+    }
     
     // Try different font sizes starting from largest
     final fontSizes = [48.0, 40.0, 32.0, 24.0, 20.0, 16.0, 14.0, 12.0];
