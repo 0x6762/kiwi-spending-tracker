@@ -23,11 +23,11 @@ class DailyExpenseChart extends StatelessWidget {
 
   List<DateTime> _getDaysInMonth() {
     if (isCompact) {
-      // For compact view, show last 10 days starting from today
+      // For compact view, show last 14 days starting from today
       final today = DateTime.now();
       final todayOnly = DateTime(today.year, today.month, today.day);
-      return List.generate(10, (index) {
-        return todayOnly.subtract(Duration(days: 9 - index));
+      return List.generate(14, (index) {
+        return todayOnly.subtract(Duration(days: 13 - index));
       });
     } else {
       // For full view, show entire month
@@ -124,7 +124,7 @@ class DailyExpenseChart extends StatelessWidget {
                                color: theme.colorScheme.onSurfaceVariant,
                                fontSize: isCompact ? 10 : 12,
                              ),
-                             alignment: Alignment.topRight,
+                             alignment: Alignment.topLeft,
                            ),
                          ),
                      ],
@@ -174,7 +174,7 @@ class DailyExpenseChart extends StatelessWidget {
                     ),
                   ],
                   titlesData: FlTitlesData(
-                    show: true,
+                    show: false,
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -272,7 +272,7 @@ class DailyExpenseChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isCompact ? 'Last 10 Days' : 'Daily Spending Trend',
+              isCompact ? 'Last 14 Days' : 'Daily Spending Trend',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

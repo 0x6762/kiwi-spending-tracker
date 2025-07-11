@@ -110,27 +110,29 @@ class TodaySpendingCard extends StatelessWidget {
                 ],
               ),
             ],
-            const SizedBox(height: 24),
-            // Daily spending chart
-            SizedBox(
-              height: 100,
-              child: Transform.translate(
-                offset: const Offset(0, 0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: DailyExpenseChart(
-                      expenses: expenses,
-                      selectedMonth: DateTime(DateTime.now().year, DateTime.now().month),
-                      analyticsService: analyticsService,
-                      isCompact: true,
-                      dailyAverage: averageDaily,
+            if (averageDaily > 0) ...[
+              const SizedBox(height: 40),
+              // Daily spending chart
+              SizedBox(
+                height: 60,
+                child: Transform.translate(
+                  offset: const Offset(0, -16),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: DailyExpenseChart(
+                        expenses: expenses,
+                        selectedMonth: DateTime(DateTime.now().year, DateTime.now().month),
+                        analyticsService: analyticsService,
+                        isCompact: true,
+                        dailyAverage: averageDaily,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
