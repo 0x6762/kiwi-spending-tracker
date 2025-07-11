@@ -66,65 +66,65 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Consumer<ExpenseFormController>(
+        return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
         return Column(
           children: [
+            // Fixed search bar
+            Container(
+              padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 16),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search categories...',
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                            _animationController.reset();
+                            _animationController.forward();
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainer,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                  _animationController.reset();
+                  _animationController.forward();
+                },
+              ),
+            ),
+
+            // Scrollable content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 0),
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // Search field
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search categories...',
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: Icon(
-                                    Icons.clear,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = '';
-                                    });
-                                    _animationController.reset();
-                                    _animationController.forward();
-                                  },
-                                )
-                              : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: theme.colorScheme.surfaceContainer,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                          _animationController.reset();
-                          _animationController.forward();
-                        },
-                      ),
-                    ),
-
                     // Categories title row
                     Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -181,33 +181,6 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                 ),
               ),
             ),
-            // Next button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: controller.selectedCategory != null ? widget.onNext : null,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  disabledBackgroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
-                  disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  'Next',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: controller.selectedCategory != null 
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
           ],
         );
       },
@@ -251,11 +224,11 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                 margin: EdgeInsets.zero,
                 color: theme.colorScheme.surfaceContainer,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 0,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -288,68 +261,51 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
               separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final category = categories[index];
-                final isSelected = controller.selectedCategory?.id == category.id;
                 
-                return Material(
-                  color: isSelected 
-                      ? theme.colorScheme.primary.withOpacity(0.1)
-                      : theme.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    onTap: () => controller.setCategory(category),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: isSelected
-                            ? Border.all(color: theme.colorScheme.primary, width: 2)
-                            : Border.all(color: Colors.transparent, width: 2),
-                      ),
-                      child: Row(
-                        children: [
-                          // Icon
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? theme.colorScheme.primary.withOpacity(0.2)
-                                  : theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              category.icon,
-                              color: isSelected 
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurfaceVariant,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Category name
-                          Expanded(
-                            child: Text(
-                              category.name,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: isSelected 
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurface,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // Selection indicator
-                          if (isSelected)
-                            Icon(
-                              Icons.check_circle,
-                              color: theme.colorScheme.primary,
-                              size: 24,
-                            ),
-                        ],
-                      ),
+                return TextButton(
+                  onPressed: () {
+                    controller.setCategory(category);
+                    widget.onNext?.call();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: theme.colorScheme.surfaceContainer,
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 16,
+                      top: 12,
+                      bottom: 12,
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          category.icon,
+                          size: 20,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Category name
+                      Expanded(
+                        child: Text(
+                          category.name,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
