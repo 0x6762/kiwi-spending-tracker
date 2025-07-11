@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense_category.dart';
-import '../../../forms/picker_button.dart';
-import '../../../sheets/picker_sheet.dart';
 import '../../../sheets/add_category_sheet.dart';
 import '../../../../utils/icons.dart';
 
-class CategoryStepWidget extends StatelessWidget {
+class CategoryStepWidget extends StatefulWidget {
   final VoidCallback? onNext;
 
   const CategoryStepWidget({
@@ -15,74 +13,32 @@ class CategoryStepWidget extends StatelessWidget {
     required this.onNext,
   });
 
-  void _showCategoryPicker(BuildContext context, ExpenseFormController controller) async {
-    final repo = controller.categoryRepo;
-    
-    // Ensure default categories are loaded
-    await repo.loadCategories();
-    
-    // Get all categories and sort by name
-    final categories = await repo.getAllCategories();
-    categories.sort((a, b) => a.name.compareTo(b.name));
+  @override
+  State<CategoryStepWidget> createState() => _CategoryStepWidgetState();
+}
 
-    if (!context.mounted) return;
+class _CategoryStepWidgetState extends State<CategoryStepWidget> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-    PickerSheet.show(
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showAddCategorySheet(BuildContext context, ExpenseFormController controller) async {
+    await showModalBottomSheet(
       context: context,
-      title: 'Select Category',
-      children: [
-        // Add Category button
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              AppIcons.add,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          title: Text(
-            'Create Category',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          onTap: () async {
-            Navigator.pop(context); // Close picker sheet
-            await showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => AddCategorySheet(
-                categoryRepo: controller.categoryRepo,
-                onCategoryAdded: () {
-                  // Will refresh categories when picker is shown again
-                },
-              ),
-            );
-            // Show picker sheet again after category is added
-            if (context.mounted) {
-              _showCategoryPicker(context, controller);
-            }
-          },
-        ),
-        const Divider(),
-        ...categories.map(
-          (category) => ListTile(
-            leading: Icon(category.icon),
-            title: Text(category.name),
-            selected: controller.selectedCategory?.id == category.id,
-            onTap: () {
-              controller.setCategory(category);
-              Navigator.pop(context);
-            },
-          ),
-        ),
-      ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddCategorySheet(
+        categoryRepo: controller.categoryRepo,
+        onCategoryAdded: () {
+          // Refresh the categories when a new one is added
+          controller.notifyListeners();
+        },
+      ),
     );
   }
 
@@ -100,105 +56,230 @@ class CategoryStepWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Select Category button
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 40),
-                      child: PickerButton(
-                        label: controller.selectedCategory?.name ?? 'Select Category',
-                        icon: controller.selectedCategory?.icon ?? AppIcons.category,
-                        onTap: () => _showCategoryPicker(context, controller),
+                    // Header
+                    Text(
+                      'Choose Category',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    
-                    // Recently used categories
+                    const SizedBox(height: 8),
+                    Text(
+                      'Select a category for your expense',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Search field
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search categories...',
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: theme.colorScheme.surfaceContainer,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                      ),
+                    ),
+
+                    // Create Category button
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 24),
+                      child: Material(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        child: InkWell(
+                          onTap: () => _showAddCategorySheet(context, controller),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    AppIcons.add,
+                                    color: theme.colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Create Category',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // All Categories
                     FutureBuilder<List<ExpenseCategory>>(
-                      future: _loadRecentCategories(controller),
+                      future: _loadAllCategories(controller),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const SizedBox.shrink();
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
                         }
 
-                        final recentCategories = snapshot.data ?? [];
+                        final allCategories = snapshot.data ?? [];
+                        final categories = _filterCategories(allCategories);
                         
-                        if (recentCategories.isEmpty) {
-                          return const SizedBox.shrink();
+                        if (categories.isEmpty) {
+                          return Container(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  _searchQuery.isNotEmpty ? Icons.search_off : AppIcons.category,
+                                  size: 48,
+                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _searchQuery.isNotEmpty 
+                                      ? 'No categories found'
+                                      : 'No categories yet',
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'Try a different search term'
+                                      : 'Create your first category to get started',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          );
                         }
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Recently Used',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 1.8,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                              ),
-                              itemCount: recentCategories.length,
-                              itemBuilder: (context, index) {
-                                final category = recentCategories[index];
-                                final isSelected = controller.selectedCategory?.id == category.id;
-                                
-                                return Material(
-                                  color: isSelected 
-                                      ? theme.colorScheme.primary.withOpacity(0.1)
-                                      : theme.colorScheme.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: InkWell(
-                                    onTap: () => controller.setCategory(category),
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: categories.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final category = categories[index];
+                            final isSelected = controller.selectedCategory?.id == category.id;
+                            
+                            return Material(
+                              color: isSelected 
+                                  ? theme.colorScheme.primary.withOpacity(0.1)
+                                  : theme.colorScheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                onTap: () => controller.setCategory(category),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: isSelected
-                                            ? Border.all(color: theme.colorScheme.primary.withOpacity(0.3), width: 1.5)
-                                            : Border.all(color: theme.colorScheme.surfaceContainer, width: 1.5),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Icon at the top
-                                          Container(
-                                            padding: const EdgeInsets.all(0),
-                                            
-                                            child: Icon(
-                                              category.icon,
-                                              color: isSelected 
-                                                  ? theme.colorScheme.primary
-                                                  : theme.colorScheme.onSurfaceVariant,
-                                              size: 24,
-                                            ),
-                                          ),
-                                          // Category name below
-                                          Text(
-                                            category.name,
-                                            style: theme.textTheme.labelSmall?.copyWith(
-                                              color: theme.colorScheme.onSurfaceVariant,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.left,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                    border: isSelected
+                                        ? Border.all(color: theme.colorScheme.primary, width: 2)
+                                        : Border.all(color: Colors.transparent, width: 2),
                                   ),
-                                );
-                              },
-                            ),
-                          ],
+                                  child: Row(
+                                    children: [
+                                      // Icon
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: isSelected 
+                                              ? theme.colorScheme.primary.withOpacity(0.2)
+                                              : theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(
+                                          category.icon,
+                                          color: isSelected 
+                                              ? theme.colorScheme.primary
+                                              : theme.colorScheme.onSurfaceVariant,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      // Category name
+                                      Expanded(
+                                        child: Text(
+                                          category.name,
+                                          style: theme.textTheme.titleSmall?.copyWith(
+                                            color: isSelected 
+                                                ? theme.colorScheme.primary
+                                                : theme.colorScheme.onSurface,
+                                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      // Selection indicator
+                                      if (isSelected)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: theme.colorScheme.primary,
+                                          size: 24,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -211,11 +292,13 @@ class CategoryStepWidget extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               child: ElevatedButton(
-                onPressed: onNext,
+                onPressed: controller.selectedCategory != null ? widget.onNext : null,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
+                  disabledBackgroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
+                  disabledForegroundColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -223,7 +306,9 @@ class CategoryStepWidget extends StatelessWidget {
                 child: Text(
                   'Next',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onPrimary,
+                    color: controller.selectedCategory != null 
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -235,17 +320,28 @@ class CategoryStepWidget extends StatelessWidget {
     );
   }
 
-  Future<List<ExpenseCategory>> _loadRecentCategories(ExpenseFormController controller) async {
+  Future<List<ExpenseCategory>> _loadAllCategories(ExpenseFormController controller) async {
     try {
-      // For now, we'll load all categories and return the first 6 as "recent"
-      // In a real implementation, you'd track usage and sort by most recent
+      // Ensure default categories are loaded
       await controller.categoryRepo.loadCategories();
       final categories = await controller.categoryRepo.getAllCategories();
       
-      // Return up to 6 categories as recent ones
-      return categories.take(6).toList();
+      // Sort categories by name
+      categories.sort((a, b) => a.name.compareTo(b.name));
+      
+      return categories;
     } catch (e) {
       return [];
     }
+  }
+
+  List<ExpenseCategory> _filterCategories(List<ExpenseCategory> categories) {
+    if (_searchQuery.isEmpty) {
+      return categories;
+    }
+    
+    return categories.where((category) {
+      return category.name.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
   }
 } 
