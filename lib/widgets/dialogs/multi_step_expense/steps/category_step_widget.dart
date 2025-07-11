@@ -285,6 +285,8 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
               
               return TextButton(
                 onPressed: () {
+                  // Dismiss keyboard if it's open
+                  FocusScope.of(context).unfocus();
                   controller.setCategory(category);
                   // Always call onNext directly, regardless of current availability
                   // This ensures the first tap works immediately
