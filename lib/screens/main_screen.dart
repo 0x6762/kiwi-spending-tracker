@@ -190,7 +190,7 @@ class _MainScreenState extends State<MainScreen>
           Opacity(
             opacity: 0.7,
             child: Image.asset(
-              'assets/imgs/empty-state-kiwi.png',
+              'assets/imgs/empty-state.png',
               width: double.infinity,
               fit: BoxFit.contain,
             ),

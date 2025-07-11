@@ -174,7 +174,7 @@ class _ExpenseListState extends State<ExpenseList> {
               Opacity(
                 opacity: 0.7,
                 child: Image.asset(
-                  'assets/imgs/empty-state-kiwi.png',
+                  'assets/imgs/empty-state.png',
                   width: double.infinity,
                   fit: BoxFit.contain,
                 ),
