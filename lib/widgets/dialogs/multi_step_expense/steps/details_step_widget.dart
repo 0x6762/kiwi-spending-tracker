@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense.dart';
 import '../../../forms/picker_button.dart';
 import '../../../sheets/picker_sheet.dart';
 import '../../../../utils/icons.dart';
+import '../../../../theme/theme.dart';
 
 class DetailsStepWidget extends StatelessWidget {
   final VoidCallback? onSubmit;
@@ -13,6 +15,23 @@ class DetailsStepWidget extends StatelessWidget {
     super.key,
     required this.onSubmit,
   });
+
+  // Custom widget for SVG icon in expense type picker
+  Widget _buildSvgIcon(String assetPath, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SvgPicture.asset(
+        assetPath,
+        width: 20,
+        height: 20,
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      ),
+    );
+  }
 
   void _showExpenseTypePicker(BuildContext context, ExpenseFormController controller) {
     PickerSheet.show(
@@ -87,6 +106,8 @@ class DetailsStepWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fixedExpenseColor = theme.colorScheme.fixedExpenseColor;
+    final variableExpenseColor = theme.colorScheme.variableExpenseColor;
 
     return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
@@ -110,10 +131,48 @@ class DetailsStepWidget extends StatelessWidget {
                       ),
                     ),
                     // Expense type picker
-                    PickerButton(
-                      label: controller.isFixedExpense ? 'Fixed' : 'Variable',
-                      icon: AppIcons.category,
-                      onTap: () => _showExpenseTypePicker(context, controller),
+                    TextButton(
+                      onPressed: () => _showExpenseTypePicker(context, controller),
+                      style: TextButton.styleFrom(
+                        backgroundColor: theme.colorScheme.surfaceContainer,
+                        foregroundColor: theme.colorScheme.onSurfaceVariant,
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 16,
+                          top: 12,
+                          bottom: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildSvgIcon(
+                            controller.isFixedExpense 
+                              ? 'assets/icons/fixed_expense.svg' 
+                              : 'assets/icons/variable_expense.svg',
+                            controller.isFixedExpense 
+                              ? fixedExpenseColor 
+                              : variableExpenseColor,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              controller.isFixedExpense ? 'Fixed' : 'Variable',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     

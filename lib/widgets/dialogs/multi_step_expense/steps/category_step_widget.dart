@@ -271,10 +271,10 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                     backgroundColor: theme.colorScheme.surfaceContainer,
                     foregroundColor: theme.colorScheme.onSurfaceVariant,
                     padding: const EdgeInsets.only(
-                      left: 12,
+                      left: 16,
                       right: 16,
-                      top: 12,
-                      bottom: 12,
+                      top: 16,
+                      bottom: 16,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -295,7 +295,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       // Category name
                       Expanded(
                         child: Text(
