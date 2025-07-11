@@ -52,26 +52,10 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
-                    Text(
-                      'Choose Category',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Select a category for your expense',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
 
                     // Search field
                     Container(
@@ -117,44 +101,37 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> {
                       ),
                     ),
 
-                    // Create Category button
+                    // Categories title row
                     Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 24),
-                      child: Material(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        child: InkWell(
-                          onTap: () => _showAddCategorySheet(context, controller),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    AppIcons.add,
-                                    color: theme.colorScheme.primary,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Create Category',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Categories',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => _showAddCategorySheet(context, controller),
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                            ),
+                            child: Text(
+                              'Add new',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
@@ -175,35 +152,40 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> {
                         final categories = _filterCategories(allCategories);
                         
                         if (categories.isEmpty) {
-                          return Container(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  _searchQuery.isNotEmpty ? Icons.search_off : AppIcons.category,
-                                  size: 48,
-                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          return SizedBox(
+                            width: double.infinity,
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              color: theme.colorScheme.surfaceContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              elevation: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (_searchQuery.isEmpty) ...[
+                                      Icon(
+                                        AppIcons.category,
+                                        size: 48,
+                                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+                                    Text(
+                                      _searchQuery.isNotEmpty 
+                                          ? 'No categories found'
+                                          : 'No categories yet',
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  _searchQuery.isNotEmpty 
-                                      ? 'No categories found'
-                                      : 'No categories yet',
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _searchQuery.isNotEmpty
-                                      ? 'Try a different search term'
-                                      : 'Create your first category to get started',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                              ),
                             ),
                           );
                         }
