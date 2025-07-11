@@ -4,6 +4,7 @@ import '../../models/account.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
 import '../../services/expense_analytics_service.dart';
+import '../charts/daily_expense_chart.dart';
 
 class TodaySpendingCard extends StatelessWidget {
   final List<Expense> expenses;
@@ -71,88 +72,66 @@ class TodaySpendingCard extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            if (todayTotal > 0 || averageDaily > 0) ...[
-              const SizedBox(height: 16),
-              if (creditCardTotal > 0)
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: DefaultAccounts.creditCard.color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        DefaultAccounts.creditCard.icon,
-                        size: 20,
-                        color: DefaultAccounts.creditCard.color,
-                      ),
+            if (averageDaily > 0) ...[
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Credit card spending',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          formatCurrency(creditCardTotal),
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      AppIcons.insights,
+                      size: 20,
+                      color: theme.colorScheme.primary,
                     ),
-                  ],
-                ),
-              if (averageDaily > 0) ...[
-                if (creditCardTotal > 0) ...[
-                  const SizedBox(height: 0),
-                  Divider(
-                    color: theme.colorScheme.outlineVariant,
-                    height: 40,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Daily average',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        formatCurrency(averageDaily),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        AppIcons.insights,
-                        size: 20,
-                        color: theme.colorScheme.primary,
+              ),
+            ],
+            if (averageDaily > 0) ...[
+              const SizedBox(height: 40),
+              // Daily spending chart
+              SizedBox(
+                height: 60,
+                child: Transform.translate(
+                  offset: const Offset(0, -16),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: DailyExpenseChart(
+                        expenses: expenses,
+                        selectedMonth: DateTime(DateTime.now().year, DateTime.now().month),
+                        analyticsService: analyticsService,
+                        isCompact: true,
+                        dailyAverage: averageDaily,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Daily average',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          formatCurrency(averageDaily),
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ],
+              ),
             ],
           ],
         ),

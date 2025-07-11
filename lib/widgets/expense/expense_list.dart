@@ -174,12 +174,12 @@ class _ExpenseListState extends State<ExpenseList> {
               Opacity(
                 opacity: 0.7,
                 child: Image.asset(
-                  'assets/imgs/empty-state-kiwi.png',
-                  width: double.infinity,
+                  'assets/imgs/empty-state.png',
+                  width: 250,
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
                 'Nothing spent so far today.',
                 style: theme.textTheme.bodyLarge?.copyWith(

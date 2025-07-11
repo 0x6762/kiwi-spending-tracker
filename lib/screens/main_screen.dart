@@ -184,18 +184,18 @@ class _MainScreenState extends State<MainScreen>
 
   Widget _buildEmptyState() {
     return Padding(
-      padding: const EdgeInsets.only(top: 32, bottom: 32),
+      padding: const EdgeInsets.only(top: 56, bottom: 32),
       child: Column(
         children: [
           Opacity(
             opacity: 0.7,
             child: Image.asset(
-              'assets/imgs/empty-state-kiwi.png',
-              width: double.infinity,
+              'assets/imgs/empty-state.png',
+              width: 300,
               fit: BoxFit.contain,
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 56),
           Text(
             'Start by adding an expense',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
