@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
 import '../controllers/expense_form_controller.dart';
 import '../../../forms/number_pad.dart';
 import '../../../forms/picker_button.dart';
@@ -124,6 +125,109 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     );
   }
 
+  Widget _buildDynamicAmountDisplay(ThemeData theme, String amount, double availableWidth) {
+    final formattedAmount = formatCurrency(double.tryParse(amount) ?? 0);
+    
+    // Detect decimal separator (could be '.' or ',' depending on locale)
+    String integerPart;
+    String decimalPart = '';
+    
+    if (formattedAmount.contains(',') && formattedAmount.lastIndexOf(',') > formattedAmount.lastIndexOf('.')) {
+      // BRL format: "R$ 1.234,56" - comma is decimal separator
+      final parts = formattedAmount.split(',');
+      integerPart = parts[0];
+      if (amount.contains('.') && parts.length > 1) {
+        decimalPart = ',${amount.split('.')[1]}';
+      }
+    } else {
+      // USD format: "$1,234.56" - period is decimal separator
+      final parts = formattedAmount.split('.');
+      integerPart = parts[0];
+      if (amount.contains('.') && parts.length > 1) {
+        decimalPart = '.${amount.split('.')[1]}';
+      }
+    }
+    
+    // Try different font sizes starting from largest
+    final fontSizes = [48.0, 40.0, 32.0, 24.0, 20.0, 16.0, 14.0, 12.0];
+    
+    for (final fontSize in fontSizes) {
+      final decimalFontSize = fontSize * 0.75; // Decimal part is 75% of main font size
+      
+      // Calculate combined width of integer and decimal parts
+      final integerWidth = _calculateTextWidth(
+        integerPart,
+        _getTextStyle(theme, fontSize, FontWeight.w700),
+      );
+      
+      final decimalWidth = decimalPart.isNotEmpty ? _calculateTextWidth(
+        decimalPart,
+        _getTextStyle(theme, decimalFontSize, FontWeight.w500),
+      ) : 0.0;
+      
+      final totalWidth = integerWidth + decimalWidth;
+      
+      if (totalWidth <= availableWidth) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              integerPart,
+              style: _getTextStyle(theme, fontSize, FontWeight.w700),
+            ),
+            if (decimalPart.isNotEmpty)
+              Text(
+                decimalPart,
+                style: _getTextStyle(theme, decimalFontSize, FontWeight.w500).copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        );
+      }
+    }
+    
+    // Fallback to smallest size if nothing fits
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          integerPart,
+          style: _getTextStyle(theme, 10.0, FontWeight.w700),
+        ),
+        if (decimalPart.isNotEmpty)
+          Text(
+            decimalPart,
+            style: _getTextStyle(theme, 8.0, FontWeight.w500).copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
+  }
+
+  double _calculateTextWidth(String text, TextStyle style) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: ui.TextDirection.ltr,
+    );
+    textPainter.layout();
+    return textPainter.width;
+  }
+
+  TextStyle _getTextStyle(ThemeData theme, double fontSize, FontWeight fontWeight) {
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: theme.colorScheme.onSurface,
+      fontFamily: 'Inter',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -178,27 +282,26 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
                         ),
                         const SizedBox(height: 24),
                         // Amount display
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              formatCurrency(double.tryParse(controller.amount) ?? 0)
-                                  .split('.')[0],
-                              style: theme.textTheme.displayLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                                fontWeight: FontWeight.w700,
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            return SizedBox(
+                              width: double.infinity,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Expanded(
+                                    child: _buildDynamicAmountDisplay(
+                                      theme, 
+                                      controller.amount, 
+                                      constraints.maxWidth - 48, // Account for padding + buffer
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            if (controller.amount.contains('.'))
-                              Text(
-                                '.${controller.amount.split('.')[1]}',
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                          ],
+                            );
+                          },
                         ),
                       ],
                     ),
