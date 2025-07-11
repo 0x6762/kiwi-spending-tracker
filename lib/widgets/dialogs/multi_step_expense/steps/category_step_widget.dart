@@ -22,6 +22,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
   String _searchQuery = '';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    _animationController.forward();
+    // Start animation at full opacity for initial load
+    _animationController.value = 1.0;
   }
 
   @override
@@ -91,6 +93,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                             _searchController.clear();
                             setState(() {
                               _searchQuery = '';
+                              _isSearching = false;
                             });
                             _animationController.reset();
                             _animationController.forward();
@@ -111,9 +114,12 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
+                    _isSearching = value.isNotEmpty;
                   });
-                  _animationController.reset();
-                  _animationController.forward();
+                  if (_isSearching) {
+                    _animationController.reset();
+                    _animationController.forward();
+                  }
                 },
               ),
             ),
@@ -215,101 +221,108 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
   Widget _buildCategoriesWithAnimation(List<ExpenseCategory> allCategories, ExpenseFormController controller, ThemeData theme) {
     final categories = _filterCategories(allCategories);
     
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: categories.isEmpty
-          ? SizedBox(
-              width: double.infinity,
-              child: Card(
-                margin: EdgeInsets.zero,
-                color: theme.colorScheme.surfaceContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_searchQuery.isEmpty) ...[
-                        Icon(
-                          AppIcons.category,
-                          size: 48,
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      Text(
-                        _searchQuery.isNotEmpty 
-                            ? 'No categories found'
-                            : 'No categories yet',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
+    // Only animate when actively searching, not on initial load
+    return _isSearching 
+        ? FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildCategoriesList(categories, controller, theme),
+          )
+        : _buildCategoriesList(categories, controller, theme);
+  }
+
+  Widget _buildCategoriesList(List<ExpenseCategory> categories, ExpenseFormController controller, ThemeData theme) {
+    return categories.isEmpty
+        ? SizedBox(
+            width: double.infinity,
+            child: Card(
+              margin: EdgeInsets.zero,
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_searchQuery.isEmpty) ...[
+                      Icon(
+                        AppIcons.category,
+                        size: 48,
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                       ),
+                      const SizedBox(height: 16),
                     ],
-                  ),
+                    Text(
+                      _searchQuery.isNotEmpty 
+                          ? 'No categories found'
+                          : 'No categories yet',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
-            )
-          : ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: categories.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                
-                return TextButton(
-                  onPressed: () {
-                    controller.setCategory(category);
-                    widget.onNext?.call();
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: theme.colorScheme.surfaceContainer,
-                    foregroundColor: theme.colorScheme.onSurfaceVariant,
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 16,
-                      bottom: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Icon
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          category.icon,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Category name
-                      Expanded(
-                        child: Text(
-                          category.name,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
             ),
-    );
+          )
+        : ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: categories.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              
+              return TextButton(
+                onPressed: () {
+                  controller.setCategory(category);
+                  widget.onNext?.call();
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  foregroundColor: theme.colorScheme.onSurfaceVariant,
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Icon
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        category.icon,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Category name
+                    Expanded(
+                      child: Text(
+                        category.name,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
   }
 } 
