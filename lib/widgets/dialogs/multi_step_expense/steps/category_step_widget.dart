@@ -23,6 +23,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _isSearching = false;
+  Future<List<ExpenseCategory>>? _categoriesFuture;
 
   @override
   void initState() {
@@ -58,6 +59,9 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
         categoryRepo: controller.categoryRepo,
         onCategoryAdded: () {
           // Refresh the categories when a new one is added
+          setState(() {
+            _categoriesFuture = null; // Reset cache to reload categories
+          });
           controller.notifyListeners();
         },
       ),
@@ -70,6 +74,9 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
 
         return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
+        // Cache the future to prevent recreation on every rebuild
+        _categoriesFuture ??= _loadAllCategories(controller);
+
         return Column(
           children: [
             // Fixed search bar
@@ -167,7 +174,7 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
 
                     // All Categories
                     FutureBuilder<List<ExpenseCategory>>(
-                      future: _loadAllCategories(controller),
+                      future: _categoriesFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(
@@ -279,6 +286,8 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
               return TextButton(
                 onPressed: () {
                   controller.setCategory(category);
+                  // Always call onNext directly, regardless of current availability
+                  // This ensures the first tap works immediately
                   widget.onNext?.call();
                 },
                 style: TextButton.styleFrom(

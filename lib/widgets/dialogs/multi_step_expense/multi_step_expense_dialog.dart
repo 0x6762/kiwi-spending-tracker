@@ -152,7 +152,7 @@ class _MultiStepExpenseDialogState extends State<MultiStepExpenseDialog> {
                       onNext: controller.canProceedFromStep(0) ? _nextStep : null,
                     ),
                     CategoryStepWidget(
-                      onNext: controller.canProceedFromStep(1) ? _nextStep : null,
+                      onNext: _nextStep,
                     ),
                     DetailsStepWidget(
                       onSubmit: controller.canProceedFromStep(2) ? _submitExpense : null,
