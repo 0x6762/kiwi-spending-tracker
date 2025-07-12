@@ -4,7 +4,10 @@ import '../../models/account.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
 import '../../services/expense_analytics_service.dart';
+import '../../theme/design_tokens.dart';
 import '../charts/daily_expense_chart.dart';
+import '../common/app_card.dart';
+import '../common/icon_container.dart';
 
 class TodaySpendingCard extends StatelessWidget {
   final List<Expense> expenses;
@@ -24,18 +27,12 @@ class TodaySpendingCard extends StatelessWidget {
     final creditCardTotal = metrics.todayCreditCardTotal;
     final averageDaily = metrics.averageDaily;
 
-    return Card(
+    return AppCard.surface(
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
       margin: EdgeInsets.zero,
-      color: theme.colorScheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             Row(
               children: [
                 Text(
@@ -45,26 +42,26 @@ class TodaySpendingCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Today',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                              Container(
+                padding: DesignTokens.paddingSymmetric(
+                  horizontal: DesignTokens.spacingMd,
+                  vertical: DesignTokens.spacingSm,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: DesignTokens.borderRadius(DesignTokens.radiusChip),
+                ),
+                child: Text(
+                  'Today',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+              ),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: DesignTokens.spacingXs),
             Text(
               formatCurrency(todayTotal),
               style: theme.textTheme.headlineMedium?.copyWith(
@@ -73,22 +70,16 @@ class TodaySpendingCard extends StatelessWidget {
               ),
             ),
             if (averageDaily > 0) ...[
-              const SizedBox(height: 24),
+              SizedBox(height: DesignTokens.spacingLg),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      AppIcons.insights,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
+                  IconContainer.icon(
+                    icon: AppIcons.insights,
+                    iconColor: theme.colorScheme.primary,
+                    backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                    size: IconContainerSize.medium,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: DesignTokens.spacingMd),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -111,7 +102,7 @@ class TodaySpendingCard extends StatelessWidget {
               ),
             ],
             if (averageDaily > 0) ...[
-              const SizedBox(height: 40),
+              SizedBox(height: DesignTokens.spacingXl + DesignTokens.spacingSm),
               // Daily spending chart
               SizedBox(
                 height: 60,
@@ -135,7 +126,6 @@ class TodaySpendingCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    );
+      );
   }
 } 
