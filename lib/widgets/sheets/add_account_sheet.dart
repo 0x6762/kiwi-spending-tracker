@@ -3,6 +3,8 @@ import 'package:uuid/uuid.dart';
 import '../../models/account.dart';
 import '../../repositories/account_repository.dart';
 import '../../utils/icons.dart';
+import '../common/app_input.dart';
+import '../common/app_button.dart';
 import 'bottom_sheet.dart';
 import 'color_picker_sheet.dart';
 
@@ -111,12 +113,10 @@ class _AddAccountSheetState extends State<AddAccountSheet> {
         children: [
           Form(
             key: _formKey,
-            child: TextFormField(
+            child: AppInput(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Account Name',
-                hintText: 'Enter account name',
-              ),
+              labelText: 'Account Name',
+              hintText: 'Enter account name',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter an account name';
@@ -222,9 +222,10 @@ class _AddAccountSheetState extends State<AddAccountSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          FilledButton(
+          AppButton.primary(
+            text: widget.accountToEdit != null ? 'Save Changes' : 'Create Account',
             onPressed: _submit,
-            child: Text(widget.accountToEdit != null ? 'Save Changes' : 'Create Account'),
+            isExpanded: true,
           ),
           const SizedBox(height: 8),
         ],

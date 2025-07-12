@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
+import '../common/icon_container.dart';
 
 class PickerButton extends StatelessWidget {
   final String label;
@@ -22,32 +24,23 @@ class PickerButton extends StatelessWidget {
       style: TextButton.styleFrom(
         backgroundColor: theme.colorScheme.surfaceContainer,
         foregroundColor: theme.colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.only(
-          left: 12,
-          right: 16,
-          top: 12,
-          bottom: 12,
+        padding: DesignTokens.paddingSymmetric(
+          horizontal: DesignTokens.spacingMd,
+          vertical: DesignTokens.spacingMd,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconColor?.withOpacity(0.1) ?? theme.colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon ?? Icons.category_outlined,
-              size: 20,
-              color: iconColor ?? theme.colorScheme.primary,
-            ),
+          IconContainer.icon(
+            icon: icon ?? Icons.category_outlined,
+            iconColor: iconColor ?? theme.colorScheme.primary,
+            backgroundColor: (iconColor ?? theme.colorScheme.primary).withOpacity(0.1),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: DesignTokens.spacingMd),
           Expanded(
             child: Text(
               label,
@@ -59,7 +52,7 @@ class PickerButton extends StatelessWidget {
           Icon(
             Icons.keyboard_arrow_down_rounded,
             color: theme.colorScheme.onSurfaceVariant,
-            size: 20,
+            size: DesignTokens.iconButton,
           ),
         ],
       ),

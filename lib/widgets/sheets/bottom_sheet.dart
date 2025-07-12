@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
 
 class AppBottomSheet extends StatelessWidget {
   final String? title;
@@ -17,17 +18,17 @@ class AppBottomSheet extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingLg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: DesignTokens.borderRadiusTop(DesignTokens.radiusCard),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title != null) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingLg),
               child: Row(
                 children: [
                   Text(
@@ -42,7 +43,7 @@ class AppBottomSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: DesignTokens.spacingSm),
           ],
           if (contentPadding != null)
             Padding(

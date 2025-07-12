@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/icons.dart';
+import '../../theme/design_tokens.dart';
 
 class NumberPad extends StatelessWidget {
   final void Function(String) onDigitPressed;
@@ -107,17 +108,17 @@ class NumberPad extends StatelessWidget {
     return AspectRatio(
       aspectRatio: isLarge ? 0.7 : 1.4,
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(DesignTokens.spacingXs),
         child: Material(
           color: text == 'save'
               ? theme.colorScheme.primary
               : text == 'date'
                   ? theme.colorScheme.primary.withOpacity(0.1)
                   : theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: DesignTokens.borderRadius(DesignTokens.radiusLg),
           child: InkWell(
             onTap: onPressed,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: DesignTokens.borderRadius(DesignTokens.radiusLg),
             child: Center(
               child: _buildButtonContent(context, text, isAction),
             ),
@@ -134,13 +135,13 @@ class NumberPad extends StatelessWidget {
         return Icon(
           AppIcons.backspace,
           color: theme.colorScheme.onSurfaceVariant,
-          size: 24,
+          size: DesignTokens.iconMd,
         );
       case 'date':
         return Icon(
           AppIcons.calendar,
           color: theme.colorScheme.primary,
-          size: 24,
+          size: DesignTokens.iconMd,
         );
       case 'save':
         return Text(

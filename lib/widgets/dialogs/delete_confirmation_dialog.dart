@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
+import '../common/app_button.dart';
 
 class DeleteConfirmationDialog extends StatelessWidget {
   final String title;
@@ -20,39 +22,38 @@ class DeleteConfirmationDialog extends StatelessWidget {
 
     return AlertDialog(
       backgroundColor: theme.colorScheme.surfaceContainer,
-      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      titlePadding: DesignTokens.paddingOnly(
+        left: DesignTokens.spacingLg,
+        top: DesignTokens.spacingLg,
+        right: DesignTokens.spacingLg,
+        bottom: DesignTokens.spacingMd,
+      ),
+      contentPadding: DesignTokens.paddingOnly(
+        left: DesignTokens.spacingLg,
+        top: 0,
+        right: DesignTokens.spacingLg,
+        bottom: DesignTokens.spacingLg,
+      ),
+      actionsPadding: DesignTokens.paddingOnly(
+        left: DesignTokens.spacingLg,
+        top: 0,
+        right: DesignTokens.spacingLg,
+        bottom: DesignTokens.spacingMd,
+      ),
       title: Text(title, style: theme.textTheme.titleMedium),
       content: Text(message, style: theme.textTheme.bodyLarge),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: DesignTokens.borderRadius(DesignTokens.radiusCard),
       ),
       actions: [
-        TextButton(
+        AppButton.text(
+          text: cancelText,
           onPressed: () => Navigator.pop(context, false),
-          style: TextButton.styleFrom(
-            foregroundColor: theme.colorScheme.onSurfaceVariant,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          child: Text(
-            cancelText,
-            style: theme.textTheme.labelMedium?.copyWith(
-            ),
-          ),
         ),
-        TextButton(
+        SizedBox(width: DesignTokens.spacingSm),
+        AppButton.destructive(
+          text: deleteText,
           onPressed: () => Navigator.pop(context, true),
-          style: TextButton.styleFrom(
-            foregroundColor: theme.colorScheme.error,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          child: Text(
-            deleteText,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
         ),
       ],
     );

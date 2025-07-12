@@ -3,6 +3,8 @@ import 'package:uuid/uuid.dart';
 import '../../models/expense_category.dart';
 import '../../repositories/category_repository.dart';
 import '../../utils/icons.dart';
+import '../../theme/design_tokens.dart';
+import '../common/app_button.dart';
 import 'bottom_sheet.dart';
 
 class AddCategorySheet extends StatefulWidget {
@@ -89,7 +91,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
       padding: EdgeInsets.only(bottom: bottomPadding),
       child: AppBottomSheet(
         title: widget.categoryToEdit != null ? 'Edit Category' : 'New Category',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        contentPadding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingLg),
         children: [
           Form(
             key: _formKey,
@@ -113,22 +115,22 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: DesignTokens.spacingMd),
           Text(
             'Icon',
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: DesignTokens.spacingSm),
           ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: screenHeight * (bottomPadding > 0 ? 0.2 : 0.4),
             ),
             child: SingleChildScrollView(
               child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                spacing: DesignTokens.spacingMd,
+                runSpacing: DesignTokens.spacingMd,
                 children: [
                   // Shopping & Retail
                   AppIcons.shopping,
@@ -251,14 +253,14 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                   final isSelected = _selectedIcon == icon;
                   return InkWell(
                     onTap: () => setState(() => _selectedIcon = icon),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: DesignTokens.borderRadius(DesignTokens.radiusIcon),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(DesignTokens.spacingMd),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? theme.colorScheme.primary
                             : theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: DesignTokens.borderRadius(DesignTokens.radiusIcon),
                       ),
                       child: Icon(
                         icon,
@@ -272,14 +274,15 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _submit,
-            child: Text(widget.categoryToEdit != null
+          SizedBox(height: DesignTokens.spacingLg),
+          AppButton.primary(
+            text: widget.categoryToEdit != null
                 ? 'Save Changes'
-                : 'Create Category'),
+                : 'Create Category',
+            onPressed: _submit,
+            isExpanded: true,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: DesignTokens.spacingSm),
         ],
       ),
     );
