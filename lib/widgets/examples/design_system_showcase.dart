@@ -345,37 +345,22 @@ class DesignSystemShowcase extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Input Variants',
+            'Input Component (Production)',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           SizedBox(height: DesignTokens.spacingMd),
-          AppInput.filled(
-            labelText: 'Filled Input',
-            hintText: 'Enter text here',
+          AppInput(
+            labelText: 'Account Name',
+            hintText: 'Enter account name',
           ),
           SizedBox(height: DesignTokens.spacingMd),
-          AppInput.outlined(
-            labelText: 'Outlined Input',
-            hintText: 'Enter text here',
+          AppInput(
+            hintText: 'Type expense name',
           ),
           SizedBox(height: DesignTokens.spacingMd),
-          AppInput.underlined(
-            labelText: 'Underlined Input',
-            hintText: 'Enter text here',
-          ),
-          SizedBox(height: DesignTokens.spacingMd),
-          Text(
-            'Specialized Inputs',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          SizedBox(height: DesignTokens.spacingMd),
-          SearchInput(
-            hintText: 'Search expenses...',
-          ),
-          SizedBox(height: DesignTokens.spacingMd),
-          PasswordInput(
-            labelText: 'Password',
-            hintText: 'Enter your password',
+          AppInput(
+            initialValue: 'Expense name (optional)',
+            hintText: 'Expense name (optional)',
           ),
         ],
       ),

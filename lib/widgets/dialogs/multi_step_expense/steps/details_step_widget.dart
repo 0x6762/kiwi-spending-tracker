@@ -5,6 +5,7 @@ import '../controllers/expense_form_controller.dart';
 import '../../../../models/expense.dart';
 import '../../../forms/picker_button.dart';
 import '../../../sheets/picker_sheet.dart';
+import '../../../common/app_input.dart';
 import '../../../../utils/icons.dart';
 import '../../../../theme/theme.dart';
 
@@ -196,24 +197,15 @@ class DetailsStepWidget extends StatelessWidget {
                     const SizedBox(height: 24),
                     
                     // Expense name
-                    TextFormField(
+                    AppInput(
                       initialValue: controller.expenseName,
+                      hintText: 'Expense name (optional)',
                       onChanged: controller.setExpenseName,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
                       ),
-                      decoration: InputDecoration(
-                        hintText: 'Expense name (optional)',
-                        hintStyle: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                        ),
-                        filled: true,
-                        fillColor: theme.colorScheme.surfaceContainer,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      hintStyle: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
                   ],

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/account.dart';
 import '../../repositories/account_repository.dart';
 import '../../utils/icons.dart';
+import '../common/app_input.dart';
 import 'bottom_sheet.dart';
 import 'color_picker_sheet.dart';
 
@@ -111,12 +112,10 @@ class _AddAccountSheetState extends State<AddAccountSheet> {
         children: [
           Form(
             key: _formKey,
-            child: TextFormField(
+            child: AppInput(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Account Name',
-                hintText: 'Enter account name',
-              ),
+              labelText: 'Account Name',
+              hintText: 'Enter account name',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter an account name';

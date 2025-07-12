@@ -7,6 +7,7 @@ import '../../repositories/category_repository.dart';
 import 'picker_button.dart';
 import '../sheets/picker_sheet.dart';
 import '../sheets/add_category_sheet.dart';
+import '../common/app_input.dart';
 import '../../utils/icons.dart';
 import '../../theme/theme.dart';
 import '../../theme/design_tokens.dart';
@@ -72,50 +73,16 @@ class ExpenseFormFields extends StatelessWidget {
         Container(
           width: double.infinity,
           alignment: Alignment.topLeft,
-          child: TextFormField(
+          child: AppInput(
             controller: titleController,
-            textAlign: TextAlign.start,
+            hintText: 'Type expense name',
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w500,
             ),
-            decoration: InputDecoration(
-              hintText: 'Type expense name',
-              hintStyle: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainer,
-              border: OutlineInputBorder(
-                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.surfaceContainerLowest,
-                  width: 2,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.error,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.error,
-                  width: 2,
-                ),
-              ),
-              contentPadding: DesignTokens.paddingInput,
+            hintStyle: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
