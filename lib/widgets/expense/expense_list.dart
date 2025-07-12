@@ -166,7 +166,7 @@ class _ExpenseListState extends State<ExpenseList> {
 
     if (expenses.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -175,15 +175,15 @@ class _ExpenseListState extends State<ExpenseList> {
                 opacity: 0.7,
                 child: Image.asset(
                   'assets/imgs/empty-state.png',
-                  width: 250,
+                  width: 200,
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Text(
                 'Nothing spent so far today.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                 ),
               ),
             ],

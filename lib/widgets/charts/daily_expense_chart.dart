@@ -202,7 +202,7 @@ class DailyExpenseChart extends StatelessWidget {
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: isToday 
                                     ? theme.colorScheme.primary 
-                                    : theme.colorScheme.onSurfaceVariant,
+                                    : theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                                 fontSize: isCompact ? 10 : null,
                                 fontWeight: isToday ? FontWeight.w600 : null,
                               ),
