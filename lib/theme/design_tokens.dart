@@ -119,8 +119,6 @@ class DesignTokens {
   );
 
   static const EdgeInsets paddingCard = EdgeInsets.all(spacingLg);
-  static const EdgeInsets paddingCardSm = EdgeInsets.all(spacingMd);
-  static const EdgeInsets paddingCardLg = EdgeInsets.all(spacingXl);
 
   static const EdgeInsets paddingInput = EdgeInsets.symmetric(
     horizontal: spacingMd,

@@ -58,13 +58,7 @@ class DesignSystemShowcase extends StatelessWidget {
                  _buildInputDemo(context),
                ],
              ),
-            _buildSection(
-              context,
-              'Specialized Components',
-              [
-                _buildSpecializedComponentDemo(context),
-              ],
-            ),
+
           ],
         ),
       ),
@@ -96,7 +90,7 @@ class DesignSystemShowcase extends StatelessWidget {
   Widget _buildSpacingDemo(BuildContext context) {
     final theme = Theme.of(context);
     
-    return AppCard.outlined(
+    return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -141,7 +135,7 @@ class DesignSystemShowcase extends StatelessWidget {
   Widget _buildBorderRadiusDemo(BuildContext context) {
     final theme = Theme.of(context);
     
-    return AppCard.outlined(
+    return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -190,7 +184,7 @@ class DesignSystemShowcase extends StatelessWidget {
   }
 
   Widget _buildButtonDemo(BuildContext context) {
-    return AppCard.outlined(
+    return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -259,52 +253,27 @@ class DesignSystemShowcase extends StatelessWidget {
   }
 
   Widget _buildCardDemo(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Column(
       children: [
-        AppCard.outlined(
+        AppCard.standard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Card Variants',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Card Variants (Production)',
+                style: theme.textTheme.titleMedium,
               ),
               SizedBox(height: DesignTokens.spacingMd),
               AppCard.standard(
-                child: Text('Standard Card'),
+                child: Text('Standard Card - Used in subscription & upcoming expense cards'),
               ),
               SizedBox(height: DesignTokens.spacingSm),
-              AppCard.elevated(
-                child: Text('Elevated Card'),
-              ),
-              SizedBox(height: DesignTokens.spacingSm),
-              AppCard.filled(
-                child: Text('Filled Card'),
-              ),
-              SizedBox(height: DesignTokens.spacingSm),
-              AppCard.outlined(
-                child: Text('Outlined Card'),
+              AppCard.surface(
+                child: Text('Surface Card - Used in today spending card'),
               ),
             ],
-          ),
-        ),
-        SizedBox(height: DesignTokens.spacingMd),
-        InfoCard(
-          title: 'Info Card Example',
-          subtitle: 'This is an info card with leading and trailing elements',
-          leading: IconContainer.icon(
-            icon: Icons.info,
-            iconColor: Theme.of(context).colorScheme.primary,
-          ),
-          trailing: Icon(Icons.arrow_forward_ios),
-        ),
-        SizedBox(height: DesignTokens.spacingMd),
-        MetricCard(
-          title: 'Total Spent',
-          value: '\$1,234.56',
-          icon: IconContainer.icon(
-            icon: Icons.account_balance_wallet,
-            iconColor: Theme.of(context).colorScheme.primary,
           ),
         ),
       ],
@@ -312,7 +281,7 @@ class DesignSystemShowcase extends StatelessWidget {
   }
 
   Widget _buildIconContainerDemo(BuildContext context) {
-    return AppCard.outlined(
+    return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -371,7 +340,7 @@ class DesignSystemShowcase extends StatelessWidget {
   }
 
   Widget _buildInputDemo(BuildContext context) {
-    return AppCard.outlined(
+    return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -413,40 +382,5 @@ class DesignSystemShowcase extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecializedComponentDemo(BuildContext context) {
-    return Column(
-      children: [
-        ActionCard(
-          title: 'Add New Category',
-          subtitle: 'Create a new spending category',
-          icon: IconContainer.icon(
-            icon: Icons.add,
-            iconColor: Theme.of(context).colorScheme.primary,
-          ),
-          actionText: 'Add',
-          onTap: () {},
-        ),
-        SizedBox(height: DesignTokens.spacingMd),
-        Row(
-          children: [
-            Expanded(
-              child: MetricCard(
-                title: 'This Month',
-                value: '\$2,540.30',
-                accentColor: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            SizedBox(width: DesignTokens.spacingMd),
-            Expanded(
-              child: MetricCard(
-                title: 'Last Month',
-                value: '\$1,890.45',
-                accentColor: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+
 } 
