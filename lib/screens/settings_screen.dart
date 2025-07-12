@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -12,6 +13,7 @@ import '../utils/icons.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/repository_provider.dart';
 import '../widgets/common/app_bar.dart';
+import '../widgets/examples/design_system_showcase.dart';
 import '../theme/theme_provider.dart';
 import '../widgets/sheets/picker_sheet.dart';
 import '../services/backup_service.dart';
@@ -541,6 +543,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
+            // Debug section - only visible in debug builds
+            if (kDebugMode) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Text(
+                  'Debug Tools',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                color: theme.colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                elevation: 0,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.palette_outlined),
+                      title: const Text('Design System Showcase'),
+                      subtitle: const Text('View all design system components'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DesignSystemShowcase(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 48),
             Center(
               child: _isVersionLoading
