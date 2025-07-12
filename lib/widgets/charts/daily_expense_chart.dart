@@ -23,11 +23,11 @@ class DailyExpenseChart extends StatelessWidget {
 
   List<DateTime> _getDaysInMonth() {
     if (isCompact) {
-      // For compact view, show last 14 days starting from today
+      // For compact view, show last 10 days starting from today
       final today = DateTime.now();
       final todayOnly = DateTime(today.year, today.month, today.day);
-      return List.generate(14, (index) {
-        return todayOnly.subtract(Duration(days: 13 - index));
+      return List.generate(10, (index) {
+        return todayOnly.subtract(Duration(days: 9 - index));
       });
     } else {
       // For full view, show entire month
@@ -159,7 +159,7 @@ class DailyExpenseChart extends StatelessWidget {
                           
                           return FlDotCirclePainter(
                             radius: isCompact ? 4 : 4,
-                            color: theme.colorScheme.onSurface,
+                            color: theme.colorScheme.surfaceContainerLowest,
                             strokeWidth: 2,
                             strokeColor: theme.colorScheme.primary,
                           );
@@ -189,13 +189,22 @@ class DailyExpenseChart extends StatelessWidget {
                           final dayOfWeek = DateFormat('E').format(day);
                           final dayLetter = dayOfWeek.substring(0, 1).toUpperCase();
                           
+                          // Check if this is today
+                          final today = DateTime.now();
+                          final isToday = day.year == today.year && 
+                                         day.month == today.month && 
+                                         day.day == today.day;
+                          
                           return Padding(
                             padding: EdgeInsets.only(top: isCompact ? 24 : 8),
                             child: Text(
                               dayLetter,
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                                color: isToday 
+                                    ? theme.colorScheme.primary 
+                                    : theme.colorScheme.onSurfaceVariant,
                                 fontSize: isCompact ? 10 : null,
+                                fontWeight: isToday ? FontWeight.w600 : null,
                               ),
                             ),
                           );
@@ -228,6 +237,28 @@ class DailyExpenseChart extends StatelessWidget {
                   lineTouchData: LineTouchData(
                     enabled: true,
                     handleBuiltInTouches: true,
+                    getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+                      return spotIndexes.map((index) {
+                        return TouchedSpotIndicatorData(
+                          FlLine(
+                            color: theme.colorScheme.primary.withOpacity(0.3),
+                            strokeWidth: 2,
+                            dashArray: [3, 3],
+                          ),
+                          FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: isCompact ? 6 : 8,
+                                color: theme.colorScheme.primary,
+                                strokeWidth: 0,
+                                strokeColor: theme.colorScheme.surface,
+                              );
+                            },
+                          ),
+                        );
+                      }).toList();
+                    },
                     touchTooltipData: LineTouchTooltipData(
                       tooltipBgColor: theme.colorScheme.onSurface.withOpacity(0.9),
                       tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -275,7 +306,7 @@ class DailyExpenseChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isCompact ? 'Last 14 Days' : 'Daily Spending Trend',
+              isCompact ? 'Last 10 Days' : 'Daily Spending Trend',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
