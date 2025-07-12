@@ -104,9 +104,9 @@ class TodaySpendingCard extends StatelessWidget {
               SizedBox(height: DesignTokens.spacingXl + DesignTokens.spacingSm),
               // Daily spending chart
               SizedBox(
-                height: 60,
+                height: 80,
                 child: Transform.translate(
-                  offset: const Offset(0, -16),
+                  offset: const Offset(0, -8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SizedBox(

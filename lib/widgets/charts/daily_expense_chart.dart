@@ -174,22 +174,25 @@ class DailyExpenseChart extends StatelessWidget {
                     ),
                   ],
                   titlesData: FlTitlesData(
-                    show: false,
+                    show: true,
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: isCompact ? 30 : 30,
+                        reservedSize: isCompact ? 40 : 30,
                         interval: isCompact ? 1 : (days.length > 15 ? 5 : 2),
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index < 0 || index >= days.length) return const Text('');
                           final day = days[index];
+                          
+                          // Get first letter of day of week
+                          final dayOfWeek = DateFormat('E').format(day);
+                          final dayLetter = dayOfWeek.substring(0, 1).toUpperCase();
+                          
                           return Padding(
-                            padding: EdgeInsets.only(top: isCompact ? 16 : 8),
+                            padding: EdgeInsets.only(top: isCompact ? 24 : 8),
                             child: Text(
-                              isCompact 
-                                ? '${day.day}' 
-                                : day.day.toString(),
+                              dayLetter,
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontSize: isCompact ? 10 : null,
