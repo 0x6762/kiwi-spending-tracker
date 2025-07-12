@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../theme/design_tokens.dart';
 
 class AmountDisplay extends StatelessWidget {
   final String amount;
@@ -17,7 +18,12 @@ class AmountDisplay extends StatelessWidget {
     
     return Container(
       color: theme.colorScheme.surface,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: DesignTokens.paddingOnly(
+        left: DesignTokens.spacingMd,
+        top: DesignTokens.spacingSm,
+        right: DesignTokens.spacingMd,
+        bottom: DesignTokens.spacingMd,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,13 +33,13 @@ class AmountDisplay extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: DesignTokens.spacingSm),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: const EdgeInsets.only(right: 4),
+                padding: EdgeInsets.only(right: DesignTokens.spacingXs),
                 child: Text(
                   '\$',
                   style: theme.textTheme.headlineMedium?.copyWith(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
 
 class PickerSheet extends StatelessWidget {
   final String title;
@@ -35,14 +36,14 @@ class PickerSheet extends StatelessWidget {
       constraints: BoxConstraints(maxHeight: maxHeight),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: DesignTokens.borderRadiusTop(DesignTokens.radiusSheet),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(DesignTokens.spacingMd),
             child: Text(
               title,
               style: theme.textTheme.titleMedium,
@@ -51,7 +52,7 @@ class PickerSheet extends StatelessWidget {
           Flexible(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, DesignTokens.spacingMd),
                 child: Column(
                   children: children,
                 ),

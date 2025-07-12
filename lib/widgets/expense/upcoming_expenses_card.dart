@@ -3,6 +3,9 @@ import '../../services/expense_analytics_service.dart';
 import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
 import '../../theme/theme.dart';
+import '../../theme/design_tokens.dart';
+import '../common/app_card.dart';
+import '../common/icon_container.dart';
 
 class UpcomingExpensesCard extends StatelessWidget {
   final UpcomingExpensesAnalytics analytics;
@@ -18,34 +21,19 @@ class UpcomingExpensesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Card(
+    return AppCard.standard(
       margin: EdgeInsets.zero,
-      color: theme.colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      elevation: 0,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.upcomingExpenseColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.schedule,
-                  color: theme.colorScheme.upcomingExpenseColor,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(height: 12),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconContainer.icon(
+            icon: Icons.schedule,
+            iconColor: theme.colorScheme.upcomingExpenseColor,
+            backgroundColor: theme.colorScheme.upcomingExpenseColor.withOpacity(0.1),
+            size: IconContainerSize.medium,
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
               Text(
                 'Upcoming',
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -53,17 +41,15 @@ class UpcomingExpensesCard extends StatelessWidget {
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: DesignTokens.spacingXs),
               Text(
                 formatCurrency(analytics.totalAmount),
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
               ),
-            ],
-          ),
+          ],
         ),
-      ),
     );
   }
 } 

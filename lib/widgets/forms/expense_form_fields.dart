@@ -9,6 +9,8 @@ import '../sheets/picker_sheet.dart';
 import '../sheets/add_category_sheet.dart';
 import '../../utils/icons.dart';
 import '../../theme/theme.dart';
+import '../../theme/design_tokens.dart';
+import '../common/icon_container.dart';
 
 class ExpenseFormFields extends StatelessWidget {
   final TextEditingController titleController;
@@ -55,25 +57,18 @@ class ExpenseFormFields extends StatelessWidget {
 
     // Custom widget for SVG icon in PickerButton
     Widget _buildSvgIcon(String assetPath, Color color) {
-      return Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: SvgPicture.asset(
-          assetPath,
-          width: 20,
-          height: 20,
-          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-        ),
+      return IconContainer.svg(
+        svgPath: assetPath,
+        iconColor: color,
+        backgroundColor: color.withOpacity(0.1),
+        size: IconContainerSize.medium,
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
+        SizedBox(height: DesignTokens.spacingSm),
         Container(
           width: double.infinity,
           alignment: Alignment.topLeft,
@@ -93,40 +88,40 @@ class ExpenseFormFields extends StatelessWidget {
               filled: true,
               fillColor: theme.colorScheme.surfaceContainer,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
                 borderSide: BorderSide(
                   color: theme.colorScheme.surfaceContainerLowest,
                   width: 2,
                 ),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
                 borderSide: BorderSide(
                   color: theme.colorScheme.error,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
                 borderSide: BorderSide(
                   color: theme.colorScheme.error,
                   width: 2,
                 ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              contentPadding: DesignTokens.paddingInput,
             ),
           ),
         ),
         
         // Category selector
-        const SizedBox(height: 8),
+        SizedBox(height: DesignTokens.spacingSm),
         PickerButton(
           label: selectedCategory?.name ?? 'Select Category',
           icon: selectedCategory?.icon ?? AppIcons.category,
@@ -135,20 +130,18 @@ class ExpenseFormFields extends StatelessWidget {
         
         // Expense Type selector (if not subscription)
         if (expenseType != ExpenseType.subscription) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: DesignTokens.spacingSm),
           TextButton(
             onPressed: () => onExpenseTypeChanged(!isFixedExpense),
             style: TextButton.styleFrom(
               backgroundColor: theme.colorScheme.surfaceContainer,
               foregroundColor: theme.colorScheme.onSurfaceVariant,
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 16,
-                top: 12,
-                bottom: 12,
+              padding: DesignTokens.paddingSymmetric(
+                horizontal: DesignTokens.spacingMd,
+                vertical: DesignTokens.spacingMd,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: DesignTokens.borderRadius(DesignTokens.radiusInput),
               ),
             ),
             child: Row(
@@ -160,7 +153,7 @@ class ExpenseFormFields extends StatelessWidget {
                     : 'assets/icons/variable_expense.svg',
                   isFixedExpense ? fixedExpenseColor : variableExpenseColor,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: DesignTokens.spacingMd),
                 Expanded(
                   child: Text(
                     isFixedExpense ? 'Fixed' : 'Variable',
@@ -172,7 +165,7 @@ class ExpenseFormFields extends StatelessWidget {
                 Icon(
                   Icons.keyboard_arrow_down_rounded,
                   color: theme.colorScheme.onSurfaceVariant,
-                  size: 20,
+                  size: DesignTokens.iconButton,
                 ),
               ],
             ),
@@ -181,7 +174,7 @@ class ExpenseFormFields extends StatelessWidget {
         
         // Only keep the billing cycle selector for subscription expenses
         if (expenseType == ExpenseType.subscription) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: DesignTokens.spacingSm),
           PickerButton(
             label: billingCycle,
             icon: AppIcons.calendar,

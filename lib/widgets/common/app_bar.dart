@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
 
 class KiwiAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -18,7 +19,7 @@ class KiwiAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = false,
     this.leading,
     this.onLeadingPressed,
-    this.toolbarHeight = 72,
+    this.toolbarHeight = DesignTokens.appBarHeight,
     this.backgroundColor,
   }) : assert(title != null || titleWidget != null, 'Either title or titleWidget must be provided');
 
@@ -30,7 +31,7 @@ class KiwiAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       backgroundColor: backgroundColor ?? theme.colorScheme.surface,
       centerTitle: centerTitle,
-      titleSpacing: 16,
+      titleSpacing: DesignTokens.spacingMd,
       toolbarHeight: toolbarHeight,
       leading: leading != null
         ? IconButton(
@@ -50,7 +51,10 @@ class KiwiAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions != null
         ? [
             Padding(
-              padding: const EdgeInsets.only(top: 8, right: 8),
+              padding: EdgeInsets.only(
+                top: DesignTokens.spacingSm,
+                right: DesignTokens.spacingSm,
+              ),
               child: Row(children: actions!),
             ),
           ]

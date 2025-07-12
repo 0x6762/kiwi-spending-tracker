@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../common/app_button.dart';
 import '../common/app_card.dart';
+import '../common/app_input.dart';
 import '../common/icon_container.dart';
 import '../../theme/design_tokens.dart';
 import '../../utils/icons.dart';
@@ -43,13 +44,20 @@ class DesignSystemShowcase extends StatelessWidget {
                 _buildCardDemo(context),
               ],
             ),
-            _buildSection(
-              context,
-              'Icon Containers',
-              [
-                _buildIconContainerDemo(context),
-              ],
-            ),
+                         _buildSection(
+               context,
+               'Icon Containers',
+               [
+                 _buildIconContainerDemo(context),
+               ],
+             ),
+             _buildSection(
+               context,
+               'Inputs',
+               [
+                 _buildInputDemo(context),
+               ],
+             ),
             _buildSection(
               context,
               'Specialized Components',
@@ -356,6 +364,49 @@ class DesignSystemShowcase extends StatelessWidget {
                 expenseType: 'subscription',
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputDemo(BuildContext context) {
+    return AppCard.outlined(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Input Variants',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          AppInput.filled(
+            labelText: 'Filled Input',
+            hintText: 'Enter text here',
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          AppInput.outlined(
+            labelText: 'Outlined Input',
+            hintText: 'Enter text here',
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          AppInput.underlined(
+            labelText: 'Underlined Input',
+            hintText: 'Enter text here',
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          Text(
+            'Specialized Inputs',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          SearchInput(
+            hintText: 'Search expenses...',
+          ),
+          SizedBox(height: DesignTokens.spacingMd),
+          PasswordInput(
+            labelText: 'Password',
+            hintText: 'Enter your password',
           ),
         ],
       ),
