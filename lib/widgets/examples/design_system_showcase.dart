@@ -189,7 +189,7 @@ class DesignSystemShowcase extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Button Variants',
+            'Button Variants (Production)',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           SizedBox(height: DesignTokens.spacingMd),
@@ -198,54 +198,24 @@ class DesignSystemShowcase extends StatelessWidget {
             runSpacing: DesignTokens.spacingSm,
             children: [
               AppButton.primary(
-                text: 'Primary',
-                onPressed: () {},
-              ),
-              AppButton.secondary(
-                text: 'Secondary',
-                onPressed: () {},
-              ),
-              AppButton.outline(
-                text: 'Outline',
+                text: 'Primary - Create Account',
                 onPressed: () {},
               ),
               AppButton.text(
-                text: 'Text',
+                text: 'Text - Cancel',
                 onPressed: () {},
               ),
               AppButton.destructive(
-                text: 'Destructive',
+                text: 'Destructive - Delete',
                 onPressed: () {},
               ),
             ],
           ),
           SizedBox(height: DesignTokens.spacingMd),
-          Text(
-            'Button Sizes',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          SizedBox(height: DesignTokens.spacingMd),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppButton.primary(
-                text: 'Small Button',
-                size: AppButtonSize.small,
-                onPressed: () {},
-              ),
-              SizedBox(height: DesignTokens.spacingSm),
-              AppButton.primary(
-                text: 'Medium Button',
-                size: AppButtonSize.medium,
-                onPressed: () {},
-              ),
-              SizedBox(height: DesignTokens.spacingSm),
-              AppButton.primary(
-                text: 'Large Button',
-                size: AppButtonSize.large,
-                onPressed: () {},
-              ),
-            ],
+          AppButton.primary(
+            text: 'Expanded Button',
+            onPressed: () {},
+            isExpanded: true,
           ),
         ],
       ),

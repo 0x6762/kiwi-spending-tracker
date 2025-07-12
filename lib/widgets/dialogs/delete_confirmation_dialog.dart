@@ -49,13 +49,10 @@ class DeleteConfirmationDialog extends StatelessWidget {
         AppButton.text(
           text: cancelText,
           onPressed: () => Navigator.pop(context, false),
-          size: AppButtonSize.small,
         ),
         SizedBox(width: DesignTokens.spacingSm),
-        AppButton(
+        AppButton.destructive(
           text: deleteText,
-          variant: AppButtonVariant.destructive,
-          size: AppButtonSize.small,
           onPressed: () => Navigator.pop(context, true),
         ),
       ],

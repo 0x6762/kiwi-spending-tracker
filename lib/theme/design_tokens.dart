@@ -56,8 +56,6 @@ class DesignTokens {
   // ==================== COMPONENT DIMENSIONS ====================
   /// Standard component heights
   static const double buttonHeight = 48;
-  static const double buttonHeightSm = 36;
-  static const double buttonHeightLg = 56;
   static const double inputHeight = 52;
   static const double appBarHeight = 72;
   static const double chipHeight = 32;
@@ -111,11 +109,6 @@ class DesignTokens {
   static const EdgeInsets paddingButton = EdgeInsets.symmetric(
     horizontal: spacingMd,
     vertical: spacingSm,
-  );
-
-  static const EdgeInsets paddingButtonLg = EdgeInsets.symmetric(
-    horizontal: spacingLg,
-    vertical: spacingMd,
   );
 
   static const EdgeInsets paddingCard = EdgeInsets.all(spacingLg);
