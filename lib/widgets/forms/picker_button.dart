@@ -39,7 +39,6 @@ class PickerButton extends StatelessWidget {
             icon: icon ?? Icons.category_outlined,
             iconColor: iconColor ?? theme.colorScheme.primary,
             backgroundColor: (iconColor ?? theme.colorScheme.primary).withOpacity(0.1),
-            size: IconContainerSize.medium,
           ),
           SizedBox(width: DesignTokens.spacingMd),
           Expanded(

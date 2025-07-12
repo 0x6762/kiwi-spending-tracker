@@ -31,7 +31,6 @@ class UpcomingExpensesCard extends StatelessWidget {
             icon: Icons.schedule,
             iconColor: theme.colorScheme.upcomingExpenseColor,
             backgroundColor: theme.colorScheme.upcomingExpenseColor.withOpacity(0.1),
-            size: IconContainerSize.medium,
           ),
           SizedBox(height: DesignTokens.spacingMd),
               Text(

@@ -62,7 +62,6 @@ class ExpenseFormFields extends StatelessWidget {
         svgPath: assetPath,
         iconColor: color,
         backgroundColor: color.withOpacity(0.1),
-        size: IconContainerSize.medium,
       );
     }
 

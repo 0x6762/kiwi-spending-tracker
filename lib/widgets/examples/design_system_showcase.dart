@@ -251,56 +251,68 @@ class DesignSystemShowcase extends StatelessWidget {
   }
 
   Widget _buildIconContainerDemo(BuildContext context) {
+    final theme = Theme.of(context);
     return AppCard.standard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Icon Container Sizes',
-            style: Theme.of(context).textTheme.titleMedium,
+            'Icon Containers',
+            style: theme.textTheme.titleMedium,
           ),
           SizedBox(height: DesignTokens.spacingMd),
+          Text(
+            'Standard Icons',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: DesignTokens.spacingSm),
           Row(
             children: [
               IconContainer.icon(
                 icon: Icons.star,
-                size: IconContainerSize.small,
               ),
               SizedBox(width: DesignTokens.spacingMd),
               IconContainer.icon(
-                icon: Icons.star,
-                size: IconContainerSize.medium,
+                icon: Icons.favorite,
+                iconColor: Colors.red,
+                backgroundColor: Colors.red.withOpacity(0.1),
               ),
               SizedBox(width: DesignTokens.spacingMd),
               IconContainer.icon(
-                icon: Icons.star,
-                size: IconContainerSize.large,
-              ),
-              SizedBox(width: DesignTokens.spacingMd),
-              IconContainer.icon(
-                icon: Icons.star,
-                size: IconContainerSize.extraLarge,
+                icon: Icons.settings,
+                iconColor: theme.colorScheme.secondary,
+                backgroundColor: theme.colorScheme.secondary.withOpacity(0.1),
               ),
             ],
           ),
           SizedBox(height: DesignTokens.spacingMd),
           Text(
-            'Specialized Icon Containers',
-            style: Theme.of(context).textTheme.titleMedium,
+            'SVG Icons',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-          SizedBox(height: DesignTokens.spacingMd),
+          SizedBox(height: DesignTokens.spacingSm),
           Row(
             children: [
-              ExpenseTypeIconContainer(
-                expenseType: 'variable',
+              IconContainer.svg(
+                svgPath: 'assets/icons/variable_expense.svg',
+                iconColor: const Color(0xFF8056E4),
+                backgroundColor: const Color(0xFF8056E4).withOpacity(0.1),
               ),
               SizedBox(width: DesignTokens.spacingMd),
-              ExpenseTypeIconContainer(
-                expenseType: 'fixed',
+              IconContainer.svg(
+                svgPath: 'assets/icons/fixed_expense.svg',
+                iconColor: const Color(0xFFCF5825),
+                backgroundColor: const Color(0xFFCF5825).withOpacity(0.1),
               ),
               SizedBox(width: DesignTokens.spacingMd),
-              ExpenseTypeIconContainer(
-                expenseType: 'subscription',
+              IconContainer.svg(
+                svgPath: 'assets/icons/subscription.svg',
+                iconColor: theme.colorScheme.primary,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
               ),
             ],
           ),

@@ -77,7 +77,6 @@ class TodaySpendingCard extends StatelessWidget {
                     icon: AppIcons.insights,
                     iconColor: theme.colorScheme.primary,
                     backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                    size: IconContainerSize.medium,
                   ),
                   SizedBox(width: DesignTokens.spacingMd),
                   Column(

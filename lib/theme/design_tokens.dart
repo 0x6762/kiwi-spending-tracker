@@ -121,9 +121,6 @@ class DesignTokens {
   static const EdgeInsets paddingSheet = EdgeInsets.all(spacingLg);
   static const EdgeInsets paddingDialog = EdgeInsets.all(spacingLg);
 
-  static const EdgeInsets paddingIcon = EdgeInsets.all(spacingSm);
-  static const EdgeInsets paddingIconLg = EdgeInsets.all(spacingMd);
-
   static const EdgeInsets paddingScreen = EdgeInsets.all(spacingMd);
   static const EdgeInsets paddingScreenHorizontal = EdgeInsets.symmetric(
     horizontal: spacingMd,

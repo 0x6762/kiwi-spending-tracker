@@ -32,7 +32,6 @@ class SubscriptionPlansCard extends StatelessWidget {
             icon: Icons.repeat,
             iconColor: theme.colorScheme.subscriptionColor,
             backgroundColor: theme.colorScheme.subscriptionColor.withOpacity(0.1),
-            size: IconContainerSize.medium,
           ),
           SizedBox(height: DesignTokens.spacingMd),
           Text(
