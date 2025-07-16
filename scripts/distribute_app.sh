@@ -1,41 +1,33 @@
 #!/bin/bash
 
-# Firebase App Distribution Script for Kiwi Spending Tracker
-# This script builds and distributes the Android app to Firebase App Distribution
+# Simple Firebase Distribution Script
+# Builds and distributes the Android app
 
-echo "🏗️  Building Android App Bundle..."
+echo "🏗️ Building release APK..."
 
-# Clean previous builds
 flutter clean
 flutter pub get
-
-# Build the Android APK
 flutter build apk --release --no-tree-shake-icons
 
 if [ $? -eq 0 ]; then
     echo "✅ Build successful!"
     
-    # Check if Firebase CLI is installed
+    # Try to distribute via Firebase CLI
     if command -v firebase &> /dev/null; then
-        echo "🚀 Distributing to Firebase App Distribution..."
+        # Get App ID from firebase_options.dart
+        APP_ID=$(grep -o "appId: '[^']*'" lib/firebase_options.dart | cut -d"'" -f2)
         
-        # Distribute to Firebase
-        firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-            --app "1:189891241708:android:b675086c9a5497706427c9" \
-            --groups "beta-testers" \
-            --release-notes "New build: $(date '+%Y-%m-%d %H:%M:%S')"
+        if [ -n "$APP_ID" ]; then
+            echo "🚀 Distributing via Firebase..."
+            firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app "$APP_ID" --groups "beta-testers"
+        else
+            echo "❌ Could not find App ID in firebase_options.dart"
+        fi
     else
-        echo "⚠️  Firebase CLI not found. Please install it first:"
-        echo "   npm install -g firebase-tools"
-        echo "   firebase login"
-        echo ""
-        echo "📦 APK built successfully at:"
-        echo "   build/app/outputs/flutter-apk/app-release.apk"
-        echo ""
-        echo "🌐 You can manually upload this to Firebase Console:"
-        echo "   https://console.firebase.google.com/project/kiwi-b0ed0/appdistribution"
+        echo "⚠️ Firebase CLI not found. Install with: npm install -g firebase-tools"
     fi
+    
+    echo "📱 APK ready: build/app/outputs/flutter-apk/app-release.apk"
 else
     echo "❌ Build failed!"
-    exit 1
 fi 

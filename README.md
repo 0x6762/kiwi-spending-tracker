@@ -50,3 +50,21 @@ Widgets are organized into categories based on their purpose. See the [widgets R
    ```
    flutter run
    ```
+
+## 📦 Building and Distribution
+
+### Quick Commands
+
+```bash
+# Debug build
+flutter build apk --debug
+
+# Release build + Firebase distribution
+.\scripts\distribute_app.ps1    # Windows
+./scripts/distribute_app.sh     # Mac/Linux
+```
+
+### Documentation
+
+- **[BUILD_README.md](BUILD_README.md)** - Build instructions
+- **[FIREBASE_SECURITY_SETUP.md](FIREBASE_SECURITY_SETUP.md)** - Security setup
