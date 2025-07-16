@@ -56,8 +56,8 @@ Widgets are organized into categories based on their purpose. See the [widgets R
 ### Quick Commands
 
 ```bash
-# Debug build
-flutter build apk --debug
+# Debug (run on device/emulator)
+flutter run
 
 # Release build + Firebase distribution
 .\scripts\distribute_app.ps1    # Windows

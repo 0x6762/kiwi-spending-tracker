@@ -6,10 +6,8 @@ Quick guide for building the Kiwi Spending Tracker app.
 
 ### Debug Build (for testing)
 ```bash
-# For quick testing without Firebase
-flutter run --debug
-# Or install directly to connected device
-flutter install
+# Run on connected device/emulator
+flutter run
 ```
 
 ### Release Build + Distribution
@@ -63,7 +61,7 @@ flutter build apk --debug
 | **Firebase CLI not found** | Install with `npm install -g firebase-tools` |
 | **Config file missing** | Copy from `.template` files |
 | **Permission denied** | Run `firebase login` |
-| **Debug build fails** | Use `flutter run` instead of `flutter build apk --debug` |
+| **Debug build fails** | Check that Firebase config matches package name |
 
 ## 📱 App Installation
 

@@ -68,7 +68,7 @@ android {
             shrinkResources false
         }
         debug {
-            applicationIdSuffix ".debug"
+            // applicationIdSuffix ".debug"  // Commented out for Firebase compatibility
             ndk {
                 debugSymbolLevel 'FULL'
             }
