@@ -31,7 +31,7 @@ class LazyLoadingExpenseList extends StatefulWidget {
     this.endDate,
     this.orderBy,
     this.descending = true,
-    this.pageSize = 20,
+    this.pageSize = 10,
     this.showEmptyState = true,
     this.groupByDate = true,
   });
@@ -64,8 +64,11 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 200) {
+    if (!_scrollController.hasClients) return;
+    
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      debugPrint('LazyLoading: Triggering load more data. Current: ${position.pixels}, Max: ${position.maxScrollExtent}');
       _loadMoreData();
     }
   }
@@ -73,6 +76,7 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   Future<void> _loadInitialData() async {
     if (_isLoading) return;
     
+    debugPrint('LazyLoading: Loading initial data. pageSize: ${widget.pageSize}');
     setState(() {
       _isLoading = true;
     });
@@ -87,6 +91,8 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
       } else {
         _totalCount = await widget.expenseRepo.getExpensesCount();
       }
+
+      debugPrint('LazyLoading: Total count: $_totalCount');
 
       // Load first page
       List<Expense> expenses;
@@ -106,6 +112,8 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
         );
       }
 
+      debugPrint('LazyLoading: Initial load complete. Loaded: ${expenses.length} expenses');
+
       setState(() {
         _expenses.clear();
         _expenses.addAll(expenses);
@@ -113,6 +121,8 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
         _hasMoreData = expenses.length == widget.pageSize;
         _isLoading = false;
       });
+      
+      debugPrint('LazyLoading: Initial state set. hasMoreData: $_hasMoreData, currentOffset: $_currentOffset');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -122,8 +132,12 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   }
 
   Future<void> _loadMoreData() async {
-    if (_isLoading || !_hasMoreData) return;
+    if (_isLoading || !_hasMoreData) {
+      debugPrint('LazyLoading: Skipping load more. isLoading: $_isLoading, hasMoreData: $_hasMoreData');
+      return;
+    }
 
+    debugPrint('LazyLoading: Loading more data. Current offset: $_currentOffset, pageSize: ${widget.pageSize}');
     setState(() {
       _isLoading = true;
     });
@@ -146,12 +160,16 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
         );
       }
 
+      debugPrint('LazyLoading: Loaded ${expenses.length} more expenses. Total now: ${_expenses.length + expenses.length}');
+
       setState(() {
         _expenses.addAll(expenses);
         _currentOffset += expenses.length;
         _hasMoreData = expenses.length == widget.pageSize;
         _isLoading = false;
       });
+      
+      debugPrint('LazyLoading: Updated state. hasMoreData: $_hasMoreData, totalCount: $_totalCount');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -347,7 +365,7 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
 
   Widget _buildLoadingIndicator() {
     return const Padding(
-      padding: EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(32.0),
       child: Center(
         child: CircularProgressIndicator(),
       ),
