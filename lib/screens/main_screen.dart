@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../models/expense.dart';
+import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
+import '../utils/formatters.dart';
 import '../services/expense_analytics_service.dart';
-import '../widgets/expense/expense_list.dart';
 import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
 import '../widgets/sheets/expense_type_sheet.dart';
 import '../widgets/forms/voice_input_button.dart';
 import '../widgets/expense/today_spending_card.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/expense/expense_summary.dart';
-import '../widgets/expense/expense_filter_row.dart';
+import '../widgets/expense/lazy_loading_expense_list.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
@@ -221,89 +223,176 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
-  Widget _buildExpenseList(List<Expense> filteredExpenses) {
+
+
+
+
+  Widget _buildSimpleRecentExpensesList() {
     final theme = Theme.of(context);
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: Row(
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_expenses.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Recent expenses',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Opacity(
+                opacity: 0.7,
+                child: Image.asset(
+                  'assets/imgs/empty-state.png',
+                  width: 200,
+                  fit: BoxFit.contain,
                 ),
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllExpensesScreen(
-                        categoryRepo: widget.categoryRepo,
-                        repository: widget.repository,
-                        accountRepo: widget.accountRepo,
-                        onDelete: _deleteExpense,
-                        onExpenseUpdated: _loadExpenses,
-                      ),
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                ),
-                child: Text(
-                  'See all',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              const SizedBox(height: 32),
+              Text(
+                'Nothing spent so far today.',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                 ),
               ),
             ],
           ),
         ),
-        Card(
-          margin: EdgeInsets.zero,
-          color: theme.colorScheme.surfaceContainer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          elevation: 0,
-          child: _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : ExpenseList(
-                  expenses: filteredExpenses,
-                  categoryRepo: widget.categoryRepo,
-                  onTap: _viewExpenseDetails,
-                  onDelete: _deleteExpense,
-                ),
-        ),
-      ],
+      );
+    }
+
+    // Show first 10 recent expenses
+    final recentExpenses = _expenses.take(10).toList();
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: recentExpenses.length,
+      itemBuilder: (context, index) {
+        final expense = recentExpenses[index];
+        return _buildExpenseItem(context, expense);
+      },
     );
+  }
+
+  Widget _buildExpenseItem(BuildContext context, Expense expense) {
+    return FutureBuilder<ExpenseCategory?>(
+      future: widget.categoryRepo.findCategoryById(expense.categoryId ?? CategoryRepository.uncategorizedId),
+      builder: (context, snapshot) {
+        final category = snapshot.data;
+        final theme = Theme.of(context);
+
+        return Dismissible(
+          key: Key(expense.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: theme.colorScheme.surfaceContainer,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            child: Icon(
+              Icons.delete,
+              color: theme.colorScheme.error,
+            ),
+          ),
+          confirmDismiss: (direction) async {
+            return await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Delete Expense'),
+                content: const Text('Are you sure you want to delete this expense?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('CANCEL'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('DELETE'),
+                  ),
+                ],
+              ),
+            ) ?? false;
+          },
+          onDismissed: (_) => _deleteExpense(expense),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _viewExpenseDetails(expense),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      category?.icon ?? Icons.category_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(expense.date),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    formatCurrency(expense.amount),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final expenseDate = DateTime(date.year, date.month, date.day);
+
+    if (expenseDate == today) {
+      return 'Today';
+    } else if (expenseDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      return DateFormat.yMMMd().format(date);
+    }
   }
 
   Widget _buildExpensesScreen() {
     final theme = Theme.of(context);
-    final now = DateTime.now();
-    final todayExpenses = _expenses
-        .where((expense) =>
-            expense.date.year == now.year &&
-            expense.date.month == now.month &&
-            expense.date.day == now.day)
-        .toList();
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -389,11 +478,14 @@ class _MainScreenState extends State<MainScreen>
                       ],
                     ),
                   ),
-                  ExpenseList(
-                    expenses: todayExpenses,
-                    categoryRepo: widget.categoryRepo,
-                    onTap: _viewExpenseDetails,
-                    onDelete: _deleteExpense,
+                  Card(
+                    margin: EdgeInsets.zero,
+                    color: theme.colorScheme.surfaceContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    elevation: 0,
+                    child: _buildSimpleRecentExpensesList(),
                   ),
                 ],
               ],

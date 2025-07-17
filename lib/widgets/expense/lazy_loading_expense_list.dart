@@ -20,6 +20,7 @@ class LazyLoadingExpenseList extends StatefulWidget {
   final int pageSize;
   final bool groupByDate;
   final String? categoryId; // Add category filter support
+  final bool useInternalScroll; // New parameter to control scroll behavior
 
   const LazyLoadingExpenseList({
     super.key,
@@ -34,6 +35,7 @@ class LazyLoadingExpenseList extends StatefulWidget {
     this.pageSize = 20,
     this.groupByDate = false,
     this.categoryId, // Add category filter parameter
+    this.useInternalScroll = true, // Default to internal scrolling
   });
 
   @override
@@ -42,7 +44,7 @@ class LazyLoadingExpenseList extends StatefulWidget {
 
 class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   final List<Expense> _expenses = [];
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final _dateFormat = DateFormat.yMMMd();
   
   bool _isLoading = false;
@@ -53,17 +55,26 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   @override
   void initState() {
     super.initState();
+    if (widget.useInternalScroll) {
+      _scrollController = ScrollController();
+      _scrollController.addListener(_onScroll);
+    } else {
+      // Use a dummy controller for external scrolling
+      _scrollController = ScrollController();
+    }
     _loadInitialData();
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    if (widget.useInternalScroll) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 
   void _onScroll() {
+    if (!widget.useInternalScroll) return;
     if (!_scrollController.hasClients) return;
     
     final position = _scrollController.position;
@@ -232,11 +243,30 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
       return _buildEmptyState();
     }
 
+    Widget content = widget.groupByDate 
+        ? _buildGroupedExpenses()
+        : _buildSimpleExpenses();
+
+    if (!widget.useInternalScroll) {
+      // Wrap with NotificationListener to detect scroll events from parent
+      content = NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo is ScrollEndNotification) {
+            // Check if we're near the bottom of the scrollable area
+            final metrics = scrollInfo.metrics;
+            if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+              _loadMoreData();
+            }
+          }
+          return false; // Don't prevent the notification from bubbling up
+        },
+        child: content,
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: _refreshData,
-      child: widget.groupByDate 
-          ? _buildGroupedExpenses()
-          : _buildSimpleExpenses(),
+      child: content,
     );
   }
 
