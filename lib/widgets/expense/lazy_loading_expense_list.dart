@@ -11,15 +11,15 @@ import '../dialogs/delete_confirmation_dialog.dart';
 class LazyLoadingExpenseList extends StatefulWidget {
   final ExpenseRepository expenseRepo;
   final CategoryRepository categoryRepo;
-  final void Function(Expense expense)? onTap;
-  final void Function(Expense expense)? onDelete;
+  final Function(Expense)? onTap;
+  final Function(Expense)? onDelete;
   final DateTime? startDate;
   final DateTime? endDate;
   final String? orderBy;
   final bool descending;
   final int pageSize;
-  final bool showEmptyState;
   final bool groupByDate;
+  final String? categoryId; // Add category filter support
 
   const LazyLoadingExpenseList({
     super.key,
@@ -31,9 +31,9 @@ class LazyLoadingExpenseList extends StatefulWidget {
     this.endDate,
     this.orderBy,
     this.descending = true,
-    this.pageSize = 10,
-    this.showEmptyState = true,
-    this.groupByDate = true,
+    this.pageSize = 20,
+    this.groupByDate = false,
+    this.categoryId, // Add category filter parameter
   });
 
   @override
@@ -83,7 +83,15 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
 
     try {
       // Get total count first
-      if (widget.startDate != null && widget.endDate != null) {
+      if (widget.categoryId != null && widget.startDate != null && widget.endDate != null) {
+        _totalCount = await widget.expenseRepo.getExpensesByCategoryAndDateRangeCount(
+          widget.categoryId!,
+          widget.startDate!,
+          widget.endDate!,
+        );
+      } else if (widget.categoryId != null) {
+        _totalCount = await widget.expenseRepo.getExpensesByCategoryCount(widget.categoryId!);
+      } else if (widget.startDate != null && widget.endDate != null) {
         _totalCount = await widget.expenseRepo.getExpensesByDateRangeCount(
           widget.startDate!,
           widget.endDate!,
@@ -96,7 +104,23 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
 
       // Load first page
       List<Expense> expenses;
-      if (widget.startDate != null && widget.endDate != null) {
+      if (widget.categoryId != null && widget.startDate != null && widget.endDate != null) {
+        expenses = await widget.expenseRepo.getExpensesByCategoryAndDateRangePaginated(
+          widget.categoryId!,
+          widget.startDate!,
+          widget.endDate!,
+          limit: widget.pageSize,
+          offset: 0,
+        );
+      } else if (widget.categoryId != null) {
+        expenses = await widget.expenseRepo.getExpensesByCategoryPaginated(
+          widget.categoryId!,
+          limit: widget.pageSize,
+          offset: 0,
+          orderBy: widget.orderBy,
+          descending: widget.descending,
+        );
+      } else if (widget.startDate != null && widget.endDate != null) {
         expenses = await widget.expenseRepo.getExpensesByDateRangePaginated(
           widget.startDate!,
           widget.endDate!,
@@ -144,7 +168,23 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
 
     try {
       List<Expense> expenses;
-      if (widget.startDate != null && widget.endDate != null) {
+      if (widget.categoryId != null && widget.startDate != null && widget.endDate != null) {
+        expenses = await widget.expenseRepo.getExpensesByCategoryAndDateRangePaginated(
+          widget.categoryId!,
+          widget.startDate!,
+          widget.endDate!,
+          limit: widget.pageSize,
+          offset: _currentOffset,
+        );
+      } else if (widget.categoryId != null) {
+        expenses = await widget.expenseRepo.getExpensesByCategoryPaginated(
+          widget.categoryId!,
+          limit: widget.pageSize,
+          offset: _currentOffset,
+          orderBy: widget.orderBy,
+          descending: widget.descending,
+        );
+      } else if (widget.startDate != null && widget.endDate != null) {
         expenses = await widget.expenseRepo.getExpensesByDateRangePaginated(
           widget.startDate!,
           widget.endDate!,
@@ -189,7 +229,7 @@ class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
   @override
   Widget build(BuildContext context) {
     if (_expenses.isEmpty && !_isLoading) {
-      return widget.showEmptyState ? _buildEmptyState() : const SizedBox.shrink();
+      return _buildEmptyState();
     }
 
     return RefreshIndicator(

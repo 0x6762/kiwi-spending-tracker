@@ -73,6 +73,54 @@ class DriftExpenseRepository implements ExpenseRepository {
     return await _db.getExpensesByDateRangeCount(start, end);
   }
 
+  // Category-specific pagination methods
+  @override
+  Future<List<Expense>> getExpensesByCategoryPaginated(
+    String categoryId, {
+    int limit = 20,
+    int offset = 0,
+    String? orderBy,
+    bool descending = true,
+  }) async {
+    final expenses = await _db.getExpensesByCategoryPaginated(
+      categoryId,
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy,
+      descending: descending,
+    );
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<int> getExpensesByCategoryCount(String categoryId) async {
+    return await _db.getExpensesByCategoryCount(categoryId);
+  }
+
+  // Category and date range pagination methods
+  @override
+  Future<List<Expense>> getExpensesByCategoryAndDateRangePaginated(
+    String categoryId,
+    DateTime start,
+    DateTime end, {
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final expenses = await _db.getExpensesByCategoryAndDateRangePaginated(
+      categoryId,
+      start,
+      end,
+      limit: limit,
+      offset: offset,
+    );
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<int> getExpensesByCategoryAndDateRangeCount(String categoryId, DateTime start, DateTime end) async {
+    return await _db.getExpensesByCategoryAndDateRangeCount(categoryId, start, end);
+  }
+
   // New methods for enhanced expense structure
   @override
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {

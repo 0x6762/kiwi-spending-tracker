@@ -66,6 +66,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
         categoryRepo: widget.categoryRepo,
         onTap: _viewExpenseDetails,
         onDelete: widget.onDelete,
+        groupByDate: true,
+        pageSize: 10,
       ),
     );
   }

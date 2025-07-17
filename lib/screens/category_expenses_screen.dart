@@ -6,6 +6,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../widgets/common/app_bar.dart';
+import '../widgets/expense/lazy_loading_expense_list.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import 'expense_detail_screen.dart';
@@ -31,18 +32,15 @@ class CategoryExpensesScreen extends StatefulWidget {
 }
 
 class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
-  List<Expense> _expenses = [];
   ExpenseCategory? _category;
   bool _isLoading = true;
-  final _dateFormat = DateFormat.yMMMd();
-  final _monthFormat = DateFormat.yMMMM();
   double _totalAmount = 0.0;
 
   @override
   void initState() {
     super.initState();
     _loadCategory();
-    _loadExpenses();
+    _loadTotalAmount();
   }
 
   Future<void> _loadCategory() async {
@@ -52,28 +50,10 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
     });
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final tomorrow = today.add(const Duration(days: 1));
-    final expenseDate = DateTime(date.year, date.month, date.day);
-
-    if (expenseDate == today) {
-      return 'Today';
-    } else if (expenseDate == yesterday) {
-      return 'Yesterday';
-    } else if (expenseDate == tomorrow) {
-      return 'Tomorrow';
-    } else {
-      return _dateFormat.format(date);
-    }
-  }
-
-  Future<void> _loadExpenses() async {
+  Future<void> _loadTotalAmount() async {
     setState(() => _isLoading = true);
     try {
-      // Get all expenses for the selected month
+      // Get all expenses for the selected month and category to calculate total
       final allExpenses = await widget.repository.getAllExpenses();
       
       // Filter expenses by month and category
@@ -84,14 +64,10 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
         expense.status == ExpenseStatus.paid
       ).toList();
       
-      // Sort by date (most recent first)
-      filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
-      
       // Calculate total amount
       final total = filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
       
       setState(() {
-        _expenses = filteredExpenses;
         _totalAmount = total;
         _isLoading = false;
       });
@@ -99,15 +75,10 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load category expenses: ${e.toString()}')),
+          SnackBar(content: Text('Failed to load category total: ${e.toString()}')),
         );
       }
     }
-  }
-
-  Future<void> _deleteExpense(Expense expense) async {
-    await widget.repository.deleteExpense(expense.id);
-    _loadExpenses();
   }
 
   void _viewExpenseDetails(Expense expense) async {
@@ -120,7 +91,8 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
-            _loadExpenses();
+            // Refresh the total amount when an expense is updated
+            _loadTotalAmount();
           },
         ),
         maintainState: true,
@@ -128,120 +100,16 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
     );
 
     if (result == true) {
-      await _deleteExpense(expense);
+      await widget.repository.deleteExpense(expense.id);
+      // Refresh the total amount when an expense is deleted
+      _loadTotalAmount();
     }
   }
 
-  Widget _buildExpenseItem(BuildContext context, Expense expense) {
-    final theme = Theme.of(context);
-    
-    return Dismissible(
-      key: Key(expense.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: theme.colorScheme.surfaceContainer,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: Icon(
-          Icons.delete,
-          color: theme.colorScheme.error,
-        ),
-      ),
-      confirmDismiss: (direction) async {
-        return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete Expense'),
-            content: const Text('Are you sure you want to delete this expense?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('CANCEL'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('DELETE'),
-              ),
-            ],
-          ),
-        ) ?? false;
-      },
-      onDismissed: (_) => _deleteExpense(expense),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _viewExpenseDetails(expense),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  _category?.icon ?? Icons.category_outlined,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            expense.title,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _formatDate(expense.date),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (expense.notes != null && expense.notes!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          expense.notes!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                formatCurrency(expense.amount),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _deleteExpense(Expense expense) async {
+    await widget.repository.deleteExpense(expense.id);
+    // Refresh the total amount when an expense is deleted
+    _loadTotalAmount();
   }
 
   Widget _buildCategorySummary() {
@@ -315,24 +183,18 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
                     ),
                   ),
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        color: theme.colorScheme.surfaceContainer,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        elevation: 0,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: _expenses.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            return _buildExpenseItem(context, _expenses[index]);
-                          },
-                        ),
-                      ),
+                    child: LazyLoadingExpenseList(
+                      expenseRepo: widget.repository,
+                      categoryRepo: widget.categoryRepo,
+                      onTap: _viewExpenseDetails,
+                      onDelete: _deleteExpense,
+                      categoryId: widget.categoryId,
+                      startDate: DateTime(widget.selectedMonth.year, widget.selectedMonth.month, 1),
+                      endDate: DateTime(widget.selectedMonth.year, widget.selectedMonth.month + 1, 0),
+                      orderBy: 'date',
+                      descending: true,
+                      pageSize: 10,
+                      groupByDate: true,
                     ),
                   ),
                 ],

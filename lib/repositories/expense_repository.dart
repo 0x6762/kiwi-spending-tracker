@@ -22,6 +22,26 @@ abstract class ExpenseRepository {
     int offset = 0,
   });
   Future<int> getExpensesByDateRangeCount(DateTime start, DateTime end);
+
+  // Category-specific pagination methods
+  Future<List<Expense>> getExpensesByCategoryPaginated(
+    String categoryId, {
+    int limit = 20,
+    int offset = 0,
+    String? orderBy,
+    bool descending = true,
+  });
+  Future<int> getExpensesByCategoryCount(String categoryId);
+
+  // Category and date range pagination methods
+  Future<List<Expense>> getExpensesByCategoryAndDateRangePaginated(
+    String categoryId,
+    DateTime start,
+    DateTime end, {
+    int limit = 20,
+    int offset = 0,
+  });
+  Future<int> getExpensesByCategoryAndDateRangeCount(String categoryId, DateTime start, DateTime end);
   
   // New methods for enhanced expense structure
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity);
