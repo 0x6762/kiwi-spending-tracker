@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../widgets/expense/lazy_loading_expense_list.dart';
 import '../widgets/common/app_bar.dart';
+import '../models/expense.dart';
 import 'expense_detail_screen.dart';
 
-class AllExpensesScreen extends StatefulWidget {
+class LazyLoadingExpensesScreen extends StatefulWidget {
   final CategoryRepository categoryRepo;
-  final ExpenseRepository repository;
+  final ExpenseRepository expenseRepo;
   final AccountRepository accountRepo;
   final void Function(Expense) onDelete;
   final void Function() onExpenseUpdated;
 
-  const AllExpensesScreen({
+  const LazyLoadingExpensesScreen({
     super.key,
     required this.categoryRepo,
-    required this.repository,
+    required this.expenseRepo,
     required this.accountRepo,
     required this.onDelete,
     required this.onExpenseUpdated,
   });
 
   @override
-  State<AllExpensesScreen> createState() => _AllExpensesScreenState();
+  State<LazyLoadingExpensesScreen> createState() => _LazyLoadingExpensesScreenState();
 }
 
-class _AllExpensesScreenState extends State<AllExpensesScreen> {
+class _LazyLoadingExpensesScreenState extends State<LazyLoadingExpensesScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   String _orderBy = 'date';
@@ -43,7 +43,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           categoryRepo: widget.categoryRepo,
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
-            await widget.repository.updateExpense(updatedExpense);
+            await widget.expenseRepo.updateExpense(updatedExpense);
             // Notify parent to update its state
             widget.onExpenseUpdated();
           },
@@ -52,7 +52,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     );
 
     if (result == true) {
-      await widget.repository.deleteExpense(expense.id);
+      await widget.expenseRepo.deleteExpense(expense.id);
       widget.onDelete(expense);
     }
   }
@@ -92,7 +92,6 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
-            tooltip: 'Filter & Sort',
           ),
         ],
       ),
@@ -138,7 +137,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           // Lazy loading expense list
           Expanded(
             child: LazyLoadingExpenseList(
-              expenseRepo: widget.repository,
+              expenseRepo: widget.expenseRepo,
               categoryRepo: widget.categoryRepo,
               onTap: _viewExpenseDetails,
               onDelete: widget.onDelete,

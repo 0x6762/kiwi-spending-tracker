@@ -168,6 +168,66 @@ class AppDatabase extends _$AppDatabase {
   
   Stream<List<ExpenseTableData>> watchAllExpenses() => select(expensesTable).watch();
   
+  // Pagination methods
+  Future<List<ExpenseTableData>> getExpensesPaginated({
+    int limit = 20,
+    int offset = 0,
+    String? orderBy,
+    bool descending = true,
+  }) {
+    final query = select(expensesTable);
+    
+    // Add ordering
+    if (orderBy == 'date') {
+      query.orderBy([(e) => OrderingTerm(
+        expression: e.date,
+        mode: descending ? OrderingMode.desc : OrderingMode.asc,
+      )]);
+    } else if (orderBy == 'amount') {
+      query.orderBy([(e) => OrderingTerm(
+        expression: e.amount,
+        mode: descending ? OrderingMode.desc : OrderingMode.asc,
+      )]);
+    } else {
+      // Default ordering by date descending
+      query.orderBy([(e) => OrderingTerm(
+        expression: e.date,
+        mode: OrderingMode.desc,
+      )]);
+    }
+    
+    // Add pagination
+    query.limit(limit, offset: offset);
+    
+    return query.get();
+  }
+  
+  Future<int> getExpensesCount() async {
+    final query = selectOnly(expensesTable)..addColumns([expensesTable.id.count()]);
+    final row = await query.getSingle();
+    return row.read(expensesTable.id.count()) ?? 0;
+  }
+  
+  Future<List<ExpenseTableData>> getExpensesByDateRangePaginated(
+    DateTime start,
+    DateTime end, {
+    int limit = 20,
+    int offset = 0,
+  }) =>
+      (select(expensesTable)
+        ..where((e) => e.date.isBetween(Variable(start), Variable(end)))
+        ..orderBy([(e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)])
+        ..limit(limit, offset: offset))
+      .get();
+      
+  Future<int> getExpensesByDateRangeCount(DateTime start, DateTime end) async {
+    final query = selectOnly(expensesTable)
+      ..addColumns([expensesTable.id.count()])
+      ..where(expensesTable.date.isBetween(Variable(start), Variable(end)));
+    final row = await query.getSingle();
+    return row.read(expensesTable.id.count()) ?? 0;
+  }
+  
   Future<ExpenseTableData> getExpenseById(String id) =>
       (select(expensesTable)..where((e) => e.id.equals(id))).getSingle();
   

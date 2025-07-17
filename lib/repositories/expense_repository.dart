@@ -7,6 +7,22 @@ abstract class ExpenseRepository {
   Future<void> updateExpense(Expense expense);
   Future<void> deleteExpense(String id);
   
+  // Pagination methods
+  Future<List<Expense>> getExpensesPaginated({
+    int limit = 20,
+    int offset = 0,
+    String? orderBy,
+    bool descending = true,
+  });
+  Future<int> getExpensesCount();
+  Future<List<Expense>> getExpensesByDateRangePaginated(
+    DateTime start,
+    DateTime end, {
+    int limit = 20,
+    int offset = 0,
+  });
+  Future<int> getExpensesByDateRangeCount(DateTime start, DateTime end);
+  
   // New methods for enhanced expense structure
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity);
   Future<List<Expense>> getRecurringExpenses();

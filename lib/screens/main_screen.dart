@@ -244,7 +244,6 @@ class _MainScreenState extends State<MainScreen>
                     context,
                     MaterialPageRoute(
                       builder: (context) => AllExpensesScreen(
-                        expenses: _expenses,
                         categoryRepo: widget.categoryRepo,
                         repository: widget.repository,
                         accountRepo: widget.accountRepo,
@@ -364,7 +363,6 @@ class _MainScreenState extends State<MainScreen>
                               context,
                               MaterialPageRoute(
                                 builder: (context) => AllExpensesScreen(
-                                  expenses: _expenses,
                                   categoryRepo: widget.categoryRepo,
                                   repository: widget.repository,
                                   accountRepo: widget.accountRepo,

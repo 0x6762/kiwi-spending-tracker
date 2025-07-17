@@ -1,0 +1,501 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../models/expense.dart';
+import '../../models/expense_category.dart';
+import '../../models/account.dart';
+import '../../utils/formatters.dart';
+import '../../repositories/category_repository.dart';
+import '../../repositories/expense_repository.dart';
+import '../dialogs/delete_confirmation_dialog.dart';
+
+class LazyLoadingExpenseList extends StatefulWidget {
+  final ExpenseRepository expenseRepo;
+  final CategoryRepository categoryRepo;
+  final void Function(Expense expense)? onTap;
+  final void Function(Expense expense)? onDelete;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? orderBy;
+  final bool descending;
+  final int pageSize;
+  final bool showEmptyState;
+  final bool groupByDate;
+
+  const LazyLoadingExpenseList({
+    super.key,
+    required this.expenseRepo,
+    required this.categoryRepo,
+    this.onTap,
+    this.onDelete,
+    this.startDate,
+    this.endDate,
+    this.orderBy,
+    this.descending = true,
+    this.pageSize = 20,
+    this.showEmptyState = true,
+    this.groupByDate = true,
+  });
+
+  @override
+  State<LazyLoadingExpenseList> createState() => _LazyLoadingExpenseListState();
+}
+
+class _LazyLoadingExpenseListState extends State<LazyLoadingExpenseList> {
+  final List<Expense> _expenses = [];
+  final ScrollController _scrollController = ScrollController();
+  final _dateFormat = DateFormat.yMMMd();
+  
+  bool _isLoading = false;
+  bool _hasMoreData = true;
+  int _currentOffset = 0;
+  int _totalCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreData();
+    }
+  }
+
+  Future<void> _loadInitialData() async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get total count first
+      if (widget.startDate != null && widget.endDate != null) {
+        _totalCount = await widget.expenseRepo.getExpensesByDateRangeCount(
+          widget.startDate!,
+          widget.endDate!,
+        );
+      } else {
+        _totalCount = await widget.expenseRepo.getExpensesCount();
+      }
+
+      // Load first page
+      List<Expense> expenses;
+      if (widget.startDate != null && widget.endDate != null) {
+        expenses = await widget.expenseRepo.getExpensesByDateRangePaginated(
+          widget.startDate!,
+          widget.endDate!,
+          limit: widget.pageSize,
+          offset: 0,
+        );
+      } else {
+        expenses = await widget.expenseRepo.getExpensesPaginated(
+          limit: widget.pageSize,
+          offset: 0,
+          orderBy: widget.orderBy,
+          descending: widget.descending,
+        );
+      }
+
+      setState(() {
+        _expenses.clear();
+        _expenses.addAll(expenses);
+        _currentOffset = expenses.length;
+        _hasMoreData = expenses.length == widget.pageSize;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      debugPrint('Error loading initial data: $e');
+    }
+  }
+
+  Future<void> _loadMoreData() async {
+    if (_isLoading || !_hasMoreData) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      List<Expense> expenses;
+      if (widget.startDate != null && widget.endDate != null) {
+        expenses = await widget.expenseRepo.getExpensesByDateRangePaginated(
+          widget.startDate!,
+          widget.endDate!,
+          limit: widget.pageSize,
+          offset: _currentOffset,
+        );
+      } else {
+        expenses = await widget.expenseRepo.getExpensesPaginated(
+          limit: widget.pageSize,
+          offset: _currentOffset,
+          orderBy: widget.orderBy,
+          descending: widget.descending,
+        );
+      }
+
+      setState(() {
+        _expenses.addAll(expenses);
+        _currentOffset += expenses.length;
+        _hasMoreData = expenses.length == widget.pageSize;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      debugPrint('Error loading more data: $e');
+    }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _currentOffset = 0;
+      _hasMoreData = true;
+    });
+    await _loadInitialData();
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final expenseDate = DateTime(date.year, date.month, date.day);
+
+    if (expenseDate == today) {
+      return 'Today';
+    } else if (expenseDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      return _dateFormat.format(date);
+    }
+  }
+
+  String _formatSectionTitle(DateTime date) {
+    final now = DateTime.now();
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final specialUpcomingKey = DateTime(9999, 12, 31);
+    
+    if (date == specialUpcomingKey) {
+      return 'Upcoming';
+    } else if (date.year == now.year && 
+        date.month == now.month && 
+        date.day == now.day) {
+      return 'Today';
+    } else if (date.year == yesterday.year && 
+               date.month == yesterday.month && 
+               date.day == yesterday.day) {
+      return 'Yesterday';
+    } else {
+      return DateFormat.MMMd().format(date);
+    }
+  }
+
+  Map<DateTime, List<Expense>> _groupExpensesByDate() {
+    final groupedExpenses = <DateTime, List<Expense>>{};
+    final sortedExpenses = List<Expense>.from(_expenses)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    // Special key for upcoming expenses
+    final upcomingKey = DateTime(9999, 12, 31); // Far future date as a special key
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    for (var expense in sortedExpenses) {
+      final date = DateTime(
+        expense.date.year,
+        expense.date.month,
+        expense.date.day,
+      );
+      
+      // Check if this is an upcoming expense
+      if (date.isAfter(today)) {
+        // Add to the upcoming group
+        if (!groupedExpenses.containsKey(upcomingKey)) {
+          groupedExpenses[upcomingKey] = [];
+        }
+        groupedExpenses[upcomingKey]!.add(expense);
+      } else {
+        // Add to the regular date group
+        if (!groupedExpenses.containsKey(date)) {
+          groupedExpenses[date] = [];
+        }
+        groupedExpenses[date]!.add(expense);
+      }
+    }
+
+    return groupedExpenses;
+  }
+
+  Widget _buildExpenseItem(BuildContext context, Expense expense) {
+    return FutureBuilder<ExpenseCategory?>(
+      future: widget.categoryRepo.findCategoryById(
+        expense.categoryId ?? CategoryRepository.uncategorizedId,
+      ),
+      builder: (context, snapshot) {
+        final category = snapshot.data;
+        final account = DefaultAccounts.defaultAccounts
+            .firstWhere(
+              (a) => a.id == expense.accountId,
+              orElse: () => DefaultAccounts.checking,
+            );
+
+        final theme = Theme.of(context);
+
+        return Dismissible(
+          key: Key(expense.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: theme.colorScheme.surfaceContainer,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            child: Icon(
+              Icons.delete,
+              color: theme.colorScheme.error,
+            ),
+          ),
+          confirmDismiss: (direction) async {
+            return await DeleteConfirmationDialog.show(context);
+          },
+          onDismissed: (_) {
+            if (widget.onDelete != null) {
+              widget.onDelete!(expense);
+            }
+            // Remove from local list
+            setState(() {
+              _expenses.removeWhere((e) => e.id == expense.id);
+            });
+          },
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onTap != null ? () => widget.onTap!(expense) : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      category?.icon ?? Icons.category_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                expense.title,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _formatDate(expense.date),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    formatCurrency(expense.amount),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/imgs/empty-state.png',
+                width: 200,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'No expenses found.',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupedExpenses() {
+    final theme = Theme.of(context);
+    final groupedExpenses = _groupExpensesByDate();
+    
+    // Sort the entries to ensure upcoming is first, then by date descending
+    final sortedEntries = groupedExpenses.entries.toList()
+      ..sort((a, b) {
+        // Special case for the upcoming key
+        if (a.key == DateTime(9999, 12, 31)) return -1;
+        if (b.key == DateTime(9999, 12, 31)) return 1;
+        // Otherwise sort by date descending
+        return b.key.compareTo(a.key);
+      });
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: sortedEntries.length + (_hasMoreData ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == sortedEntries.length) {
+          // Show loading indicator at the bottom
+          return _buildLoadingIndicator();
+        }
+        
+        final entry = sortedEntries[index];
+        final dayTotal = entry.value.fold<double>(
+          0, (sum, expense) => sum + expense.amount
+        );
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date title outside the card
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _formatSectionTitle(entry.key),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: entry.key == DateTime(9999, 12, 31) 
+                          ? theme.colorScheme.onSurfaceVariant 
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    'Total: ${formatCurrency(dayTotal)}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Expenses in a card
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              color: theme.colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              elevation: 0,
+              child: Column(
+                children: entry.value.map((expense) => _buildExpenseItem(context, expense)).toList(),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSimpleExpenses() {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      elevation: 0,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _expenses.length + (_hasMoreData ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _expenses.length) {
+            // Show loading indicator at the bottom
+            return _buildLoadingIndicator();
+          }
+          
+          final expense = _expenses[index];
+          return _buildExpenseItem(context, expense);
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (_expenses.isEmpty && !_isLoading) {
+      return widget.showEmptyState ? _buildEmptyState() : const SizedBox.shrink();
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: widget.groupByDate 
+          ? _buildGroupedExpenses()
+          : _buildSimpleExpenses(),
+    );
+  }
+} 

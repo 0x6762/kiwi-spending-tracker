@@ -30,6 +30,49 @@ class DriftExpenseRepository implements ExpenseRepository {
     await _db.deleteExpense(id);
   }
 
+  // Pagination methods
+  @override
+  Future<List<Expense>> getExpensesPaginated({
+    int limit = 20,
+    int offset = 0,
+    String? orderBy,
+    bool descending = true,
+  }) async {
+    final expenses = await _db.getExpensesPaginated(
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy,
+      descending: descending,
+    );
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<int> getExpensesCount() async {
+    return await _db.getExpensesCount();
+  }
+
+  @override
+  Future<List<Expense>> getExpensesByDateRangePaginated(
+    DateTime start,
+    DateTime end, {
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final expenses = await _db.getExpensesByDateRangePaginated(
+      start,
+      end,
+      limit: limit,
+      offset: offset,
+    );
+    return expenses.map((e) => e.toDomain()).toList();
+  }
+
+  @override
+  Future<int> getExpensesByDateRangeCount(DateTime start, DateTime end) async {
+    return await _db.getExpensesByDateRangeCount(start, end);
+  }
+
   // New methods for enhanced expense structure
   @override
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {
