@@ -34,12 +34,8 @@ class SubscriptionPlansCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Container(
+              Padding(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 child: _SubscriptionRow(
                   label: 'Subscriptions',
                   amount: summary.totalMonthlyAmount,
