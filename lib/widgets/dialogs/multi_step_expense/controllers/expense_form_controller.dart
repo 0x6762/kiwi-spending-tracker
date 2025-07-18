@@ -140,6 +140,7 @@ class ExpenseFormController extends ChangeNotifier {
 
   void setFrequency(ExpenseFrequency frequency) {
     _frequency = frequency;
+    // Automatically set isRecurring based on frequency
     _isRecurring = frequency != ExpenseFrequency.oneTime;
     notifyListeners();
   }

@@ -223,51 +223,26 @@ class DetailsStepWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Recurring section - only show for recurring expenses
-                    if (controller.isRecurring) ...[
-                      // Frequency label
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 16),
-                        child: Text(
-                          controller.selectedExpenseType == ExpenseType.subscription 
-                            ? 'Billing Cycle' 
-                            : 'Frequency',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                    // Frequency section - always visible
+                    const SizedBox(height: 24),
+                    // Frequency label
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 16),
+                      child: Text(
+                        controller.selectedExpenseType == ExpenseType.subscription 
+                          ? 'Billing Cycle' 
+                          : 'Frequency',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      // Frequency picker
-                      PickerButton(
-                        label: _getFrequencyLabel(controller.frequency),
-                        icon: AppIcons.calendar,
-                        onTap: () => _showFrequencyPicker(context, controller),
-                      ),
-                    ],
-                    
-                    // Recurring toggle - only show for non-subscription types
-                    if (controller.selectedExpenseType != ExpenseType.subscription) ...[
-                      const SizedBox(height: 24),
-                      // Recurring toggle
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Recurring expense',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          Switch(
-                            value: controller.isRecurring,
-                            onChanged: (value) {
-                              controller.setRecurring(value);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
+                    // Frequency picker
+                    PickerButton(
+                      label: _getFrequencyLabel(controller.frequency),
+                      icon: AppIcons.calendar,
+                      onTap: () => _showFrequencyPicker(context, controller),
+                    ),
                     
                     const SizedBox(height: 24),
                     
