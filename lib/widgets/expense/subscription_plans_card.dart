@@ -5,8 +5,6 @@ import '../../utils/formatters.dart';
 import '../../utils/icons.dart';
 import '../../theme/theme.dart';
 import '../../theme/design_tokens.dart';
-import '../common/app_card.dart';
-import '../common/icon_container.dart';
 
 class SubscriptionPlansCard extends StatelessWidget {
   final SubscriptionSummary summary;
@@ -22,34 +20,99 @@ class SubscriptionPlansCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return AppCard.standard(
+    return Card(
       margin: EdgeInsets.zero,
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconContainer.icon(
-            icon: Icons.repeat,
-            iconColor: theme.colorScheme.subscriptionColor,
-            backgroundColor: theme.colorScheme.subscriptionColor.withOpacity(0.1),
+      color: theme.colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      elevation: 0,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _SubscriptionRow(
+                  label: 'Subscriptions',
+                  amount: summary.totalMonthlyAmount,
+                  context: context,
+                  iconAsset: 'assets/icons/subscription.svg',
+                  iconColor: theme.colorScheme.subscriptionColor,
+                  onTap: onTap,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: DesignTokens.spacingMd),
-          Text(
-            'Subscriptions',
-            style: theme.textTheme.titleSmall?.copyWith(
+        ),
+      ),
+    );
+  }
+}
+
+class _SubscriptionRow extends StatelessWidget {
+  final String label;
+  final double amount;
+  final BuildContext context;
+  final String iconAsset;
+  final Color iconColor;
+  final VoidCallback? onTap;
+
+  const _SubscriptionRow({
+    required this.label,
+    required this.amount,
+    required this.context,
+    required this.iconAsset,
+    required this.iconColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        SvgPicture.asset(
+          iconAsset,
+          width: 24,
+          height: 24,
+          colorFilter: ColorFilter.mode(
+            iconColor,
+            BlendMode.srcIn,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: DesignTokens.spacingXs),
-          Text(
-            formatCurrency(summary.totalMonthlyAmount),
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
+        ),
+        Text(
+          formatCurrency(amount),
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        if (onTap != null) ...[
+          const SizedBox(width: 8),
+          Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ],
-      ),
+      ],
     );
   }
 } 
