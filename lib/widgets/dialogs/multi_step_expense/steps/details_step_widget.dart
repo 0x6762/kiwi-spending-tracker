@@ -170,6 +170,21 @@ class DetailsStepWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Expense name
+                    AppInput(
+                      initialValue: controller.expenseName,
+                      hintText: 'Expense name (optional)',
+                      onChanged: controller.setExpenseName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      hintStyle: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
                     // Expense type section with label
                     // Expense type label
                     Padding(
@@ -221,10 +236,10 @@ class DetailsStepWidget extends StatelessWidget {
                         ],
                       ),
                     ),
+                    
                     const SizedBox(height: 24),
                     
                     // Frequency section - always visible
-                    const SizedBox(height: 24),
                     // Frequency label
                     Padding(
                       padding: const EdgeInsets.only(left: 4, bottom: 16),
@@ -242,21 +257,6 @@ class DetailsStepWidget extends StatelessWidget {
                       label: _getFrequencyLabel(controller.frequency),
                       icon: AppIcons.calendar,
                       onTap: () => _showFrequencyPicker(context, controller),
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Expense name
-                    AppInput(
-                      initialValue: controller.expenseName,
-                      hintText: 'Expense name (optional)',
-                      onChanged: controller.setExpenseName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      hintStyle: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                      ),
                     ),
                   ],
                 ),
