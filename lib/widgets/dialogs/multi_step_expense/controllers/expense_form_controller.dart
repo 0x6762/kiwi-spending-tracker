@@ -20,7 +20,7 @@ class ExpenseFormController extends ChangeNotifier {
   String _expenseName = '';
   String _selectedAccountId = DefaultAccounts.checking.id;
   bool _isFixedExpense = false;
-  String _billingCycle = 'Monthly';
+  ExpenseType _selectedExpenseType = ExpenseType.variable;
   bool _isRecurring = false;
   ExpenseFrequency _frequency = ExpenseFrequency.oneTime;
 
@@ -32,7 +32,7 @@ class ExpenseFormController extends ChangeNotifier {
   String get expenseName => _expenseName;
   String get selectedAccountId => _selectedAccountId;
   bool get isFixedExpense => _isFixedExpense;
-  String get billingCycle => _billingCycle;
+  ExpenseType get selectedExpenseType => _selectedExpenseType;
   bool get isRecurring => _isRecurring;
   ExpenseFrequency get frequency => _frequency;
   bool get isEditMode => initialExpense != null;
@@ -48,6 +48,7 @@ class ExpenseFormController extends ChangeNotifier {
 
   void _initialize() {
     _loadAccount(_selectedAccountId);
+    _selectedExpenseType = initialType;
     _isFixedExpense = initialType == ExpenseType.fixed;
     
     if (initialExpense != null) {
@@ -61,7 +62,7 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedAccountId = expense.accountId;
     _expenseName = expense.title;
     _selectedDate = expense.date;
-    _billingCycle = expense.billingCycle ?? 'Monthly';
+    _selectedExpenseType = expense.type;
     _isFixedExpense = expense.type == ExpenseType.fixed;
     _isRecurring = expense.isRecurring;
     _frequency = expense.frequency;
@@ -112,11 +113,20 @@ class ExpenseFormController extends ChangeNotifier {
 
   void setFixedExpense(bool isFixed) {
     _isFixedExpense = isFixed;
+    _selectedExpenseType = isFixed ? ExpenseType.fixed : ExpenseType.variable;
     notifyListeners();
   }
 
-  void setBillingCycle(String cycle) {
-    _billingCycle = cycle;
+  void setExpenseType(ExpenseType type) {
+    _selectedExpenseType = type;
+    _isFixedExpense = type == ExpenseType.fixed;
+    
+    // Auto-set recurring for subscriptions
+    if (type == ExpenseType.subscription) {
+      _isRecurring = true;
+      _frequency = ExpenseFrequency.monthly; // Default to monthly for subscriptions
+    }
+    
     notifyListeners();
   }
 
@@ -156,13 +166,8 @@ class ExpenseFormController extends ChangeNotifier {
 
     final amount = double.parse(_amount);
     
-    // Determine the expense type based on initial type or _isFixedExpense
-    ExpenseType expenseType;
-    if (initialType == ExpenseType.subscription) {
-      expenseType = ExpenseType.subscription;
-    } else {
-      expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
-    }
+    // Use the selected expense type
+    final expenseType = _selectedExpenseType;
     
     // Determine necessity based on category
     final necessity = _determineNecessity();
@@ -218,7 +223,7 @@ class ExpenseFormController extends ChangeNotifier {
       notes: null,
       type: expenseType,
       accountId: _selectedAccountId,
-      billingCycle: initialType == ExpenseType.subscription ? _billingCycle : null,
+      billingCycle: null, // No longer using billingCycle, using frequency instead
       nextBillingDate: nextBillingDate,
       dueDate: null,
       necessity: necessity,
