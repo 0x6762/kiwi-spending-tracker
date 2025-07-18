@@ -56,7 +56,7 @@ Basic UI components used throughout the app:
 Widgets for displaying expense data:
 - `expense_list.dart`: List of expenses
 - `expense_summary.dart`: Summary of expenses
-- `upcoming_expenses_card.dart`: Card showing upcoming expenses
+
 - `today_spending_card.dart`: Card showing today's spending
 - `expense_filter_row.dart`: Filter controls for expenses
 - `category_statistics.dart`: Statistics for expense categories

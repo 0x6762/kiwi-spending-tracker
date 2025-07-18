@@ -11,9 +11,7 @@ import '../../services/subscription_service.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/account_repository.dart';
 import '../../screens/subscriptions_screen.dart';
-import '../../screens/upcoming_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
-import 'upcoming_expenses_card.dart';
 import 'subscription_plans_card.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -178,94 +176,46 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Cards Row: Subscription Plans and Upcoming Expenses side by side
-                Row(
-                  children: [
-                    // Subscription Plans Card
-                    if (widget.repository != null && widget.categoryRepo != null)
-                      Expanded(
-                        child: FutureBuilder<SubscriptionSummary>(
-                          future: _subscriptionService.getSubscriptionSummary(),
-                          builder: (context, subscriptionSnapshot) {
-                            // Create a default summary if no data is available
-                            final subscriptionSummary = subscriptionSnapshot.hasData
-                                ? subscriptionSnapshot.data!
-                                : SubscriptionSummary(
-                                    totalMonthlyAmount: 0,
-                                    monthlyBillingAmount: 0,
-                                    yearlyBillingMonthlyEquivalent: 0,
-                                    totalSubscriptions: 0,
-                                    activeSubscriptions: 0,
-                                    dueSoonSubscriptions: 0,
-                                    overdueSubscriptions: 0,
-                                  );
-                            
-                            return SubscriptionPlansCard(
-                              summary: subscriptionSummary,
-                              onTap: widget.repository != null && 
-                                     widget.categoryRepo != null && 
-                                     widget.accountRepo != null
-                                  ? () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => SubscriptionsScreen(
-                                            repository: widget.repository!,
-                                            categoryRepo: widget.categoryRepo!,
-                                            accountRepo: widget.accountRepo!,
-                                            selectedMonth: widget.selectedMonth,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  : null,
+                // Subscription Plans Card
+                if (widget.repository != null && widget.categoryRepo != null)
+                  FutureBuilder<SubscriptionSummary>(
+                    future: _subscriptionService.getSubscriptionSummary(),
+                    builder: (context, subscriptionSnapshot) {
+                      // Create a default summary if no data is available
+                      final subscriptionSummary = subscriptionSnapshot.hasData
+                          ? subscriptionSnapshot.data!
+                          : SubscriptionSummary(
+                              totalMonthlyAmount: 0,
+                              monthlyBillingAmount: 0,
+                              yearlyBillingMonthlyEquivalent: 0,
+                              totalSubscriptions: 0,
+                              activeSubscriptions: 0,
+                              dueSoonSubscriptions: 0,
+                              overdueSubscriptions: 0,
                             );
-                          },
-                        ),
-                      ),
-                    
-                    // Always show spacing between cards
-                    const SizedBox(width: 8),
-                    
-                    // Upcoming Expenses Card
-                    Expanded(
-                      child: FutureBuilder<UpcomingExpensesAnalytics>(
-                        future: widget.analyticsService.getUpcomingExpenses(),
-                        builder: (context, upcomingSnapshot) {
-                          // Create a default analytics if no data is available
-                          final upcomingAnalytics = upcomingSnapshot.hasData
-                              ? upcomingSnapshot.data!
-                              : UpcomingExpensesAnalytics(
-                                  upcomingExpenses: [],
-                                  totalAmount: 0,
-                                  fromDate: DateTime.now(),
+                      
+                      return SubscriptionPlansCard(
+                        summary: subscriptionSummary,
+                        onTap: widget.repository != null && 
+                               widget.categoryRepo != null && 
+                               widget.accountRepo != null
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SubscriptionsScreen(
+                                      repository: widget.repository!,
+                                      categoryRepo: widget.categoryRepo!,
+                                      accountRepo: widget.accountRepo!,
+                                      selectedMonth: widget.selectedMonth,
+                                    ),
+                                  ),
                                 );
-                          
-                          return UpcomingExpensesCard(
-                            analytics: upcomingAnalytics,
-                            onTap: widget.repository != null && 
-                                   widget.categoryRepo != null && 
-                                   widget.accountRepo != null
-                                ? () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => UpcomingExpensesScreen(
-                                          repository: widget.repository!,
-                                          categoryRepo: widget.categoryRepo!,
-                                          accountRepo: widget.accountRepo!,
-                                          selectedMonth: widget.selectedMonth,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                : null,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+                              }
+                            : null,
+                      );
+                    },
+                  ),
               ],
             ],
           ),
