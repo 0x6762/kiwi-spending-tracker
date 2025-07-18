@@ -245,6 +245,10 @@ class SubscriptionService {
   }
 
   /// Process recurring subscriptions to create new expense entries for due/overdue subscriptions
+  /// 
+  /// @deprecated Use RecurringExpenseService.processRecurringExpenses() instead.
+  /// This method is kept for backward compatibility but will be removed in a future version.
+  @Deprecated('Use RecurringExpenseService.processRecurringExpenses() instead')
   Future<int> processRecurringSubscriptions() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -267,16 +271,14 @@ class SubscriptionService {
            nextBillingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
         
         // Create a new expense entry based on the subscription
-        // But mark it as a regular fixed expense (not a subscription)
-        // This way it appears in expenses and counts toward totals
+        // Keep the original subscription type for consistency
         final newExpense = subscription.copyWith(
           id: _uuid.v4(),
           date: nextBillingDate,
           createdAt: now,
           isRecurring: false, // This is a generated instance
           nextBillingDate: null, // Clear this for the instance
-          type: ExpenseType.fixed, // Change to fixed expense type for actual payment
-          // Carry over all other properties from the subscription
+          // Keep the original subscription type for consistency
         );
         
         await _expenseRepo.addExpense(newExpense);

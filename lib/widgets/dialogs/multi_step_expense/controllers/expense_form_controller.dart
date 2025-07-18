@@ -156,8 +156,13 @@ class ExpenseFormController extends ChangeNotifier {
 
     final amount = double.parse(_amount);
     
-    // Determine the expense type based on _isFixedExpense
-    ExpenseType expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
+    // Determine the expense type based on initial type or _isFixedExpense
+    ExpenseType expenseType;
+    if (initialType == ExpenseType.subscription) {
+      expenseType = ExpenseType.subscription;
+    } else {
+      expenseType = _isFixedExpense ? ExpenseType.fixed : ExpenseType.variable;
+    }
     
     // Determine necessity based on category
     final necessity = _determineNecessity();
@@ -166,10 +171,26 @@ class ExpenseFormController extends ChangeNotifier {
     DateTime? nextBillingDate;
     if (_isRecurring) {
       switch (_frequency) {
+        case ExpenseFrequency.daily:
+          nextBillingDate = _selectedDate.add(const Duration(days: 1));
+          break;
+        case ExpenseFrequency.weekly:
+          nextBillingDate = _selectedDate.add(const Duration(days: 7));
+          break;
+        case ExpenseFrequency.biWeekly:
+          nextBillingDate = _selectedDate.add(const Duration(days: 14));
+          break;
         case ExpenseFrequency.monthly:
           nextBillingDate = DateTime(
             _selectedDate.year, 
             _selectedDate.month + 1, 
+            _selectedDate.day,
+          );
+          break;
+        case ExpenseFrequency.quarterly:
+          nextBillingDate = DateTime(
+            _selectedDate.year, 
+            _selectedDate.month + 3, 
             _selectedDate.day,
           );
           break;
@@ -180,19 +201,8 @@ class ExpenseFormController extends ChangeNotifier {
             _selectedDate.day,
           );
           break;
-        case ExpenseFrequency.weekly:
-          nextBillingDate = _selectedDate.add(const Duration(days: 7));
-          break;
-        case ExpenseFrequency.biWeekly:
-          nextBillingDate = _selectedDate.add(const Duration(days: 14));
-          break;
-        case ExpenseFrequency.quarterly:
-          nextBillingDate = DateTime(
-            _selectedDate.year, 
-            _selectedDate.month + 3, 
-            _selectedDate.day,
-          );
-          break;
+        case ExpenseFrequency.oneTime:
+        case ExpenseFrequency.custom:
         default:
           nextBillingDate = null;
       }
@@ -208,7 +218,7 @@ class ExpenseFormController extends ChangeNotifier {
       notes: null,
       type: expenseType,
       accountId: _selectedAccountId,
-      billingCycle: null, // No longer using billing cycle
+      billingCycle: initialType == ExpenseType.subscription ? _billingCycle : null,
       nextBillingDate: nextBillingDate,
       dueDate: null,
       necessity: necessity,
