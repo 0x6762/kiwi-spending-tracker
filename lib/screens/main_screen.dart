@@ -8,7 +8,7 @@ import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense/expense_list.dart';
 import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
-import '../widgets/sheets/expense_type_sheet.dart';
+
 import '../widgets/forms/voice_input_button.dart';
 import '../widgets/expense/today_spending_card.dart';
 import '../widgets/common/app_bar.dart';
@@ -103,24 +103,11 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  void _showExpenseTypeSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ExpenseTypeSheet(
-        onTypeSelected: (type) {
-          Navigator.pop(context);
-          _showAddExpenseDialog(type: type);
-        },
-        repository: widget.repository,
-        categoryRepo: widget.categoryRepo,
-        onExpenseAdded: _loadExpenses,
-      ),
-    );
+  void _showAddExpenseDialog() {
+    _showAddExpenseDialogWithType(type: ExpenseType.variable);
   }
 
-  void _showAddExpenseDialog({required ExpenseType type}) {
+  void _showAddExpenseDialogWithType({required ExpenseType type}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -428,7 +415,7 @@ class _MainScreenState extends State<MainScreen>
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           if (index == 1) {
-            _showExpenseTypeSheet();
+            _showAddExpenseDialog();
           } else {
             setState(() {
               _selectedIndex = index > 1 ? index - 1 : index;
