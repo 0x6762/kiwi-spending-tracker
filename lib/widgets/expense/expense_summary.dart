@@ -179,7 +179,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 // Subscription Plans Card
                 if (widget.repository != null && widget.categoryRepo != null)
                   FutureBuilder<SubscriptionSummary>(
-                    future: _subscriptionService.getSubscriptionSummary(),
+                    future: _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth),
                     builder: (context, subscriptionSnapshot) {
                       // Create a default summary if no data is available
                       final subscriptionSummary = subscriptionSnapshot.hasData
