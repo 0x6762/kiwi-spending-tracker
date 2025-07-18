@@ -6,6 +6,8 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
+import '../services/unified_upcoming_service.dart';
+import '../services/recurring_expense_service.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
@@ -29,8 +31,8 @@ class UpcomingExpensesScreen extends StatefulWidget {
 }
 
 class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
-  late ExpenseAnalyticsService _analyticsService;
-  List<Expense> _upcomingExpenses = [];
+  late UnifiedUpcomingService _upcomingService;
+  List<UpcomingExpenseItem> _upcomingItems = [];
   double _totalAmount = 0.0;
   bool _isLoading = true;
   final _dateFormat = DateFormat.yMMMd();
@@ -38,7 +40,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
   @override
   void initState() {
     super.initState();
-    _analyticsService = ExpenseAnalyticsService(widget.repository, widget.categoryRepo);
+    final recurringService = RecurringExpenseService(widget.repository);
+    _upcomingService = UnifiedUpcomingService(widget.repository, recurringService);
     _loadUpcomingExpenses();
   }
 
@@ -60,12 +63,13 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
   Future<void> _loadUpcomingExpenses() async {
     setState(() => _isLoading = true);
     try {
-      // Get upcoming expenses
-      final upcomingAnalytics = await _analyticsService.getUpcomingExpenses();
+      // Get upcoming expenses using unified service
+      final upcomingItems = await _upcomingService.getUpcomingExpenses(daysAhead: 30);
+      final summary = await _upcomingService.getUpcomingExpensesSummary(daysAhead: 30);
       
       setState(() {
-        _upcomingExpenses = upcomingAnalytics.upcomingExpenses;
-        _totalAmount = upcomingAnalytics.totalAmount;
+        _upcomingItems = upcomingItems;
+        _totalAmount = summary.totalAmount;
         _isLoading = false;
       });
     } catch (e) {
@@ -105,7 +109,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     }
   }
 
-  Widget _buildUpcomingExpenseItem(BuildContext context, Expense expense) {
+  Widget _buildUpcomingExpenseItem(BuildContext context, UpcomingExpenseItem item) {
+    final expense = item.expense;
     final theme = Theme.of(context);
     
     return FutureBuilder<ExpenseCategory?>(
@@ -172,7 +177,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Due on: ${_formatDate(expense.date)}',
+                        'Due on: ${_formatDate(item.effectiveDate)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -183,7 +188,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
               ],
             ),
             trailing: Text(
-              formatCurrency(expense.amount),
+              formatCurrency(item.displayAmount),
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
@@ -248,7 +253,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
         color: theme.colorScheme.primary,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _upcomingExpenses.isEmpty
+            : _upcomingItems.isEmpty
                 ? Center(
                     child: Text(
                       'No upcoming expenses',
@@ -283,9 +288,9 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: _upcomingExpenses.length,
+                            itemCount: _upcomingItems.length,
                             itemBuilder: (context, index) {
-                              return _buildUpcomingExpenseItem(context, _upcomingExpenses[index]);
+                              return _buildUpcomingExpenseItem(context, _upcomingItems[index]);
                             },
                           ),
                         ),

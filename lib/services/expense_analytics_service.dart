@@ -4,6 +4,8 @@ import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../models/account.dart';
+import 'unified_upcoming_service.dart';
+import 'recurring_expense_service.dart';
 
 class CategorySpending {
   final String categoryId;
@@ -264,18 +266,33 @@ class ExpenseAnalyticsService {
     );
   }
 
-  // New method to get upcoming expenses
+  // Updated method to use unified upcoming service
   Future<UpcomingExpensesAnalytics> getUpcomingExpenses({DateTime? fromDate}) async {
-    final referenceDate = fromDate ?? DateTime.now();
-    final upcomingExpenses = await _expenseRepo.getUpcomingExpenses(fromDate: referenceDate);
+    // Create unified service instance
+    final recurringService = RecurringExpenseService(_expenseRepo);
+    final upcomingService = UnifiedUpcomingService(_expenseRepo, recurringService);
     
-    // Calculate total amount
-    final totalAmount = upcomingExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    // Get comprehensive summary
+    final summary = await upcomingService.getUpcomingExpensesSummary(
+      fromDate: fromDate,
+      daysAhead: 30,
+    );
+    
+    // Get upcoming items with full context
+    final upcomingItems = await upcomingService.getUpcomingExpenses(
+      fromDate: fromDate,
+      daysAhead: 30,
+    );
+    
+    // Convert to existing format for backward compatibility
+    final expenses = upcomingItems.map((item) => item.expense).toList();
     
     return UpcomingExpensesAnalytics(
-      upcomingExpenses: upcomingExpenses,
-      totalAmount: totalAmount,
-      fromDate: referenceDate,
+      upcomingExpenses: expenses,
+      totalAmount: summary.totalAmount,
+      fromDate: summary.fromDate,
     );
   }
+
+
 } 
