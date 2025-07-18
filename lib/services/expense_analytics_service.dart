@@ -75,9 +75,10 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
     
-    // Filter to only include paid expenses (not pending or cancelled)
+    // Filter to only include paid expenses that have already occurred (not future expenses)
     final effectiveExpenses = expenses.where((expense) => 
-      expense.status == ExpenseStatus.paid
+      expense.status == ExpenseStatus.paid &&
+      expense.date.isBefore(now.add(const Duration(days: 1))) // Include today, exclude future
     ).toList();
     
     if (effectiveExpenses.isEmpty) return [];
