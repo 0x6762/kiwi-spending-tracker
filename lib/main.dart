@@ -7,6 +7,7 @@ import 'screens/main_screen.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
 import 'services/subscription_service.dart';
+import 'services/recurring_expense_service.dart';
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
@@ -47,12 +48,16 @@ void main() async {
     repositoryProvider.categoryRepository,
   );
   
-  // Process any pending recurring subscriptions
+  final recurringExpenseService = RecurringExpenseService(
+    repositoryProvider.expenseRepository,
+  );
+  
+  // Process any pending recurring expenses (includes subscriptions, fixed, and variable)
   try {
-    final processedCount = await subscriptionService.processRecurringSubscriptions();
-    debugPrint('Processed $processedCount recurring subscriptions');
+    final processedCount = await recurringExpenseService.processRecurringExpenses();
+    debugPrint('Processed $processedCount recurring expenses');
   } catch (e) {
-    debugPrint('Error processing recurring subscriptions: $e');
+    debugPrint('Error processing recurring expenses: $e');
   }
 
   // Set system UI overlay style at app startup
@@ -75,6 +80,7 @@ void main() async {
     repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
     subscriptionService: subscriptionService,
+    recurringExpenseService: recurringExpenseService,
   ));
 }
 
@@ -82,12 +88,14 @@ class MyApp extends StatelessWidget {
   final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
   final SubscriptionService subscriptionService;
+  final RecurringExpenseService recurringExpenseService;
 
   const MyApp({
     super.key,
     required this.repositoryProvider,
     required this.analyticsService,
     required this.subscriptionService,
+    required this.recurringExpenseService,
   });
 
   @override
@@ -97,6 +105,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: repositoryProvider),
         Provider.value(value: subscriptionService),
+        Provider.value(value: recurringExpenseService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) => AnnotatedRegion<SystemUiOverlayStyle>(

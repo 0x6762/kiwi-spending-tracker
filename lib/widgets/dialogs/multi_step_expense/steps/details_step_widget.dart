@@ -42,17 +42,25 @@ class DetailsStepWidget extends StatelessWidget {
       children: [
         ListTile(
           title: const Text('Variable'),
-          selected: !controller.isFixedExpense,
+          selected: controller.selectedExpenseType == ExpenseType.variable,
           onTap: () {
-            controller.setFixedExpense(false);
+            controller.setExpenseType(ExpenseType.variable);
             Navigator.pop(context);
           },
         ),
         ListTile(
           title: const Text('Fixed'),
-          selected: controller.isFixedExpense,
+          selected: controller.selectedExpenseType == ExpenseType.fixed,
           onTap: () {
-            controller.setFixedExpense(true);
+            controller.setExpenseType(ExpenseType.fixed);
+            Navigator.pop(context);
+          },
+        ),
+        ListTile(
+          title: const Text('Subscription'),
+          selected: controller.selectedExpenseType == ExpenseType.subscription,
+          onTap: () {
+            controller.setExpenseType(ExpenseType.subscription);
             Navigator.pop(context);
           },
         ),
@@ -61,18 +69,25 @@ class DetailsStepWidget extends StatelessWidget {
   }
 
   void _showFrequencyPicker(BuildContext context, ExpenseFormController controller) {
-    const frequencyOptions = [
-      {'label': 'One-time', 'value': ExpenseFrequency.oneTime},
-      {'label': 'Weekly', 'value': ExpenseFrequency.weekly},
-      {'label': 'Bi-weekly', 'value': ExpenseFrequency.biWeekly},
-      {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
-      {'label': 'Quarterly', 'value': ExpenseFrequency.quarterly},
-      {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
-    ];
+    final isSubscription = controller.selectedExpenseType == ExpenseType.subscription;
+    
+    final frequencyOptions = isSubscription 
+      ? [
+          {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
+          {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
+        ]
+      : [
+          {'label': 'One-time', 'value': ExpenseFrequency.oneTime},
+          {'label': 'Weekly', 'value': ExpenseFrequency.weekly},
+          {'label': 'Bi-weekly', 'value': ExpenseFrequency.biWeekly},
+          {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
+          {'label': 'Quarterly', 'value': ExpenseFrequency.quarterly},
+          {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
+        ];
 
     PickerSheet.show(
       context: context,
-      title: 'Frequency',
+      title: isSubscription ? 'Billing Cycle' : 'Frequency',
       children: frequencyOptions.map(
         (option) => ListTile(
           title: Text(option['label'] as String),
@@ -105,11 +120,45 @@ class DetailsStepWidget extends StatelessWidget {
     }
   }
 
+  String _getExpenseTypeIcon(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.fixed:
+        return 'assets/icons/fixed_expense.svg';
+      case ExpenseType.subscription:
+        return 'assets/icons/subscription.svg';
+      case ExpenseType.variable:
+      default:
+        return 'assets/icons/variable_expense.svg';
+    }
+  }
+
+  Color _getExpenseTypeColor(ExpenseType type, ThemeData theme) {
+    switch (type) {
+      case ExpenseType.fixed:
+        return theme.colorScheme.fixedExpenseColor;
+      case ExpenseType.subscription:
+        return theme.colorScheme.subscriptionColor;
+      case ExpenseType.variable:
+      default:
+        return theme.colorScheme.variableExpenseColor;
+    }
+  }
+
+  String _getExpenseTypeLabel(ExpenseType type) {
+    switch (type) {
+      case ExpenseType.fixed:
+        return 'Fixed';
+      case ExpenseType.subscription:
+        return 'Subscription';
+      case ExpenseType.variable:
+      default:
+        return 'Variable';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fixedExpenseColor = theme.colorScheme.fixedExpenseColor;
-    final variableExpenseColor = theme.colorScheme.variableExpenseColor;
 
     return Consumer<ExpenseFormController>(
       builder: (context, controller, child) {
@@ -152,17 +201,13 @@ class DetailsStepWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _buildSvgIcon(
-                            controller.isFixedExpense 
-                              ? 'assets/icons/fixed_expense.svg' 
-                              : 'assets/icons/variable_expense.svg',
-                            controller.isFixedExpense 
-                              ? fixedExpenseColor 
-                              : variableExpenseColor,
+                            _getExpenseTypeIcon(controller.selectedExpenseType),
+                            _getExpenseTypeColor(controller.selectedExpenseType, theme),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              controller.isFixedExpense ? 'Fixed' : 'Variable',
+                              _getExpenseTypeLabel(controller.selectedExpenseType),
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onSurface,
                               ),
@@ -178,12 +223,15 @@ class DetailsStepWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Recurrency section
+                    // Frequency section - always visible
+                    const SizedBox(height: 24),
                     // Frequency label
                     Padding(
                       padding: const EdgeInsets.only(left: 4, bottom: 16),
                       child: Text(
-                        'Frequency',
+                        controller.selectedExpenseType == ExpenseType.subscription 
+                          ? 'Billing Cycle' 
+                          : 'Frequency',
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -195,6 +243,7 @@ class DetailsStepWidget extends StatelessWidget {
                       icon: AppIcons.calendar,
                       onTap: () => _showFrequencyPicker(context, controller),
                     ),
+                    
                     const SizedBox(height: 24),
                     
                     // Expense name

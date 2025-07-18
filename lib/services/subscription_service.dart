@@ -91,13 +91,19 @@ class SubscriptionService {
   Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
     final subscriptions = await getSubscriptionsForMonth(month);
     
-    // Calculate monthly costs
+    // Calculate monthly costs - support both billingCycle and frequency
     final monthlySubscriptions = subscriptions
-        .where((sub) => sub.expense.billingCycle == 'Monthly')
+        .where((sub) => 
+          (sub.expense.billingCycle == 'Monthly') ||
+          (sub.expense.frequency == ExpenseFrequency.monthly)
+        )
         .toList();
     
     final yearlySubscriptions = subscriptions
-        .where((sub) => sub.expense.billingCycle == 'Yearly')
+        .where((sub) => 
+          (sub.expense.billingCycle == 'Yearly') ||
+          (sub.expense.frequency == ExpenseFrequency.yearly)
+        )
         .toList();
     
     final monthlyBillingAmount = monthlySubscriptions.fold(
@@ -139,13 +145,19 @@ class SubscriptionService {
   Future<SubscriptionSummary> getSubscriptionSummary() async {
     final subscriptions = await getSubscriptions();
     
-    // Calculate monthly costs
+    // Calculate monthly costs - support both billingCycle and frequency
     final monthlySubscriptions = subscriptions
-        .where((sub) => sub.expense.billingCycle == 'Monthly')
+        .where((sub) => 
+          (sub.expense.billingCycle == 'Monthly') ||
+          (sub.expense.frequency == ExpenseFrequency.monthly)
+        )
         .toList();
     
     final yearlySubscriptions = subscriptions
-        .where((sub) => sub.expense.billingCycle == 'Yearly')
+        .where((sub) => 
+          (sub.expense.billingCycle == 'Yearly') ||
+          (sub.expense.frequency == ExpenseFrequency.yearly)
+        )
         .toList();
     
     final monthlyBillingAmount = monthlySubscriptions.fold(
@@ -173,20 +185,41 @@ class SubscriptionService {
     );
   }
 
-  /// Updates the next billing date for a subscription based on its billing cycle
+  /// Updates the next billing date for a subscription based on its billing cycle or frequency
   DateTime calculateNextBillingDate(Expense subscription) {
     final lastBillingDate = subscription.nextBillingDate ?? subscription.date;
+    
+    // First try to use the new frequency-based system
+    if (subscription.frequency != ExpenseFrequency.oneTime) {
+      switch (subscription.frequency) {
+        case ExpenseFrequency.monthly:
+          return DateTime(
+            lastBillingDate.year,
+            lastBillingDate.month + 1,
+            lastBillingDate.day,
+          );
+        case ExpenseFrequency.yearly:
+          return DateTime(
+            lastBillingDate.year + 1,
+            lastBillingDate.month,
+            lastBillingDate.day,
+          );
+        default:
+          // For other frequencies, fall back to billing cycle
+          break;
+      }
+    }
+    
+    // Fall back to the old billing cycle system for backward compatibility
     final billingCycle = subscription.billingCycle ?? 'Monthly';
     
     if (billingCycle == 'Monthly') {
-      // Add one month to the last billing date
       return DateTime(
         lastBillingDate.year,
         lastBillingDate.month + 1,
         lastBillingDate.day,
       );
     } else if (billingCycle == 'Yearly') {
-      // Add one year to the last billing date
       return DateTime(
         lastBillingDate.year + 1,
         lastBillingDate.month,
@@ -245,6 +278,10 @@ class SubscriptionService {
   }
 
   /// Process recurring subscriptions to create new expense entries for due/overdue subscriptions
+  /// 
+  /// @deprecated Use RecurringExpenseService.processRecurringExpenses() instead.
+  /// This method is kept for backward compatibility but will be removed in a future version.
+  @Deprecated('Use RecurringExpenseService.processRecurringExpenses() instead')
   Future<int> processRecurringSubscriptions() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -267,16 +304,14 @@ class SubscriptionService {
            nextBillingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
         
         // Create a new expense entry based on the subscription
-        // But mark it as a regular fixed expense (not a subscription)
-        // This way it appears in expenses and counts toward totals
+        // Keep the original subscription type for consistency
         final newExpense = subscription.copyWith(
           id: _uuid.v4(),
           date: nextBillingDate,
           createdAt: now,
           isRecurring: false, // This is a generated instance
           nextBillingDate: null, // Clear this for the instance
-          type: ExpenseType.fixed, // Change to fixed expense type for actual payment
-          // Carry over all other properties from the subscription
+          // Keep the original subscription type for consistency
         );
         
         await _expenseRepo.addExpense(newExpense);
@@ -299,11 +334,20 @@ class SubscriptionService {
     return subscriptions.map((subscription) {
       final nextBillingDate = subscription.nextBillingDate;
       final status = getSubscriptionStatus(nextBillingDate);
-      final billingCycle = subscription.billingCycle ?? 'Monthly';
+      
+      // Determine billing cycle - support both new frequency and old billingCycle
+      String billingCycle;
+      if (subscription.frequency == ExpenseFrequency.monthly) {
+        billingCycle = 'Monthly';
+      } else if (subscription.frequency == ExpenseFrequency.yearly) {
+        billingCycle = 'Yearly';
+      } else {
+        billingCycle = subscription.billingCycle ?? 'Monthly';
+      }
       
       // Calculate monthly equivalent cost
       double monthlyEquivalentCost = subscription.amount;
-      if (billingCycle == 'Yearly') {
+      if (billingCycle == 'Yearly' || subscription.frequency == ExpenseFrequency.yearly) {
         monthlyEquivalentCost = subscription.amount / 12;
       }
       
