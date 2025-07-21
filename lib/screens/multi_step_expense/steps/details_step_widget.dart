@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
-import '../../../../models/expense.dart';
-import '../../../forms/picker_button.dart';
-import '../../../sheets/picker_sheet.dart';
-import '../../../common/app_input.dart';
-import '../../../common/app_button.dart';
-import '../../../../utils/icons.dart';
-import '../../../../theme/theme.dart';
+import '../../../models/expense.dart';
+import '../../../widgets/forms/picker_button.dart';
+import '../../../widgets/sheets/picker_sheet.dart';
+import '../../../widgets/common/app_input.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../utils/icons.dart';
+import '../../../theme/theme.dart';
 
 class DetailsStepWidget extends StatelessWidget {
   final VoidCallback? onSubmit;

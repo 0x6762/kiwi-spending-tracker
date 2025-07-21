@@ -7,7 +7,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense/expense_list.dart';
-import '../widgets/dialogs/multi_step_expense/multi_step_expense_dialog.dart';
+import 'multi_step_expense/multi_step_expense_screen.dart';
 
 import '../widgets/forms/voice_input_button.dart';
 import '../widgets/expense/today_spending_card.dart';
@@ -114,7 +114,7 @@ class _MainScreenState extends State<MainScreen>
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseDialog(
+              pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseScreen(
         type: type,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,

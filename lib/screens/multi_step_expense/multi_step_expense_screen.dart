@@ -3,21 +3,21 @@ import 'package:provider/provider.dart';
 import '../../../models/expense.dart';
 import '../../../repositories/category_repository.dart';
 import '../../../repositories/account_repository.dart';
-import '../../common/app_bar.dart';
+import '../../widgets/common/app_bar.dart';
 import '../../../utils/icons.dart';
 import 'controllers/expense_form_controller.dart';
 import 'steps/amount_step_widget.dart';
 import 'steps/category_step_widget.dart';
 import 'steps/details_step_widget.dart';
 
-class MultiStepExpenseDialog extends StatefulWidget {
+class MultiStepExpenseScreen extends StatefulWidget {
   final ExpenseType type;
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final void Function(Expense expense) onExpenseAdded;
   final Expense? expense;
 
-  const MultiStepExpenseDialog({
+  const MultiStepExpenseScreen({
     super.key,
     required this.type,
     required this.categoryRepo,
@@ -27,10 +27,10 @@ class MultiStepExpenseDialog extends StatefulWidget {
   });
 
   @override
-  State<MultiStepExpenseDialog> createState() => _MultiStepExpenseDialogState();
+  State<MultiStepExpenseScreen> createState() => _MultiStepExpenseScreenState();
 }
 
-class _MultiStepExpenseDialogState extends State<MultiStepExpenseDialog> {
+class _MultiStepExpenseScreenState extends State<MultiStepExpenseScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
   final int _totalSteps = 3;
