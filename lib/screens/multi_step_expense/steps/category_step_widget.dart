@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
-import '../../../../models/expense_category.dart';
-import '../../../sheets/add_category_sheet.dart';
-import '../../../../utils/icons.dart';
+import '../../../models/expense_category.dart';
+import '../../../widgets/sheets/add_category_sheet.dart';
+import '../../../utils/icons.dart';
 
 class CategoryStepWidget extends StatefulWidget {
   final VoidCallback? onNext;
