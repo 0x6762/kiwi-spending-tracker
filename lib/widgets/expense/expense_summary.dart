@@ -12,6 +12,8 @@ import '../../repositories/expense_repository.dart';
 import '../../repositories/account_repository.dart';
 import '../../screens/subscriptions_screen.dart';
 import '../charts/monthly_expense_chart.dart';
+import '../common/icon_container.dart';
+import '../../utils/icons.dart';
 import 'subscription_plans_card.dart';
 
 class ExpenseSummary extends StatefulWidget {
@@ -43,16 +45,18 @@ class ExpenseSummary extends StatefulWidget {
 class _ExpenseSummaryState extends State<ExpenseSummary> {
   final _monthFormat = DateFormat.yMMMM();
   late SubscriptionService _subscriptionService;
-  
+
   @override
   void initState() {
     super.initState();
     if (widget.repository != null && widget.categoryRepo != null) {
-      _subscriptionService = SubscriptionService(widget.repository!, widget.categoryRepo!);
+      _subscriptionService =
+          SubscriptionService(widget.repository!, widget.categoryRepo!);
     }
   }
 
-  Widget _buildMonthComparison(BuildContext context, MonthlyAnalytics analytics) {
+  Widget _buildMonthComparison(
+      BuildContext context, MonthlyAnalytics analytics) {
     if (analytics.previousMonthTotal == 0) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
@@ -126,19 +130,96 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          formatCurrency(analytics.totalSpent),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              formatCurrency(analytics.totalSpent),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            if (analytics.previousMonthTotal > 0) ...[
+                              const SizedBox(width: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: analytics.isIncrease
+                                      ? theme.colorScheme.error.withOpacity(0.1)
+                                      : theme.colorScheme.primary
+                                          .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      analytics.isIncrease
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward,
+                                      size: 12,
+                                      color: analytics.isIncrease
+                                          ? theme.colorScheme.error
+                                          : theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${analytics.percentageChange.toStringAsFixed(1)}%',
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: analytics.isIncrease
+                                            ? theme.colorScheme.error
+                                            : theme.colorScheme.primary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        _buildMonthComparison(context, analytics),
+                        if (analytics.averageMonthly > 0) ...[
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              IconContainer.icon(
+                                icon: AppIcons.insights,
+                                iconColor: theme.colorScheme.primary,
+                                backgroundColor:
+                                    theme.colorScheme.primary.withOpacity(0.1),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Monthly average',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  Text(
+                                    formatCurrency(analytics.averageMonthly),
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 32),
                         MonthlyExpenseChart(
                           expenses: widget.expenses,
                           selectedMonth: widget.selectedMonth,
                           onMonthSelected: widget.onMonthSelected,
                           analyticsService: widget.analyticsService,
+                          monthlyAverage: analytics.averageMonthly,
                         ),
                       ],
                     ),
@@ -179,7 +260,8 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 // Subscription Plans Card
                 if (widget.repository != null && widget.categoryRepo != null)
                   FutureBuilder<SubscriptionSummary>(
-                    future: _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth),
+                    future: _subscriptionService
+                        .getSubscriptionSummaryForMonth(widget.selectedMonth),
                     builder: (context, subscriptionSnapshot) {
                       // Create a default summary if no data is available
                       final subscriptionSummary = subscriptionSnapshot.hasData
@@ -193,12 +275,12 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                               dueSoonSubscriptions: 0,
                               overdueSubscriptions: 0,
                             );
-                      
+
                       return SubscriptionPlansCard(
                         summary: subscriptionSummary,
-                        onTap: widget.repository != null && 
-                               widget.categoryRepo != null && 
-                               widget.accountRepo != null
+                        onTap: widget.repository != null &&
+                                widget.categoryRepo != null &&
+                                widget.accountRepo != null
                             ? () {
                                 Navigator.push(
                                   context,

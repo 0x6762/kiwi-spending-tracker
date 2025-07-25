@@ -27,7 +27,7 @@ class TodaySpendingCard extends StatelessWidget {
     final metrics = analyticsService.getDailyMetrics(expenses);
     final todayTotal = metrics.todayTotal;
     final creditCardTotal = metrics.todayCreditCardTotal;
-    final averageDaily = metrics.averageDaily;
+    final averageWeekly = metrics.averageWeekly;
 
     return AppCard.surface(
       backgroundColor: theme.colorScheme.surfaceContainerLowest,
@@ -52,7 +52,7 @@ class TodaySpendingCard extends StatelessWidget {
                   color: theme.colorScheme.onSurface,
                 ),
               ),
-              if (averageDaily > 0) ...[
+              if (averageWeekly > 0) ...[
                 const SizedBox(height: DesignTokens.spacingSmd),
                 Row(
                   children: [
@@ -67,13 +67,13 @@ class TodaySpendingCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Daily average',
+                          'Weekly average',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         Text(
-                          formatCurrency(averageDaily),
+                          formatCurrency(averageWeekly),
                           style: theme.textTheme.titleSmall?.copyWith(
                             color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
@@ -84,7 +84,7 @@ class TodaySpendingCard extends StatelessWidget {
                   ],
                 ),
               ],
-              if (averageDaily > 0) ...[
+              if (averageWeekly > 0) ...[
                 const SizedBox(height: DesignTokens.spacingLg),
                 // Daily spending chart
                 SizedBox(
@@ -101,7 +101,7 @@ class TodaySpendingCard extends StatelessWidget {
                               DateTime.now().year, DateTime.now().month),
                           analyticsService: analyticsService,
                           isCompact: true,
-                          dailyAverage: averageDaily,
+                          dailyAverage: averageWeekly,
                         ),
                       ),
                     ),
