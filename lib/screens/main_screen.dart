@@ -340,63 +340,33 @@ class _MainScreenState extends State<MainScreen>
                     : TodaySpendingCard(
                         expenses: _expenses,
                         analyticsService: widget.analyticsService,
+                        onSeeAllPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllExpensesScreen(
+                                expenses: _expenses,
+                                categoryRepo: widget.categoryRepo,
+                                repository: widget.repository,
+                                accountRepo: widget.accountRepo,
+                                onDelete: _deleteExpense,
+                                onExpenseUpdated: _loadExpenses,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                 const SizedBox(height: 8),
                 if (!_isLoading) ...[
                   if (_expenses.isEmpty)
                     _buildEmptyState()
-                  else ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Recent expenses',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AllExpensesScreen(
-                                    expenses: _expenses,
-                                    categoryRepo: widget.categoryRepo,
-                                    repository: widget.repository,
-                                    accountRepo: widget.accountRepo,
-                                    onDelete: _deleteExpense,
-                                    onExpenseUpdated: _loadExpenses,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                            ),
-                            child: Text(
-                              'See all',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  else
                     ExpenseList(
                       expenses: todayExpenses,
                       categoryRepo: widget.categoryRepo,
                       onTap: _viewExpenseDetails,
                       onDelete: _deleteExpense,
                     ),
-                  ],
                 ],
               ],
             ),

@@ -12,11 +12,13 @@ import '../common/icon_container.dart';
 class TodaySpendingCard extends StatelessWidget {
   final List<Expense> expenses;
   final ExpenseAnalyticsService analyticsService;
+  final VoidCallback? onSeeAllPressed;
 
   const TodaySpendingCard({
     super.key,
     required this.expenses,
     required this.analyticsService,
+    this.onSeeAllPressed,
   });
 
   @override
@@ -42,26 +44,39 @@ class TodaySpendingCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                              Container(
-                padding: DesignTokens.paddingSymmetric(
-                  horizontal: DesignTokens.spacingMd,
-                  vertical: DesignTokens.spacingSm,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: DesignTokens.borderRadius(DesignTokens.radiusChip),
-                ),
-                child: Text(
-                  'Today',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w500,
+                TextButton(
+                  onPressed: onSeeAllPressed,
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurface,
+                    padding: DesignTokens.paddingSymmetric(
+                      horizontal: DesignTokens.spacingMd,
+                      vertical: DesignTokens.spacingXs,
+                    ),
+                    backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: DesignTokens.borderRadius(DesignTokens.radiusChip),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'See all',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      SizedBox(width: DesignTokens.spacingSm),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ),
                 ),
-              ),
               ],
             ),
-            SizedBox(height: DesignTokens.spacingXs),
+            
             Text(
               formatCurrency(todayTotal),
               style: theme.textTheme.headlineMedium?.copyWith(
@@ -101,12 +116,12 @@ class TodaySpendingCard extends StatelessWidget {
               ),
             ],
             if (averageDaily > 0) ...[
-              SizedBox(height: DesignTokens.spacingXl + DesignTokens.spacingSm),
+              SizedBox(height: DesignTokens.spacingLg),
               // Daily spending chart
               SizedBox(
                 height: 80,
                 child: Transform.translate(
-                  offset: const Offset(0, -8),
+                  offset: const Offset(0, 0),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SizedBox(
