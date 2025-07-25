@@ -35,111 +35,113 @@ class TodaySpendingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Row(
-              children: [
-                Text(
-                  "Spent today",
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Spent today",
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: onSeeAllPressed,
+                style: TextButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: DesignTokens.spacingSmd,
+                      vertical: DesignTokens.spacingSm),
+                  backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        DesignTokens.borderRadius(DesignTokens.radiusChip),
                   ),
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: onSeeAllPressed,
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onSurface,
-                    padding: DesignTokens.paddingSymmetric(
-                      horizontal: DesignTokens.spacingMd,
-                      vertical: DesignTokens.spacingXs,
-                    ),
-                    backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: DesignTokens.borderRadius(DesignTokens.radiusChip),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'See all',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      SizedBox(width: DesignTokens.spacingSm),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 12,
+                child: Row(
+                  children: [
+                    Text(
+                      'See all',
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: DesignTokens.spacingSm),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                      color:
+                          theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Text(
+            formatCurrency(todayTotal),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          if (averageDaily > 0) ...[
+            const SizedBox(height: DesignTokens.spacingLg),
+            Row(
+              children: [
+                IconContainer.icon(
+                  icon: AppIcons.insights,
+                  iconColor: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                ),
+                const SizedBox(width: DesignTokens.spacingMd),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daily average',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      formatCurrency(averageDaily),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            
-            Text(
-              formatCurrency(todayTotal),
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            if (averageDaily > 0) ...[
-              SizedBox(height: DesignTokens.spacingLg),
-              Row(
-                children: [
-                  IconContainer.icon(
-                    icon: AppIcons.insights,
-                    iconColor: theme.colorScheme.primary,
-                    backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                  ),
-                  SizedBox(width: DesignTokens.spacingMd),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Daily average',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      Text(
-                        formatCurrency(averageDaily),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-            if (averageDaily > 0) ...[
-              SizedBox(height: DesignTokens.spacingLg),
-              // Daily spending chart
-              SizedBox(
-                height: 80,
-                child: Transform.translate(
-                  offset: const Offset(0, 0),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: DailyExpenseChart(
-                        expenses: expenses,
-                        selectedMonth: DateTime(DateTime.now().year, DateTime.now().month),
-                        analyticsService: analyticsService,
-                        isCompact: true,
-                        dailyAverage: averageDaily,
-                      ),
+          ],
+          if (averageDaily > 0) ...[
+            const SizedBox(height: DesignTokens.spacingLg),
+            // Daily spending chart
+            SizedBox(
+              height: 80,
+              child: Transform.translate(
+                offset: const Offset(0, 0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: DailyExpenseChart(
+                      expenses: expenses,
+                      selectedMonth:
+                          DateTime(DateTime.now().year, DateTime.now().month),
+                      analyticsService: analyticsService,
+                      isCompact: true,
+                      dailyAverage: averageDaily,
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ],
-        ),
-      );
+        ],
+      ),
+    );
   }
-} 
+}

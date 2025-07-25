@@ -29,6 +29,7 @@ class DesignTokens {
   /// Semantic spacing values for common use cases
   static const double spacingXs = spacing1; // 4px
   static const double spacingSm = spacing2; // 8px
+  static const double spacingSmd = spacing3; // 12px
   static const double spacingMd = spacing4; // 16px
   static const double spacingLg = spacing6; // 24px
   static const double spacingXl = spacing8; // 32px
