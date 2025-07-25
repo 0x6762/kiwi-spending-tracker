@@ -100,7 +100,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                   ),
                   child: Center(
                     child: Icon(
-                      size: 28,
+                      size: 32,
                       isSelected ? item.selectedIcon : item.icon,
                       color: theme.colorScheme.surfaceContainerLow,
                     ),
