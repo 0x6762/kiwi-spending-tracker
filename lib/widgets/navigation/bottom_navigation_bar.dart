@@ -18,7 +18,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Row(
         children: [
           // Left side: Navigation items with background (Expenses and Insights)
@@ -80,13 +80,13 @@ class AppBottomNavigationBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 56,
-        height: 56,
+        width: item.isSpecial ? 56 : 48,
+        height: item.isSpecial ? 56 : 48,
         decoration: BoxDecoration(
           color: isSelected && !item.isSpecial
               ? theme.colorScheme.primary.withOpacity(0.1)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(item.isSpecial ? 32 : 32),
         ),
         child: Center(
           child: item.isSpecial
@@ -101,7 +101,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                     child: Icon(
                       size: 28,
                       isSelected ? item.selectedIcon : item.icon,
-                      color: theme.colorScheme.surface,
+                      color: theme.colorScheme.surfaceContainerLow,
                     ),
                   ),
                 )
