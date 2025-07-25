@@ -23,11 +23,13 @@ class DailyMetrics {
   final double todayTotal;
   final double todayCreditCardTotal;
   final double averageDaily;
+  final double averageWeekly;
 
   DailyMetrics({
     required this.todayTotal,
     required this.todayCreditCardTotal,
     required this.averageDaily,
+    required this.averageWeekly,
   });
 }
 
@@ -256,6 +258,7 @@ class ExpenseAnalyticsService {
         todayTotal: 0.0,
         todayCreditCardTotal: 0.0,
         averageDaily: 0.0,
+        averageWeekly: 0.0,
       );
     }
 
@@ -271,6 +274,7 @@ class ExpenseAnalyticsService {
         todayTotal: 0.0,
         todayCreditCardTotal: 0.0,
         averageDaily: 0.0,
+        averageWeekly: 0.0,
       );
     }
 
@@ -302,10 +306,26 @@ class ExpenseAnalyticsService {
     final averageDaily =
         daysWithExpenses.isEmpty ? 0.0 : monthlyTotal / daysWithExpenses.length;
 
+    // Calculate weekly average (past 7 days including today)
+    final sevenDaysAgo = now.subtract(const Duration(days: 6));
+    final weekStart =
+        DateTime(sevenDaysAgo.year, sevenDaysAgo.month, sevenDaysAgo.day);
+    final weekEnd = DateTime(now.year, now.month, now.day);
+
+    final weekExpenses = effectiveExpenses.where((expense) =>
+        expense.date.isAfter(weekStart.subtract(const Duration(days: 1))) &&
+        expense.date.isBefore(weekEnd.add(const Duration(days: 1))));
+
+    final weekTotal =
+        weekExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    final averageWeekly =
+        weekTotal / 7; // Always divide by 7 for consistent weekly average
+
     return DailyMetrics(
       todayTotal: todayTotal,
       todayCreditCardTotal: todayCreditCardTotal,
       averageDaily: averageDaily,
+      averageWeekly: averageWeekly,
     );
   }
 
