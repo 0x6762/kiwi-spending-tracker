@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
@@ -12,11 +11,8 @@ import '../widgets/expense/expense_list.dart';
 import '../widgets/navigation/animated_bottom_navigation_bar.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
-import '../widgets/forms/voice_input_button.dart';
 import '../widgets/expense/today_spending_card.dart';
 import '../widgets/common/app_bar.dart';
-import '../widgets/expense/expense_summary.dart';
-import '../widgets/expense/expense_filter_row.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
@@ -30,7 +26,7 @@ class MainScreen extends StatefulWidget {
   final ExpenseAnalyticsService analyticsService;
 
   const MainScreen({
-    super.key, 
+    super.key,
     required this.repository,
     required this.categoryRepo,
     required this.accountRepo,
@@ -116,7 +112,8 @@ class _MainScreenState extends State<MainScreen>
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseScreen(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          MultiStepExpenseScreen(
         type: type,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
@@ -136,7 +133,8 @@ class _MainScreenState extends State<MainScreen>
       },
     ).then((_) {
       // Restore previous navigation state when dialog closes
-      final navigationService = Provider.of<NavigationService>(context, listen: false);
+      final navigationService =
+          Provider.of<NavigationService>(context, listen: false);
       navigationService.restorePreviousState();
     });
   }
@@ -152,7 +150,8 @@ class _MainScreenState extends State<MainScreen>
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
             setState(() {
-              final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
+              final index =
+                  _expenses.indexWhere((e) => e.id == updatedExpense.id);
               if (index != -1) {
                 _expenses[index] = updatedExpense;
               }
@@ -214,81 +213,6 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
-  Widget _buildExpenseList(List<Expense> filteredExpenses) {
-    final theme = Theme.of(context);
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: Row(
-            children: [
-              Text(
-                'Recent expenses',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllExpensesScreen(
-                        expenses: _expenses,
-                        categoryRepo: widget.categoryRepo,
-                        repository: widget.repository,
-                        accountRepo: widget.accountRepo,
-                        onDelete: _deleteExpense,
-                        onExpenseUpdated: _loadExpenses,
-                      ),
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                ),
-                child: Text(
-                  'See all',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Card(
-          margin: EdgeInsets.zero,
-          color: theme.colorScheme.surfaceContainer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          elevation: 0,
-          child: _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : ExpenseList(
-                  expenses: filteredExpenses,
-                  categoryRepo: widget.categoryRepo,
-                  onTap: _viewExpenseDetails,
-                  onDelete: _deleteExpense,
-                ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildExpensesScreen() {
     final theme = Theme.of(context);
     final now = DateTime.now();
@@ -315,7 +239,8 @@ class _MainScreenState extends State<MainScreen>
         color: theme.colorScheme.primary,
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
-            final scrollService = Provider.of<ScrollService>(context, listen: false);
+            final scrollService =
+                Provider.of<ScrollService>(context, listen: false);
             scrollService.handleScroll(scrollInfo);
             return false;
           },
@@ -323,8 +248,8 @@ class _MainScreenState extends State<MainScreen>
             padding: const EdgeInsets.only(
               left: 8,
               right: 8,
-              bottom: 104,
-              top: 8,
+              bottom: 24,
+              top: 0,
             ),
             clipBehavior: Clip.none,
             child: Column(
@@ -402,7 +327,7 @@ class _MainScreenState extends State<MainScreen>
             opacity: scrollService.navigationOpacity,
             onDestinationSelected: (index) {
               navigationService.selectIndex(index);
-              
+
               // Handle special actions
               if (navigationService.isAddButtonSelected) {
                 _showAddExpenseDialog();

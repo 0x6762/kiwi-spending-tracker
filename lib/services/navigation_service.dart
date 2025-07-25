@@ -4,7 +4,7 @@ import '../widgets/navigation/navigation_item.dart';
 class NavigationService extends ChangeNotifier {
   int _selectedIndex = 0;
   int _previousIndex = 0; // Track previous navigation state
-  
+
   int get selectedIndex => _selectedIndex;
 
   // Define navigation items
@@ -22,8 +22,8 @@ class NavigationService extends ChangeNotifier {
       action: NavigationAction.navigate,
     ),
     NavigationItem(
-      icon: Icons.arrow_outward_rounded,
-      selectedIcon: Icons.arrow_outward_rounded,
+      icon: Icons.add_rounded,
+      selectedIcon: Icons.add_rounded,
       label: 'Add Expense',
       action: NavigationAction.showDialog,
       isSpecial: true,
@@ -61,4 +61,4 @@ class NavigationService extends ChangeNotifier {
 
   // Check if the selected item is the add button
   bool get isAddButtonSelected => _selectedIndex == 2;
-} 
+}

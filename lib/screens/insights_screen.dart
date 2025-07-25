@@ -44,9 +44,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   List<Expense> get _filteredExpenses {
-    return widget.expenses.where((expense) =>
-        expense.date.year == _selectedMonth.year &&
-        expense.date.month == _selectedMonth.month).toList();
+    return widget.expenses
+        .where((expense) =>
+            expense.date.year == _selectedMonth.year &&
+            expense.date.month == _selectedMonth.month)
+        .toList();
   }
 
   void _showMonthPicker() async {
@@ -78,12 +80,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
           onPressed: _showMonthPicker,
           style: TextButton.styleFrom(
             backgroundColor: theme.colorScheme.surface,
-            foregroundColor: theme.colorScheme.onSurfaceVariant,
+            foregroundColor: theme.colorScheme.surface,
             padding: const EdgeInsets.only(
               left: 8,
               right: 10,
-              top: 8,
-              bottom: 8,
+              top: 12,
+              bottom: 12,
             ),
           ),
           child: Row(
@@ -91,7 +93,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             children: [
               Text(
                 _monthFormat.format(_selectedMonth),
-                style: theme.textTheme.bodyLarge?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -126,7 +128,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
-          final scrollService = Provider.of<ScrollService>(context, listen: false);
+          final scrollService =
+              Provider.of<ScrollService>(context, listen: false);
           scrollService.handleScroll(scrollInfo);
           return false;
         },

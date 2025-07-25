@@ -16,10 +16,11 @@ class AppBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Left side: Navigation items with background (Expenses and Insights)
           Container(
@@ -29,9 +30,9 @@ class AppBottomNavigationBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(56),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 25,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),
@@ -55,8 +56,7 @@ class AppBottomNavigationBar extends StatelessWidget {
               ],
             ),
           ),
-          // Spacer to push add button to the right
-          const Spacer(),
+          const SizedBox(width: 16), // 20px spacing between groups
           // Right side: Add button (no background)
           _buildNavigationItem(
             context,
@@ -76,17 +76,17 @@ class AppBottomNavigationBar extends StatelessWidget {
     VoidCallback onTap,
   ) {
     final theme = Theme.of(context);
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: item.isSpecial ? 56 : 48,
-        height: item.isSpecial ? 56 : 48,
+        width: item.isSpecial ? 48 : 48,
+        height: item.isSpecial ? 48 : 48,
         decoration: BoxDecoration(
           color: isSelected && !item.isSpecial
-              ? theme.colorScheme.primary.withOpacity(0.1)
+              ? theme.colorScheme.onSurface.withOpacity(0.1)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(item.isSpecial ? 32 : 32),
+          borderRadius: BorderRadius.circular(item.isSpecial ? 56 : 56),
         ),
         child: Center(
           child: item.isSpecial
@@ -95,7 +95,8 @@ class AppBottomNavigationBar extends StatelessWidget {
                   height: 56,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
-                    shape: BoxShape.circle,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(56),
                   ),
                   child: Center(
                     child: Icon(
@@ -116,4 +117,4 @@ class AppBottomNavigationBar extends StatelessWidget {
       ),
     );
   }
-} 
+}
