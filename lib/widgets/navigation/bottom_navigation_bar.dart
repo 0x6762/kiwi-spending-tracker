@@ -18,7 +18,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       child: Row(
         children: [
           // Left side: Navigation items with background (Expenses and Insights)

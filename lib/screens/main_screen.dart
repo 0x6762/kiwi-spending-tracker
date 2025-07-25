@@ -7,8 +7,9 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../services/navigation_service.dart';
+import '../services/scroll_service.dart';
 import '../widgets/expense/expense_list.dart';
-import '../widgets/navigation/bottom_navigation_bar.dart';
+import '../widgets/navigation/animated_bottom_navigation_bar.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
 import '../widgets/forms/voice_input_button.dart';
@@ -312,86 +313,93 @@ class _MainScreenState extends State<MainScreen>
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
         color: theme.colorScheme.primary,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(
-            left: 8,
-            right: 8,
-            bottom: 104,
-            top: 8,
-          ),
-          clipBehavior: Clip.none,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _isLoading
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  : TodaySpendingCard(
-                      expenses: _expenses,
-                      analyticsService: widget.analyticsService,
-                    ),
-              const SizedBox(height: 8),
-              if (!_isLoading) ...[
-                if (_expenses.isEmpty)
-                  _buildEmptyState()
-                else ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Recent expenses',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            final scrollService = Provider.of<ScrollService>(context, listen: false);
+            scrollService.handleScroll(scrollInfo);
+            return false;
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 8,
+              bottom: 104,
+              top: 8,
+            ),
+            clipBehavior: Clip.none,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _isLoading
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: CircularProgressIndicator(),
                         ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AllExpensesScreen(
-                                  expenses: _expenses,
-                                  categoryRepo: widget.categoryRepo,
-                                  repository: widget.repository,
-                                  accountRepo: widget.accountRepo,
-                                  onDelete: _deleteExpense,
-                                  onExpenseUpdated: _loadExpenses,
-                                ),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: theme.colorScheme.primary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                          ),
-                          child: Text(
-                            'See all',
-                            style: theme.textTheme.labelMedium?.copyWith(
+                      )
+                    : TodaySpendingCard(
+                        expenses: _expenses,
+                        analyticsService: widget.analyticsService,
+                      ),
+                const SizedBox(height: 8),
+                if (!_isLoading) ...[
+                  if (_expenses.isEmpty)
+                    _buildEmptyState()
+                  else ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Recent expenses',
+                            style: theme.textTheme.titleSmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
-                        ),
-                      ],
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AllExpensesScreen(
+                                    expenses: _expenses,
+                                    categoryRepo: widget.categoryRepo,
+                                    repository: widget.repository,
+                                    accountRepo: widget.accountRepo,
+                                    onDelete: _deleteExpense,
+                                    onExpenseUpdated: _loadExpenses,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                            ),
+                            child: Text(
+                              'See all',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  ExpenseList(
-                    expenses: todayExpenses,
-                    categoryRepo: widget.categoryRepo,
-                    onTap: _viewExpenseDetails,
-                    onDelete: _deleteExpense,
-                  ),
+                    ExpenseList(
+                      expenses: todayExpenses,
+                      categoryRepo: widget.categoryRepo,
+                      onTap: _viewExpenseDetails,
+                      onDelete: _deleteExpense,
+                    ),
+                  ],
                 ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -400,8 +408,8 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NavigationService>(
-      builder: (context, navigationService, child) {
+    return Consumer2<NavigationService, ScrollService>(
+      builder: (context, navigationService, scrollService, child) {
         return Scaffold(
           extendBody: true,
           resizeToAvoidBottomInset: false,
@@ -418,9 +426,10 @@ class _MainScreenState extends State<MainScreen>
               ),
             ],
           ),
-          bottomNavigationBar: AppBottomNavigationBar(
+          bottomNavigationBar: AnimatedBottomNavigationBar(
             items: NavigationService.items,
             selectedIndex: navigationService.selectedIndex,
+            opacity: scrollService.navigationOpacity,
             onDestinationSelected: (index) {
               navigationService.selectIndex(index);
               

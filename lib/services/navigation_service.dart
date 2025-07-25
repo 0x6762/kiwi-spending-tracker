@@ -52,7 +52,11 @@ class NavigationService extends ChangeNotifier {
 
   // Get the actual screen index (accounting for the special add button)
   int get screenIndex {
-    return _selectedIndex > 2 ? _selectedIndex - 1 : _selectedIndex;
+    // If add button is selected (index 2), stay on current screen
+    if (_selectedIndex == 2) {
+      return _previousIndex;
+    }
+    return _selectedIndex;
   }
 
   // Check if the selected item is the add button

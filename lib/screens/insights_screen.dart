@@ -5,11 +5,13 @@ import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
+import '../services/scroll_service.dart';
 import '../widgets/expense/category_statistics.dart';
 import '../widgets/expense/expense_summary.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
+import 'package:provider/provider.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -122,44 +124,51 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ExpenseSummary(
-              expenses: widget.expenses,
-              selectedMonth: _selectedMonth,
-              onMonthSelected: (month) {
-                setState(() {
-                  _selectedMonth = month;
-                });
-              },
-              analyticsService: widget.analyticsService,
-              repository: widget.repository,
-              categoryRepo: widget.categoryRepo,
-              accountRepo: widget.accountRepo,
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: Text(
-                'Spending by Category',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          final scrollService = Provider.of<ScrollService>(context, listen: false);
+          scrollService.handleScroll(scrollInfo);
+          return false;
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExpenseSummary(
+                expenses: widget.expenses,
+                selectedMonth: _selectedMonth,
+                onMonthSelected: (month) {
+                  setState(() {
+                    _selectedMonth = month;
+                  });
+                },
+                analyticsService: widget.analyticsService,
+                repository: widget.repository,
+                categoryRepo: widget.categoryRepo,
+                accountRepo: widget.accountRepo,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: Text(
+                  'Spending by Category',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
-            ),
-            CategoryStatistics(
-              expenses: _filteredExpenses,
-              categoryRepo: widget.categoryRepo,
-              analyticsService: widget.analyticsService,
-              selectedMonth: _selectedMonth,
-              accountRepo: widget.accountRepo,
-              repository: widget.repository,
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-          ],
+              CategoryStatistics(
+                expenses: _filteredExpenses,
+                categoryRepo: widget.categoryRepo,
+                analyticsService: widget.analyticsService,
+                selectedMonth: _selectedMonth,
+                accountRepo: widget.accountRepo,
+                repository: widget.repository,
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
+            ],
+          ),
         ),
       ),
     );
