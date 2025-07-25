@@ -8,6 +8,7 @@ import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
 import 'services/subscription_service.dart';
 import 'services/recurring_expense_service.dart';
+import 'services/navigation_service.dart';
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
@@ -52,6 +53,9 @@ void main() async {
     repositoryProvider.expenseRepository,
   );
   
+  // Initialize navigation service
+  final navigationService = NavigationService();
+  
   // Process any pending recurring expenses (includes subscriptions, fixed, and variable)
   try {
     final processedCount = await recurringExpenseService.processRecurringExpenses();
@@ -81,6 +85,7 @@ void main() async {
     analyticsService: analyticsService,
     subscriptionService: subscriptionService,
     recurringExpenseService: recurringExpenseService,
+    navigationService: navigationService,
   ));
 }
 
@@ -89,6 +94,7 @@ class MyApp extends StatelessWidget {
   final ExpenseAnalyticsService analyticsService;
   final SubscriptionService subscriptionService;
   final RecurringExpenseService recurringExpenseService;
+  final NavigationService navigationService;
 
   const MyApp({
     super.key,
@@ -96,6 +102,7 @@ class MyApp extends StatelessWidget {
     required this.analyticsService,
     required this.subscriptionService,
     required this.recurringExpenseService,
+    required this.navigationService,
   });
 
   @override
@@ -104,6 +111,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: repositoryProvider),
+        ChangeNotifierProvider.value(value: navigationService),
         Provider.value(value: subscriptionService),
         Provider.value(value: recurringExpenseService),
       ],

@@ -14,4 +14,7 @@ export 'charts/index.dart';
 export 'sheets/index.dart';
 
 // Dialog widgets
-export 'dialogs/index.dart'; 
+export 'dialogs/index.dart';
+
+// Navigation widgets
+export 'navigation/index.dart'; 
