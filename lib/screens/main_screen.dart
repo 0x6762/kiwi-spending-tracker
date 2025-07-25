@@ -115,7 +115,7 @@ class _MainScreenState extends State<MainScreen>
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
-              pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseScreen(
+      pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseScreen(
         type: type,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
@@ -133,7 +133,11 @@ class _MainScreenState extends State<MainScreen>
           child: child,
         );
       },
-    );
+    ).then((_) {
+      // Restore previous navigation state when dialog closes
+      final navigationService = Provider.of<NavigationService>(context, listen: false);
+      navigationService.restorePreviousState();
+    });
   }
 
   void _viewExpenseDetails(Expense expense) async {

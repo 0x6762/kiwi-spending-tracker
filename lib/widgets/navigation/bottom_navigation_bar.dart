@@ -18,60 +18,96 @@ class AppBottomNavigationBar extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      margin: EdgeInsets.zero,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(0),
-          topRight: Radius.circular(0),
-        ),
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(56),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: NavigationBar(
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          onDestinationSelected: onDestinationSelected,
-          selectedIndex: selectedIndex,
-          backgroundColor: Colors.transparent,
-          indicatorColor: theme.colorScheme.primary.withOpacity(0.1),
-          height: 72,
-          destinations: items.map((item) {
-            return NavigationDestination(
-              icon: item.isSpecial
-                  ? Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        item.icon,
-                        color: theme.colorScheme.surface,
-                      ),
-                    )
-                  : Icon(
-                      item.icon,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-              selectedIcon: item.isSpecial
-                  ? Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        item.selectedIcon,
-                        color: theme.colorScheme.surface,
-                      ),
-                    )
-                  : Icon(
-                      item.selectedIcon,
-                      color: theme.colorScheme.onSurface,
-                    ),
-              label: item.label,
-            );
-          }).toList(),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
+          children: [
+            // Left side: Navigation items (Expenses and Insights)
+            Row(
+              children: [
+                // Expenses tab
+                _buildNavigationItem(
+                  context,
+                  items[0],
+                  selectedIndex == 0,
+                  () => onDestinationSelected(0),
+                ),
+                const SizedBox(width: 16),
+                // Insights tab
+                _buildNavigationItem(
+                  context,
+                  items[1],
+                  selectedIndex == 1,
+                  () => onDestinationSelected(1),
+                ),
+              ],
+            ),
+            // Spacer to push add button to the right
+            const Spacer(),
+            // Right side: Add button
+            _buildNavigationItem(
+              context,
+              items[2],
+              selectedIndex == 2,
+              () => onDestinationSelected(2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationItem(
+    BuildContext context,
+    NavigationItem item,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final theme = Theme.of(context);
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: isSelected && !item.isSpecial
+              ? theme.colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Center(
+          child: item.isSpecial
+              ? Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isSelected ? item.selectedIcon : item.icon,
+                    color: theme.colorScheme.surface,
+                  ),
+                )
+              : Icon(
+                  isSelected ? item.selectedIcon : item.icon,
+                  size: 28,
+                  color: isSelected
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
         ),
       ),
     );

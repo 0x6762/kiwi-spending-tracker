@@ -3,6 +3,7 @@ import '../widgets/navigation/navigation_item.dart';
 
 class NavigationService extends ChangeNotifier {
   int _selectedIndex = 0;
+  int _previousIndex = 0; // Track previous navigation state
   
   int get selectedIndex => _selectedIndex;
 
@@ -15,22 +16,23 @@ class NavigationService extends ChangeNotifier {
       action: NavigationAction.navigate,
     ),
     NavigationItem(
+      icon: Icons.insights_outlined,
+      selectedIcon: Icons.insights,
+      label: 'Insights',
+      action: NavigationAction.navigate,
+    ),
+    NavigationItem(
       icon: Icons.add,
       selectedIcon: Icons.add,
       label: 'Add Expense',
       action: NavigationAction.showDialog,
       isSpecial: true,
     ),
-    NavigationItem(
-      icon: Icons.insights_outlined,
-      selectedIcon: Icons.insights,
-      label: 'Insights',
-      action: NavigationAction.navigate,
-    ),
   ];
 
   void selectIndex(int index) {
     if (index != _selectedIndex) {
+      _previousIndex = _selectedIndex; // Store previous state
       _selectedIndex = index;
       notifyListeners();
     }
@@ -38,14 +40,21 @@ class NavigationService extends ChangeNotifier {
 
   void resetToExpenses() {
     _selectedIndex = 0;
+    _previousIndex = 0;
+    notifyListeners();
+  }
+
+  // Restore previous navigation state (used when add dialog closes)
+  void restorePreviousState() {
+    _selectedIndex = _previousIndex;
     notifyListeners();
   }
 
   // Get the actual screen index (accounting for the special add button)
   int get screenIndex {
-    return _selectedIndex > 1 ? _selectedIndex - 1 : _selectedIndex;
+    return _selectedIndex > 2 ? _selectedIndex - 1 : _selectedIndex;
   }
 
   // Check if the selected item is the add button
-  bool get isAddButtonSelected => _selectedIndex == 1;
+  bool get isAddButtonSelected => _selectedIndex == 2;
 } 
