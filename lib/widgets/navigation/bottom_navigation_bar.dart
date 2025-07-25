@@ -18,24 +18,24 @@ class AppBottomNavigationBar extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(56),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          children: [
-            // Left side: Navigation items (Expenses and Insights)
-            Row(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Row(
+        children: [
+          // Left side: Navigation items with background (Expenses and Insights)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(56),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
               children: [
                 // Expenses tab
                 _buildNavigationItem(
@@ -54,17 +54,17 @@ class AppBottomNavigationBar extends StatelessWidget {
                 ),
               ],
             ),
-            // Spacer to push add button to the right
-            const Spacer(),
-            // Right side: Add button
-            _buildNavigationItem(
-              context,
-              items[2],
-              selectedIndex == 2,
-              () => onDestinationSelected(2),
-            ),
-          ],
-        ),
+          ),
+          // Spacer to push add button to the right
+          const Spacer(),
+          // Right side: Add button (no background)
+          _buildNavigationItem(
+            context,
+            items[2],
+            selectedIndex == 2,
+            () => onDestinationSelected(2),
+          ),
+        ],
       ),
     );
   }
@@ -86,24 +86,28 @@ class AppBottomNavigationBar extends StatelessWidget {
           color: isSelected && !item.isSpecial
               ? theme.colorScheme.primary.withOpacity(0.1)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(32),
         ),
         child: Center(
           child: item.isSpecial
               ? Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    isSelected ? item.selectedIcon : item.icon,
-                    color: theme.colorScheme.surface,
+                  child: Center(
+                    child: Icon(
+                      size: 28,
+                      isSelected ? item.selectedIcon : item.icon,
+                      color: theme.colorScheme.surface,
+                    ),
                   ),
                 )
               : Icon(
                   isSelected ? item.selectedIcon : item.icon,
-                  size: 28,
+                  size: 24,
                   color: isSelected
                       ? theme.colorScheme.onSurface
                       : theme.colorScheme.onSurfaceVariant,
