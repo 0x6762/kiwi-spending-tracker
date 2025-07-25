@@ -22,8 +22,8 @@ class NavigationService extends ChangeNotifier {
       action: NavigationAction.navigate,
     ),
     NavigationItem(
-      icon: Icons.add,
-      selectedIcon: Icons.add,
+      icon: Icons.arrow_outward_rounded,
+      selectedIcon: Icons.arrow_outward_rounded,
       label: 'Add Expense',
       action: NavigationAction.showDialog,
       isSpecial: true,
