@@ -132,7 +132,7 @@ class TodaySpendingCard extends StatelessWidget {
                     'See all',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color:
-                          theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                          theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
                     ),
                   ),
                   const SizedBox(width: DesignTokens.spacingSm),

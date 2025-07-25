@@ -248,7 +248,7 @@ class _MainScreenState extends State<MainScreen>
             padding: const EdgeInsets.only(
               left: 8,
               right: 8,
-              bottom: 24,
+              bottom: 120,
               top: 0,
             ),
             clipBehavior: Clip.none,
