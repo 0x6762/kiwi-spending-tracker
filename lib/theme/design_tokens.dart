@@ -210,8 +210,6 @@ class DesignTokens {
   }
 }
 
-
-
 /// Utility class for responsive design
 class ResponsiveHelper {
   static bool isMobile(BuildContext context) {
@@ -220,11 +218,11 @@ class ResponsiveHelper {
 
   static bool isTablet(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width >= DesignTokens.breakpointMobile && 
-           width < DesignTokens.breakpointTablet;
+    return width >= DesignTokens.breakpointMobile &&
+        width < DesignTokens.breakpointTablet;
   }
 
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= DesignTokens.breakpointDesktop;
   }
-} 
+}

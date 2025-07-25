@@ -5,8 +5,10 @@ import '../../theme/design_tokens.dart';
 enum AppButtonVariant {
   /// Primary button - main actions
   primary,
+
   /// Text button - minimal actions
   text,
+
   /// Destructive button - dangerous actions
   destructive,
 }
@@ -80,22 +82,23 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDisabled = onPressed == null || isLoading;
-    
+
     // Get button configuration based on variant
     final buttonConfig = _getButtonConfig(theme);
-    
+
     // Build button content
     Widget buttonContent = _buildButtonContent(theme);
-    
+
     // Add loading indicator if needed
     if (isLoading) {
       buttonContent = _buildLoadingContent(theme, buttonContent);
     }
-    
+
     // Create the button
     Widget button = Material(
-      color: isDisabled 
-          ? buttonConfig.backgroundColor.withOpacity(DesignTokens.opacityDisabled)
+      color: isDisabled
+          ? buttonConfig.backgroundColor
+              .withOpacity(DesignTokens.opacityDisabled)
           : buttonConfig.backgroundColor,
       borderRadius: DesignTokens.borderRadius(DesignTokens.radiusButton),
       elevation: buttonConfig.elevation,
@@ -108,13 +111,15 @@ class AppButton extends StatelessWidget {
           child: DefaultTextStyle(
             style: TextStyle(
               color: isDisabled
-                  ? buttonConfig.foregroundColor.withOpacity(DesignTokens.opacityDisabled)
+                  ? buttonConfig.foregroundColor
+                      .withOpacity(DesignTokens.opacityDisabled)
                   : buttonConfig.foregroundColor,
             ),
             child: IconTheme(
               data: IconThemeData(
                 color: isDisabled
-                    ? buttonConfig.foregroundColor.withOpacity(DesignTokens.opacityDisabled)
+                    ? buttonConfig.foregroundColor
+                        .withOpacity(DesignTokens.opacityDisabled)
                     : buttonConfig.foregroundColor,
                 size: DesignTokens.iconButton,
               ),
@@ -124,7 +129,7 @@ class AppButton extends StatelessWidget {
         ),
       ),
     );
-    
+
     // Expand button if needed
     if (isExpanded) {
       button = SizedBox(
@@ -132,7 +137,7 @@ class AppButton extends StatelessWidget {
         child: button,
       );
     }
-    
+
     return button;
   }
 
@@ -162,16 +167,19 @@ class AppButton extends StatelessWidget {
 
   /// Build button content with text and icons
   Widget _buildButtonContent(ThemeData theme) {
-    final textStyle = theme.textTheme.labelLarge!;
-    
+    final buttonConfig = _getButtonConfig(theme);
+    final textStyle = theme.textTheme.labelLarge!.copyWith(
+      color: buttonConfig.foregroundColor,
+    );
+
     List<Widget> children = [];
-    
+
     // Add leading icon
     if (leadingIcon != null) {
       children.add(leadingIcon!);
       children.add(SizedBox(width: DesignTokens.spacingSm));
     }
-    
+
     // Add main icon (for icon buttons)
     if (icon != null) {
       children.add(icon!);
@@ -179,7 +187,7 @@ class AppButton extends StatelessWidget {
         children.add(SizedBox(width: DesignTokens.spacingSm));
       }
     }
-    
+
     // Add text
     if (text.isNotEmpty) {
       children.add(
@@ -193,13 +201,13 @@ class AppButton extends StatelessWidget {
         ),
       );
     }
-    
+
     // Add trailing icon
     if (trailingIcon != null) {
       children.add(SizedBox(width: DesignTokens.spacingSm));
       children.add(trailingIcon!);
     }
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -210,7 +218,7 @@ class AppButton extends StatelessWidget {
   /// Build loading content with spinner
   Widget _buildLoadingContent(ThemeData theme, Widget originalContent) {
     final buttonConfig = _getButtonConfig(theme);
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -250,4 +258,4 @@ class _ButtonConfig {
     required this.foregroundColor,
     required this.elevation,
   });
-} 
+}
