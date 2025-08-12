@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 class ScrollDirectionDetector extends StatefulWidget {
   final Widget child;
   final Function(bool isScrollingUp) onScrollDirectionChanged;
+  final ScrollController? scrollController; // Add optional scroll controller
 
   const ScrollDirectionDetector({
     super.key,
     required this.child,
     required this.onScrollDirectionChanged,
+    this.scrollController, // Make it optional
   });
 
   @override
@@ -21,10 +23,50 @@ class _ScrollDirectionDetectorState extends State<ScrollDirectionDetector> {
   DateTime? _lastUpdateTime;
   static const Duration _debounceTime = Duration(milliseconds: 150);
 
-  bool _handleScroll(ScrollNotification scrollInfo) {
-    final now = DateTime.now();
+  @override
+  void initState() {
+    super.initState();
+    // If a scroll controller is provided, listen to it directly
+    if (widget.scrollController != null) {
+      widget.scrollController!.addListener(_onScrollChanged);
+    }
+  }
 
-    // Debounce rapid scroll events
+  @override
+  void dispose() {
+    if (widget.scrollController != null) {
+      widget.scrollController!.removeListener(_onScrollChanged);
+    }
+    super.dispose();
+  }
+
+  void _onScrollChanged() {
+    if (widget.scrollController == null) return;
+    
+    final now = DateTime.now();
+    if (_lastUpdateTime != null &&
+        now.difference(_lastUpdateTime!) < _debounceTime) {
+      return;
+    }
+
+    final currentOffset = widget.scrollController!.offset;
+    final isScrollingUp = currentOffset < _lastScrollOffset;
+
+    if ((currentOffset - _lastScrollOffset).abs() > 10) {
+      _lastScrollOffset = currentOffset;
+      _lastUpdateTime = now;
+      widget.onScrollDirectionChanged(isScrollingUp);
+    }
+  }
+
+  bool _handleScroll(ScrollNotification scrollInfo) {
+    // If we have a scroll controller, ignore scroll notifications
+    // as we're listening to the controller directly
+    if (widget.scrollController != null) {
+      return false;
+    }
+
+    final now = DateTime.now();
     if (_lastUpdateTime != null &&
         now.difference(_lastUpdateTime!) < _debounceTime) {
       return false;
@@ -33,14 +75,13 @@ class _ScrollDirectionDetectorState extends State<ScrollDirectionDetector> {
     final currentOffset = scrollInfo.metrics.pixels;
     final isScrollingUp = currentOffset < _lastScrollOffset;
 
-    // Only update if we have a significant scroll and direction changed
     if ((currentOffset - _lastScrollOffset).abs() > 10) {
       _lastScrollOffset = currentOffset;
       _lastUpdateTime = now;
       widget.onScrollDirectionChanged(isScrollingUp);
     }
 
-    return false; // Don't consume the notification
+    return false;
   }
 
   @override

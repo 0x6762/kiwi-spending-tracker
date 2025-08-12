@@ -39,11 +39,18 @@ class InsightsScreen extends StatefulWidget {
 class _InsightsScreenState extends State<InsightsScreen> {
   late DateTime _selectedMonth;
   final _monthFormat = DateFormat.yMMMM();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   List<Expense> get _filteredExpenses {
@@ -138,6 +145,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         ],
       ),
       body: ScrollDirectionDetector(
+        scrollController: _scrollController,
         onScrollDirectionChanged: (isScrollingUp) {
           // Control navigation visibility based on scroll direction
           if (isScrollingUp) {
@@ -149,6 +157,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           }
         },
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
