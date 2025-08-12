@@ -9,7 +9,7 @@ import 'services/expense_analytics_service.dart';
 import 'services/subscription_service.dart';
 import 'services/recurring_expense_service.dart';
 import 'services/navigation_service.dart';
-import 'services/scroll_service.dart';
+
 import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
@@ -44,25 +44,23 @@ void main() async {
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
   );
-  
+
   final subscriptionService = SubscriptionService(
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
   );
-  
+
   final recurringExpenseService = RecurringExpenseService(
     repositoryProvider.expenseRepository,
   );
-  
+
   // Initialize navigation service
   final navigationService = NavigationService();
-  
-  // Initialize scroll service
-  final scrollService = ScrollService();
-  
+
   // Process any pending recurring expenses (includes subscriptions, fixed, and variable)
   try {
-    final processedCount = await recurringExpenseService.processRecurringExpenses();
+    final processedCount =
+        await recurringExpenseService.processRecurringExpenses();
     debugPrint('Processed $processedCount recurring expenses');
   } catch (e) {
     debugPrint('Error processing recurring expenses: $e');
@@ -90,7 +88,6 @@ void main() async {
     subscriptionService: subscriptionService,
     recurringExpenseService: recurringExpenseService,
     navigationService: navigationService,
-    scrollService: scrollService,
   ));
 }
 
@@ -100,7 +97,6 @@ class MyApp extends StatelessWidget {
   final SubscriptionService subscriptionService;
   final RecurringExpenseService recurringExpenseService;
   final NavigationService navigationService;
-  final ScrollService scrollService;
 
   const MyApp({
     super.key,
@@ -109,7 +105,6 @@ class MyApp extends StatelessWidget {
     required this.subscriptionService,
     required this.recurringExpenseService,
     required this.navigationService,
-    required this.scrollService,
   });
 
   @override
@@ -119,12 +114,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: repositoryProvider),
         ChangeNotifierProvider.value(value: navigationService),
-        ChangeNotifierProvider.value(value: scrollService),
         Provider.value(value: subscriptionService),
         Provider.value(value: recurringExpenseService),
       ],
       child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) => AnnotatedRegion<SystemUiOverlayStyle>(
+        builder: (context, themeProvider, _) =>
+            AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.light,

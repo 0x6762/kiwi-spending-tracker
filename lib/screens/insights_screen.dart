@@ -5,13 +5,12 @@ import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
-import '../services/scroll_service.dart';
 import '../widgets/expense/category_statistics.dart';
 import '../widgets/expense/expense_summary.dart';
+import '../widgets/navigation/scroll_direction_detector.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
-import 'package:provider/provider.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
@@ -19,6 +18,8 @@ class InsightsScreen extends StatefulWidget {
   final ExpenseAnalyticsService analyticsService;
   final ExpenseRepository repository;
   final AccountRepository accountRepo;
+  final VoidCallback? onShowNavigation;
+  final VoidCallback? onHideNavigation;
 
   const InsightsScreen({
     super.key,
@@ -27,6 +28,8 @@ class InsightsScreen extends StatefulWidget {
     required this.analyticsService,
     required this.repository,
     required this.accountRepo,
+    this.onShowNavigation,
+    this.onHideNavigation,
   });
 
   @override
@@ -36,11 +39,18 @@ class InsightsScreen extends StatefulWidget {
 class _InsightsScreenState extends State<InsightsScreen> {
   late DateTime _selectedMonth;
   final _monthFormat = DateFormat.yMMMM();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   List<Expense> get _filteredExpenses {
@@ -67,6 +77,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
         _selectedMonth = picked;
       });
     }
+  }
+
+  void _showNavigation() {
+    widget.onShowNavigation?.call();
+  }
+
+  void _hideNavigation() {
+    widget.onHideNavigation?.call();
   }
 
   @override
@@ -126,30 +144,39 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
         ],
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          final scrollService =
-              Provider.of<ScrollService>(context, listen: false);
-          scrollService.handleScroll(scrollInfo);
-          return false;
+      body: ScrollDirectionDetector(
+        scrollController: _scrollController,
+        onScrollDirectionChanged: (isScrollingUp) {
+          // Control navigation visibility based on scroll direction
+          if (isScrollingUp) {
+            // Scrolling up - show navigation
+            _showNavigation();
+          } else {
+            // Scrolling down - hide navigation
+            _hideNavigation();
+          }
         },
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ExpenseSummary(
-                expenses: widget.expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: (month) {
-                  setState(() {
-                    _selectedMonth = month;
-                  });
-                },
-                analyticsService: widget.analyticsService,
-                repository: widget.repository,
-                categoryRepo: widget.categoryRepo,
-                accountRepo: widget.accountRepo,
+              // Wrap expensive widgets in RepaintBoundary for better performance
+              RepaintBoundary(
+                child: ExpenseSummary(
+                  expenses: widget.expenses,
+                  selectedMonth: _selectedMonth,
+                  onMonthSelected: (month) {
+                    setState(() {
+                      _selectedMonth = month;
+                    });
+                  },
+                  analyticsService: widget.analyticsService,
+                  repository: widget.repository,
+                  categoryRepo: widget.categoryRepo,
+                  accountRepo: widget.accountRepo,
+                ),
               ),
               const SizedBox(height: 24),
               Padding(
@@ -161,13 +188,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ),
               ),
-              CategoryStatistics(
-                expenses: _filteredExpenses,
-                categoryRepo: widget.categoryRepo,
-                analyticsService: widget.analyticsService,
-                selectedMonth: _selectedMonth,
-                accountRepo: widget.accountRepo,
-                repository: widget.repository,
+              // Wrap expensive widgets in RepaintBoundary for better performance
+              RepaintBoundary(
+                child: CategoryStatistics(
+                  expenses: _filteredExpenses,
+                  categoryRepo: widget.categoryRepo,
+                  analyticsService: widget.analyticsService,
+                  selectedMonth: _selectedMonth,
+                  accountRepo: widget.accountRepo,
+                  repository: widget.repository,
+                ),
               ),
               SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
             ],
