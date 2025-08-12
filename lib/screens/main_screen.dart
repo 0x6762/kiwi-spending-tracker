@@ -6,9 +6,9 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../services/navigation_service.dart';
-import '../services/scroll_service.dart';
 import '../widgets/expense/expense_list.dart';
-import '../widgets/navigation/animated_bottom_navigation_bar.dart';
+import '../widgets/navigation/smart_bottom_navigation_bar.dart';
+import '../widgets/navigation/scroll_direction_detector.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
 import '../widgets/expense/today_spending_card.dart';
@@ -43,6 +43,8 @@ class _MainScreenState extends State<MainScreen>
   bool _isLoading = true;
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
+  final GlobalKey<SmartBottomNavigationBarState> _navigationKey =
+      GlobalKey<SmartBottomNavigationBarState>();
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -75,6 +77,14 @@ class _MainScreenState extends State<MainScreen>
       parent: _arrowAnimationController,
       curve: Curves.easeInOut,
     ));
+  }
+
+  void _showNavigation() {
+    _navigationKey.currentState?.showNavigation();
+  }
+
+  void _hideNavigation() {
+    _navigationKey.currentState?.hideNavigation();
   }
 
   @override
@@ -237,12 +247,16 @@ class _MainScreenState extends State<MainScreen>
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
         color: theme.colorScheme.primary,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollInfo) {
-            final scrollService =
-                Provider.of<ScrollService>(context, listen: false);
-            scrollService.handleScroll(scrollInfo);
-            return false;
+        child: ScrollDirectionDetector(
+          onScrollDirectionChanged: (isScrollingUp) {
+            // Control navigation visibility based on scroll direction
+            if (isScrollingUp) {
+              // Scrolling up - show navigation
+              _showNavigation();
+            } else {
+              // Scrolling down - hide navigation
+              _hideNavigation();
+            }
           },
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(
@@ -303,8 +317,8 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<NavigationService, ScrollService>(
-      builder: (context, navigationService, scrollService, child) {
+    return Consumer<NavigationService>(
+      builder: (context, navigationService, child) {
         return Scaffold(
           extendBody: true,
           resizeToAvoidBottomInset: false,
@@ -318,13 +332,15 @@ class _MainScreenState extends State<MainScreen>
                 analyticsService: widget.analyticsService,
                 repository: widget.repository,
                 accountRepo: widget.accountRepo,
+                onShowNavigation: _showNavigation,
+                onHideNavigation: _hideNavigation,
               ),
             ],
           ),
-          bottomNavigationBar: AnimatedBottomNavigationBar(
+          bottomNavigationBar: SmartBottomNavigationBar(
+            key: _navigationKey,
             items: NavigationService.items,
             selectedIndex: navigationService.selectedIndex,
-            opacity: scrollService.navigationOpacity,
             onDestinationSelected: (index) {
               navigationService.selectIndex(index);
 

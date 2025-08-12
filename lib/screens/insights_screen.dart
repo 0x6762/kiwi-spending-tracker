@@ -5,9 +5,9 @@ import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
-import '../services/scroll_service.dart';
 import '../widgets/expense/category_statistics.dart';
 import '../widgets/expense/expense_summary.dart';
+import '../widgets/navigation/scroll_direction_detector.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
@@ -19,6 +19,8 @@ class InsightsScreen extends StatefulWidget {
   final ExpenseAnalyticsService analyticsService;
   final ExpenseRepository repository;
   final AccountRepository accountRepo;
+  final VoidCallback? onShowNavigation;
+  final VoidCallback? onHideNavigation;
 
   const InsightsScreen({
     super.key,
@@ -27,6 +29,8 @@ class InsightsScreen extends StatefulWidget {
     required this.analyticsService,
     required this.repository,
     required this.accountRepo,
+    this.onShowNavigation,
+    this.onHideNavigation,
   });
 
   @override
@@ -67,6 +71,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
         _selectedMonth = picked;
       });
     }
+  }
+
+  void _showNavigation() {
+    widget.onShowNavigation?.call();
+  }
+
+  void _hideNavigation() {
+    widget.onHideNavigation?.call();
   }
 
   @override
@@ -126,12 +138,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
         ],
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          final scrollService =
-              Provider.of<ScrollService>(context, listen: false);
-          scrollService.handleScroll(scrollInfo);
-          return false;
+      body: ScrollDirectionDetector(
+        onScrollDirectionChanged: (isScrollingUp) {
+          // Control navigation visibility based on scroll direction
+          if (isScrollingUp) {
+            // Scrolling up - show navigation
+            _showNavigation();
+          } else {
+            // Scrolling down - hide navigation
+            _hideNavigation();
+          }
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 8),
