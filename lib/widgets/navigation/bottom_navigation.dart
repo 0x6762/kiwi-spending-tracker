@@ -19,10 +19,10 @@ class BottomNavigation extends StatefulWidget {
   });
 
   @override
-  State<BottomNavigation> createState() => _BottomNavigationState();
+  State<BottomNavigation> createState() => BottomNavigationState();
 }
 
-class _BottomNavigationState extends State<BottomNavigation> {
+class BottomNavigationState extends State<BottomNavigation> {
   bool _isVisible = true;
   static const Duration _animationDuration = Duration(milliseconds: 200);
 

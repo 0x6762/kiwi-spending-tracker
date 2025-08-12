@@ -11,7 +11,6 @@ import '../widgets/navigation/scroll_direction_detector.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import 'settings_screen.dart';
-import 'package:provider/provider.dart';
 
 class InsightsScreen extends StatefulWidget {
   final List<Expense> expenses;
