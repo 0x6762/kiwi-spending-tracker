@@ -154,7 +154,7 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
                 .reduce((max, value) => value > max ? value : max);
 
         // Calculate chart width based on number of months
-        final barWidth = MediaQuery.of(context).size.width * 0.15;
+        final barWidth = MediaQuery.of(context).size.width * 0.14;
         final spacing = MediaQuery.of(context).size.width * 0.02;
         final chartWidth = (months.length * barWidth) +
             ((months.length - 1) * spacing) +
