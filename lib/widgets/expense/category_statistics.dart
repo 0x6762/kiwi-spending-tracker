@@ -26,16 +26,15 @@ class CategoryStatistics extends StatelessWidget {
     this.repository,
   });
 
-  Widget _buildCategoryRow(
-      BuildContext context, CategorySpending spending) {
+  Widget _buildCategoryRow(BuildContext context, CategorySpending spending) {
     final theme = Theme.of(context);
-    
+
     return FutureBuilder<ExpenseCategory?>(
       future: categoryRepo.findCategoryById(spending.categoryId),
       builder: (context, snapshot) {
         final categoryInfo = snapshot.data;
         final categoryName = categoryInfo?.name ?? 'Uncategorized';
-        
+
         return GestureDetector(
           onTap: (repository != null && accountRepo != null)
               ? () => _navigateToCategoryDetails(
@@ -104,7 +103,7 @@ class CategoryStatistics extends StatelessWidget {
   void _navigateToCategoryDetails(
       BuildContext context, String categoryId, String categoryName) {
     if (repository == null || accountRepo == null) return;
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -152,4 +151,4 @@ class CategoryStatistics extends StatelessWidget {
       },
     );
   }
-} 
+}

@@ -153,18 +153,21 @@ class _InsightsScreenState extends State<InsightsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ExpenseSummary(
-                expenses: widget.expenses,
-                selectedMonth: _selectedMonth,
-                onMonthSelected: (month) {
-                  setState(() {
-                    _selectedMonth = month;
-                  });
-                },
-                analyticsService: widget.analyticsService,
-                repository: widget.repository,
-                categoryRepo: widget.categoryRepo,
-                accountRepo: widget.accountRepo,
+              // Wrap expensive widgets in RepaintBoundary for better performance
+              RepaintBoundary(
+                child: ExpenseSummary(
+                  expenses: widget.expenses,
+                  selectedMonth: _selectedMonth,
+                  onMonthSelected: (month) {
+                    setState(() {
+                      _selectedMonth = month;
+                    });
+                  },
+                  analyticsService: widget.analyticsService,
+                  repository: widget.repository,
+                  categoryRepo: widget.categoryRepo,
+                  accountRepo: widget.accountRepo,
+                ),
               ),
               const SizedBox(height: 24),
               Padding(
@@ -176,13 +179,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ),
               ),
-              CategoryStatistics(
-                expenses: _filteredExpenses,
-                categoryRepo: widget.categoryRepo,
-                analyticsService: widget.analyticsService,
-                selectedMonth: _selectedMonth,
-                accountRepo: widget.accountRepo,
-                repository: widget.repository,
+              // Wrap expensive widgets in RepaintBoundary for better performance
+              RepaintBoundary(
+                child: CategoryStatistics(
+                  expenses: _filteredExpenses,
+                  categoryRepo: widget.categoryRepo,
+                  analyticsService: widget.analyticsService,
+                  selectedMonth: _selectedMonth,
+                  accountRepo: widget.accountRepo,
+                  repository: widget.repository,
+                ),
               ),
               SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
             ],
