@@ -5,7 +5,7 @@ import '../../models/expense.dart';
 import '../../services/expense_analytics_service.dart';
 import '../../utils/formatters.dart';
 
-class MonthlyExpenseChart extends StatelessWidget {
+class MonthlyExpenseChart extends StatefulWidget {
   final List<Expense> expenses;
   final DateTime selectedMonth;
   final void Function(DateTime)? onMonthSelected;
@@ -21,8 +21,16 @@ class MonthlyExpenseChart extends StatelessWidget {
     this.monthlyAverage,
   });
 
+  @override
+  State<MonthlyExpenseChart> createState() => _MonthlyExpenseChartState();
+}
+
+class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
+  final ScrollController _scrollController = ScrollController();
+  bool _hasScrolledToCurrentMonth = false;
+
   List<DateTime> _getAvailableMonths() {
-    if (expenses.isEmpty) {
+    if (widget.expenses.isEmpty) {
       // Fallback to last 5 months if no expenses
       final now = DateTime.now();
       return List.generate(5, (index) {
@@ -34,7 +42,7 @@ class MonthlyExpenseChart extends StatelessWidget {
     }
 
     // Get all unique months from expenses
-    final expenseMonths = expenses
+    final expenseMonths = widget.expenses
         .map((e) => DateTime(e.date.year, e.date.month))
         .toSet()
         .toList();
@@ -45,13 +53,14 @@ class MonthlyExpenseChart extends StatelessWidget {
     // Create a continuous range from the first expense month to current month
     final firstMonth = expenseMonths.first;
     final now = DateTime.now();
-    final lastMonth = DateTime(now.year, now.month);
+    final lastMonth = DateTime(now.year,
+        now.month + 1); // Next month to ensure current month is included
 
     final months = <DateTime>[];
 
     // Add all months from first expense month to current month
     DateTime currentMonth = firstMonth;
-    while (currentMonth.isBefore(lastMonth.add(const Duration(days: 1)))) {
+    while (currentMonth.isBefore(lastMonth)) {
       months.add(DateTime(currentMonth.year, currentMonth.month));
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
     }
@@ -59,12 +68,35 @@ class MonthlyExpenseChart extends StatelessWidget {
     return months;
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToRightmost(List<DateTime> months) {
+    if (_hasScrolledToCurrentMonth || months.isEmpty) return;
+
+    // Simple approach: just scroll to the rightmost position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        // Scroll to the maximum extent (rightmost position)
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+        _hasScrolledToCurrentMonth = true;
+      }
+    });
+  }
+
   Future<Map<DateTime, double>> _getMonthlyTotals(List<DateTime> months) async {
     if (months.isEmpty) return {};
 
     final startDate = months.first;
     final endDate = months.last.add(const Duration(days: 31));
-    return analyticsService.getMonthlyTotals(startDate, endDate);
+    return widget.analyticsService.getMonthlyTotals(startDate, endDate);
   }
 
   double _calculateBarHeight(double total, double maxTotal) {
@@ -105,6 +137,9 @@ class MonthlyExpenseChart extends StatelessWidget {
     final months = _getAvailableMonths();
     final monthFormat = DateFormat.MMM();
 
+    // Scroll to rightmost position when months are available
+    _scrollToRightmost(months);
+
     return FutureBuilder<Map<DateTime, double>>(
       future: _getMonthlyTotals(months),
       builder: (context, snapshot) {
@@ -128,6 +163,7 @@ class MonthlyExpenseChart extends StatelessWidget {
         return Container(
           height: 140, // Increased height to accommodate tooltips
           child: SingleChildScrollView(
+            controller: _scrollController,
             scrollDirection: Axis.horizontal,
             child: SizedBox(
               width: chartWidth,
@@ -140,9 +176,10 @@ class MonthlyExpenseChart extends StatelessWidget {
                     maxY: maxTotal,
                     extraLinesData: ExtraLinesData(
                       horizontalLines: [
-                        if (monthlyAverage != null && monthlyAverage! > 0)
+                        if (widget.monthlyAverage != null &&
+                            widget.monthlyAverage! > 0)
                           HorizontalLine(
-                            y: monthlyAverage!,
+                            y: widget.monthlyAverage!,
                             color: theme.colorScheme.onSurfaceVariant
                                 .withOpacity(0.6),
                             strokeWidth: 1,
@@ -165,8 +202,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                       final monthKey = DateTime(month.year, month.month);
                       final total = monthlyTotals[monthKey] ?? 0.0;
                       final isSelectedMonth =
-                          month.year == selectedMonth.year &&
-                              month.month == selectedMonth.month;
+                          month.year == widget.selectedMonth.year &&
+                              month.month == widget.selectedMonth.month;
 
                       return BarChartGroupData(
                         x: index,
@@ -200,12 +237,12 @@ class MonthlyExpenseChart extends StatelessWidget {
                       touchCallback: (event, response) {
                         if (event is FlTapUpEvent &&
                             response?.spot != null &&
-                            onMonthSelected != null) {
+                            widget.onMonthSelected != null) {
                           final monthIndex =
                               response!.spot!.touchedBarGroupIndex;
                           if (monthIndex >= 0 && monthIndex < months.length) {
                             final selectedMonth = months[monthIndex];
-                            onMonthSelected!(selectedMonth);
+                            widget.onMonthSelected!(selectedMonth);
                           }
                         }
                       },
@@ -222,8 +259,8 @@ class MonthlyExpenseChart extends StatelessWidget {
                           final total = monthlyTotals[monthKey] ?? 0.0;
                           if (total <= 0) return null;
                           final isSelectedMonth =
-                              month.year == selectedMonth.year &&
-                                  month.month == selectedMonth.month;
+                              month.year == widget.selectedMonth.year &&
+                                  month.month == widget.selectedMonth.month;
                           return BarTooltipItem(
                             _formatAmount(total),
                             theme.textTheme.labelSmall!.copyWith(
