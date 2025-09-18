@@ -176,6 +176,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   repository: widget.repository,
                   categoryRepo: widget.categoryRepo,
                   accountRepo: widget.accountRepo,
+                  showChart: true,
+                  showMonthlyChart: widget.expenses.isNotEmpty,
                 ),
               ),
               const SizedBox(height: 24),
