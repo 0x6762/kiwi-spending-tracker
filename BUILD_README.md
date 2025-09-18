@@ -12,8 +12,17 @@ flutter run
 
 ### Release Build + Distribution
 ```bash
-# Windows
+# Windows - Default (beta-testers)
 .\scripts\distribute_app.ps1
+
+# Windows - Alpha testers
+.\scripts\distribute_app.ps1 -GroupName "alpha-testers"
+
+# Windows - Beta testers (explicit)
+.\scripts\distribute_app.ps1 -GroupName "beta-testers"
+
+# Windows - With release notes
+.\scripts\distribute_app.ps1 -GroupName "alpha-testers" -ReleaseNotes "New features: Recent Transactions section, 6-month chart view"
 
 # Mac/Linux
 ./scripts/distribute_app.sh
@@ -47,6 +56,16 @@ flutter clean
 flutter pub get
 flutter build apk --release --no-tree-shake-icons
 ```
+
+## 📱 Distribution Groups
+
+### Available Groups
+- **alpha-testers**: Early access group for internal testing
+- **beta-testers**: Public beta testing group (default)
+
+### Script Parameters
+- `-GroupName`: Target distribution group (default: "beta-testers")
+- `-ReleaseNotes`: Optional release notes for the build
 
 ### For Debug Testing
 ```bash

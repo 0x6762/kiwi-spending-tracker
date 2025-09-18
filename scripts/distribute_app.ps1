@@ -1,7 +1,13 @@
 # Simple Firebase Distribution Script
 # Builds and distributes the Android app
 
+param(
+    [string]$GroupName = "beta-testers",
+    [string]$ReleaseNotes = ""
+)
+
 Write-Host "Building release APK..." -ForegroundColor Green
+Write-Host "Target group: $GroupName" -ForegroundColor Cyan
 
 flutter clean
 flutter pub get
@@ -16,8 +22,15 @@ if ($LASTEXITCODE -eq 0) {
         $appId = (Get-Content lib/firebase_options.dart | Select-String "appId: '([^']+)'" | ForEach-Object { $_.Matches.Groups[1].Value })
         
         if ($appId) {
-            Write-Host "Distributing via Firebase..." -ForegroundColor Blue
-            firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app "$appId" --groups "beta-testers"
+            Write-Host "Distributing via Firebase to group: $GroupName" -ForegroundColor Blue
+            
+            $firebaseCommand = "firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app `"$appId`" --groups `"$GroupName`""
+            
+            if ($ReleaseNotes) {
+                $firebaseCommand += " --release-notes `"$ReleaseNotes`""
+            }
+            
+            Invoke-Expression $firebaseCommand
         } else {
             Write-Host "Could not find App ID in firebase_options.dart" -ForegroundColor Red
         }
