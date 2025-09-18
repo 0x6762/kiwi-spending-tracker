@@ -30,13 +30,14 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
   bool _hasScrolledToCurrentMonth = false;
 
   List<DateTime> _getAvailableMonths() {
+    final now = DateTime.now();
+
     if (widget.expenses.isEmpty) {
-      // Fallback to last 5 months if no expenses
-      final now = DateTime.now();
-      return List.generate(5, (index) {
+      // Fallback to last 6 months if no expenses
+      return List.generate(6, (index) {
         return DateTime(
           now.year,
-          now.month - (4 - index),
+          now.month - (5 - index),
         );
       });
     }
@@ -52,7 +53,6 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
 
     // Create a continuous range from the first expense month to current month
     final firstMonth = expenseMonths.first;
-    final now = DateTime.now();
     final lastMonth = DateTime(now.year,
         now.month + 1); // Next month to ensure current month is included
 
@@ -63,6 +63,32 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
     while (currentMonth.isBefore(lastMonth)) {
       months.add(DateTime(currentMonth.year, currentMonth.month));
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
+    }
+
+    // Ensure we always show at least 6 bars
+    if (months.length < 6) {
+      // Calculate how many months we need to add
+      final monthsNeeded = 6 - months.length;
+
+      // Add months before the first month if we have room
+      if (months.isNotEmpty) {
+        final firstExpenseMonth = months.first;
+        for (int i = 1; i <= monthsNeeded; i++) {
+          final monthToAdd = DateTime(
+            firstExpenseMonth.year,
+            firstExpenseMonth.month - i,
+          );
+          months.insert(0, monthToAdd);
+        }
+      } else {
+        // Fallback to last 6 months if no expense months
+        return List.generate(6, (index) {
+          return DateTime(
+            now.year,
+            now.month - (5 - index),
+          );
+        });
+      }
     }
 
     return months;
