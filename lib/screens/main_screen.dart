@@ -279,33 +279,76 @@ class _MainScreenState extends State<MainScreen>
                     : TodaySpendingCard(
                         expenses: _expenses,
                         analyticsService: widget.analyticsService,
-                        onSeeAllPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AllExpensesScreen(
-                                expenses: _expenses,
-                                categoryRepo: widget.categoryRepo,
-                                repository: widget.repository,
-                                accountRepo: widget.accountRepo,
-                                onDelete: _deleteExpense,
-                                onExpenseUpdated: _loadExpenses,
-                              ),
-                            ),
-                          );
-                        },
                       ),
                 const SizedBox(height: 8),
                 if (!_isLoading) ...[
                   if (_expenses.isEmpty)
                     _buildEmptyState()
-                  else
+                  else ...[
+                    // Recent Transactions title section
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent Expenses',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AllExpensesScreen(
+                                    expenses: _expenses,
+                                    categoryRepo: widget.categoryRepo,
+                                    repository: widget.repository,
+                                    accountRepo: widget.accountRepo,
+                                    onDelete: _deleteExpense,
+                                    onExpenseUpdated: _loadExpenses,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'See all',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 12,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withOpacity(0.7),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     ExpenseList(
                       expenses: todayExpenses,
                       categoryRepo: widget.categoryRepo,
                       onTap: _viewExpenseDetails,
                       onDelete: _deleteExpense,
                     ),
+                  ],
                 ],
               ],
             ),
