@@ -33,11 +33,35 @@ class AllExpensesScreen extends StatefulWidget {
 
 class _AllExpensesScreenState extends State<AllExpensesScreen> {
   late List<Expense> _expenses;
+  int _currentPage = 0;
+  static const int _pageSize = 10;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    _expenses = widget.expenses;
+    // Sort expenses by newest first before pagination
+    final sortedExpenses = List<Expense>.from(widget.expenses)
+      ..sort((a, b) => b.date.compareTo(a.date));
+    _expenses = sortedExpenses.take(_pageSize).toList();
+    _hasMoreData = sortedExpenses.length > _pageSize;
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreExpenses();
+    }
   }
 
   void _viewExpenseDetails(Expense expense) async {
@@ -51,7 +75,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           onExpenseUpdated: (updatedExpense) async {
             await widget.repository.updateExpense(updatedExpense);
             setState(() {
-              final index = _expenses.indexWhere((e) => e.id == updatedExpense.id);
+              final index =
+                  _expenses.indexWhere((e) => e.id == updatedExpense.id);
               if (index != -1) {
                 _expenses[index] = updatedExpense;
               }
@@ -67,6 +92,10 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
       await widget.repository.deleteExpense(expense.id);
       setState(() {
         _expenses.removeWhere((e) => e.id == expense.id);
+        // Load more data if we have less than page size and more data available
+        if (_expenses.length < _pageSize && _hasMoreData) {
+          _loadMoreExpenses();
+        }
       });
       widget.onDelete(expense);
     }
@@ -77,9 +106,54 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.expenses != oldWidget.expenses) {
       setState(() {
-        _expenses = widget.expenses;
+        // Sort expenses by newest first before pagination
+        final sortedExpenses = List<Expense>.from(widget.expenses)
+          ..sort((a, b) => b.date.compareTo(a.date));
+        _expenses = sortedExpenses.take(_pageSize).toList();
+        _hasMoreData = sortedExpenses.length > _pageSize;
+        _currentPage = 0;
       });
     }
+  }
+
+  Future<void> _loadMoreExpenses() async {
+    if (_isLoadingMore || !_hasMoreData) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    setState(() {
+      _currentPage++;
+      // Sort expenses by newest first before pagination
+      final sortedExpenses = List<Expense>.from(widget.expenses)
+        ..sort((a, b) => b.date.compareTo(a.date));
+      final startIndex = _currentPage * _pageSize;
+      final endIndex = (startIndex + _pageSize).clamp(0, sortedExpenses.length);
+
+      if (startIndex < sortedExpenses.length) {
+        _expenses.addAll(sortedExpenses.sublist(startIndex, endIndex));
+      }
+
+      _hasMoreData = endIndex < sortedExpenses.length;
+      _isLoadingMore = false;
+    });
+  }
+
+  Widget _buildLoadMoreIndicator() {
+    if (!_hasMoreData) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _isLoadingMore
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : const SizedBox.shrink(),
+    );
   }
 
   Map<DateTime, List<Expense>> _groupExpensesByDate() {
@@ -88,17 +162,18 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
       ..sort((a, b) => b.date.compareTo(a.date));
 
     // Special key for upcoming expenses
-    final upcomingKey = DateTime(9999, 12, 31); // Far future date as a special key
+    final upcomingKey =
+        DateTime(9999, 12, 31); // Far future date as a special key
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     for (var expense in sortedExpenses) {
       final date = DateTime(
         expense.date.year,
         expense.date.month,
         expense.date.day,
       );
-      
+
       // Check if this is an upcoming expense
       if (date.isAfter(today)) {
         // Add to the upcoming group
@@ -122,16 +197,16 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     final now = DateTime.now();
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final specialUpcomingKey = DateTime(9999, 12, 31);
-    
+
     if (date == specialUpcomingKey) {
       return 'Upcoming';
-    } else if (date.year == now.year && 
-        date.month == now.month && 
+    } else if (date.year == now.year &&
+        date.month == now.month &&
         date.day == now.day) {
       return 'Today';
-    } else if (date.year == yesterday.year && 
-               date.month == yesterday.month && 
-               date.day == yesterday.day) {
+    } else if (date.year == yesterday.year &&
+        date.month == yesterday.month &&
+        date.day == yesterday.day) {
       return 'Yesterday';
     } else {
       return DateFormat.MMMd().format(date);
@@ -142,7 +217,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final groupedExpenses = _groupExpensesByDate();
-    
+
     // Sort the entries to ensure upcoming is first, then by date descending
     final sortedEntries = groupedExpenses.entries.toList()
       ..sort((a, b) {
@@ -159,52 +234,57 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
         title: 'All Expenses',
         leading: const Icon(Icons.arrow_back),
       ),
-      body: SingleChildScrollView(
+      body: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.all(8),
-        child: Column(
-          children: sortedEntries.map((entry) {
-            // Calculate the sum of expenses for this day
-            final dayTotal = entry.value.fold<double>(
-              0, (sum, expense) => sum + expense.amount
-            );
-            
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatSectionTitle(entry.key),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: entry.key == DateTime(9999, 12, 31) 
-                              ? theme.colorScheme.onSurfaceVariant 
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
+        itemCount: sortedEntries.length + (_hasMoreData ? 1 : 0),
+        itemBuilder: (context, index) {
+          // Load more indicator
+          if (index == sortedEntries.length) {
+            return _buildLoadMoreIndicator();
+          }
+
+          final entry = sortedEntries[index];
+          // Calculate the sum of expenses for this day
+          final dayTotal = entry.value
+              .fold<double>(0, (sum, expense) => sum + expense.amount);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _formatSectionTitle(entry.key),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: entry.key == DateTime(9999, 12, 31)
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSurfaceVariant,
                       ),
-                      Text(
-                        'Total: ${formatCurrency(dayTotal)}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                    ),
+                    Text(
+                      'Total: ${formatCurrency(dayTotal)}',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                ExpenseList(
-                  expenses: entry.value,
-                  categoryRepo: widget.categoryRepo,
-                  onTap: _viewExpenseDetails,
-                  onDelete: widget.onDelete,
-                ),
-                const SizedBox(height: 8),
-              ],
-            );
-          }).toList(),
-        ),
+              ),
+              ExpenseList(
+                expenses: entry.value,
+                categoryRepo: widget.categoryRepo,
+                onTap: _viewExpenseDetails,
+                onDelete: widget.onDelete,
+              ),
+              const SizedBox(height: 8),
+            ],
+          );
+        },
       ),
     );
   }
-} 
+}
