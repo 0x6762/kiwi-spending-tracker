@@ -2,7 +2,6 @@ import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
 /// Enum representing the status of a subscription
 enum SubscriptionStatus {
@@ -53,13 +52,16 @@ class SubscriptionSummary {
   });
 }
 
-/// Service for managing and analyzing subscription expenses
+/// Service for managing and analyzing subscription expenses.
+/// 
+/// Note: This service handles analytics, status tracking, and subscription-specific
+/// data enhancement only. All recurring expense processing (including subscriptions)
+/// is handled by RecurringExpenseService.
 class SubscriptionService {
   final ExpenseRepository _expenseRepo;
   // ignore: unused_field
   final CategoryRepository _categoryRepo;
   final _dateFormat = DateFormat.yMMMd();
-  final _uuid = Uuid();
 
   SubscriptionService(this._expenseRepo, this._categoryRepo);
 
@@ -267,58 +269,6 @@ class SubscriptionService {
     } else {
       return _dateFormat.format(date);
     }
-  }
-
-  /// Process recurring subscriptions to create new expense entries for due/overdue subscriptions
-  /// 
-  /// @deprecated Use RecurringExpenseService.processRecurringExpenses() instead.
-  /// This method is kept for backward compatibility but will be removed in a future version.
-  @Deprecated('Use RecurringExpenseService.processRecurringExpenses() instead')
-  Future<int> processRecurringSubscriptions() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    int processedCount = 0;
-    
-    // Get all active recurring subscription templates
-    final expenses = await _expenseRepo.getAllExpenses();
-    final subscriptions = expenses.where((expense) => 
-      expense.type == ExpenseType.subscription && 
-      expense.isRecurring == true &&
-      (expense.endDate == null || expense.endDate!.isAfter(today))
-    ).toList();
-    
-    for (final subscription in subscriptions) {
-      final nextBillingDate = subscription.nextBillingDate;
-      
-      // If next billing date is null, in the past, or today - process it
-      if (nextBillingDate != null && 
-          (nextBillingDate.isBefore(today) || 
-           nextBillingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
-        
-        // Create a new expense entry based on the subscription
-        // Keep the original subscription type for consistency
-        final newExpense = subscription.copyWith(
-          id: _uuid.v4(),
-          date: nextBillingDate,
-          createdAt: now,
-          isRecurring: false, // This is a generated instance
-          nextBillingDate: null, // Clear this for the instance
-          // Keep the original subscription type for consistency
-        );
-        
-        await _expenseRepo.addExpense(newExpense);
-        
-        // Update the subscription template with the next billing date
-        final updatedSubscription = subscription.copyWith(
-          nextBillingDate: calculateNextBillingDate(subscription),
-        );
-        
-        await _expenseRepo.updateExpense(updatedSubscription);
-        processedCount++;
-      }
-    }
-    
-    return processedCount;
   }
 
   /// Enhances a list of subscription expenses with additional data and status
