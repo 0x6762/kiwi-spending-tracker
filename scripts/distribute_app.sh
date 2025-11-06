@@ -1,33 +1,40 @@
 #!/bin/bash
 
-# Simple Firebase Distribution Script
-# Builds and distributes the Android app
+# Build Script for Google Play Console
+# Builds the Android app for distribution
 
-echo "🏗️ Building release APK..."
+# Check if --appbundle flag is provided
+BUILD_APPBUNDLE=false
+if [ "$1" == "--appbundle" ] || [ "$1" == "-a" ]; then
+    BUILD_APPBUNDLE=true
+fi
+
+echo "🏗️ Building release build..."
 
 flutter clean
 flutter pub get
-flutter build apk --release --no-tree-shake-icons
 
-if [ $? -eq 0 ]; then
-    echo "✅ Build successful!"
+if [ "$BUILD_APPBUNDLE" = true ]; then
+    echo "📦 Building App Bundle for Google Play Store..."
+    flutter build appbundle --release --no-tree-shake-icons
     
-    # Try to distribute via Firebase CLI
-    if command -v firebase &> /dev/null; then
-        # Get App ID from firebase_options.dart
-        APP_ID=$(grep -o "appId: '[^']*'" lib/firebase_options.dart | cut -d"'" -f2)
-        
-        if [ -n "$APP_ID" ]; then
-            echo "🚀 Distributing via Firebase..."
-            firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app "$APP_ID" --groups "beta-testers"
-        else
-            echo "❌ Could not find App ID in firebase_options.dart"
-        fi
+    if [ $? -eq 0 ]; then
+        echo "✅ Build successful!"
+        echo "📦 App Bundle ready: build/app/outputs/bundle/release/app-release.aab"
+        echo "📤 Upload to Google Play Console → Testing → Closed testing"
     else
-        echo "⚠️ Firebase CLI not found. Install with: npm install -g firebase-tools"
+        echo "❌ Build failed!"
+        exit 1
     fi
-    
-    echo "📱 APK ready: build/app/outputs/flutter-apk/app-release.apk"
 else
-    echo "❌ Build failed!"
+    echo "📱 Building APK..."
+    flutter build apk --release --no-tree-shake-icons
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Build successful!"
+        echo "📱 APK ready: build/app/outputs/flutter-apk/app-release.apk"
+    else
+        echo "❌ Build failed!"
+        exit 1
+    fi
 fi 

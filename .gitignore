@@ -55,13 +55,6 @@ app.*.map.json
 /windows/
 /web/
 
-# Firebase Configuration Files - SECURITY SENSITIVE
-# These files contain API keys and should not be committed to public repositories
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-lib/firebase_options.dart
-.firebaserc
-
 # Environment variables and secrets
 .env
 .env.local
@@ -72,13 +65,6 @@ lib/firebase_options.dart
 *.jks
 keystore.properties
 
-# Firebase debug logs
-firebase-debug.log
-firebase-debug.*.log
-firestore-debug.log
-ui-debug.log
-
-# Firebase cache
-.firebase/
+# Debug logs
 *-debug.log
 .runtimeconfig.json
