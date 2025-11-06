@@ -1,7 +1,6 @@
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../services/recurring_expense_service.dart';
-import 'package:uuid/uuid.dart';
 
 /// Represents an upcoming expense with additional context
 class UpcomingExpenseItem {
@@ -58,7 +57,6 @@ class UpcomingExpenseItem {
 class UnifiedUpcomingService {
   final ExpenseRepository _expenseRepo;
   final RecurringExpenseService _recurringService;
-  final Uuid _uuid = const Uuid();
 
   UnifiedUpcomingService(this._expenseRepo, this._recurringService);
 
@@ -213,7 +211,6 @@ class UnifiedUpcomingService {
   Future<List<UpcomingExpenseItem>> getExpensesDueToday() async {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
-    final todayEnd = todayStart.add(const Duration(days: 1));
 
     return await getUpcomingExpenses(
       fromDate: todayStart,
@@ -226,7 +223,6 @@ class UnifiedUpcomingService {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final weekEnd = weekStartDate.add(const Duration(days: 7));
 
     return await getUpcomingExpenses(
       fromDate: weekStartDate,

@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import '../../models/expense.dart' as domain;
 import '../database.dart';
-import '../tables/expenses_table.dart' as tables;
 
 extension ExpenseConversions on ExpenseTableData {
   domain.Expense toDomain() {

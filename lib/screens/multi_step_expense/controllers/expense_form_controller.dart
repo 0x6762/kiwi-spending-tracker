@@ -209,7 +209,6 @@ class ExpenseFormController extends ChangeNotifier {
           break;
         case ExpenseFrequency.oneTime:
         case ExpenseFrequency.custom:
-        default:
           nextBillingDate = null;
       }
     }

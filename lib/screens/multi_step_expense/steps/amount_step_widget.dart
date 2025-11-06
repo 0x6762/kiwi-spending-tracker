@@ -7,7 +7,6 @@ import '../../../widgets/forms/number_pad.dart';
 import '../../../widgets/forms/picker_button.dart';
 import '../../../widgets/sheets/picker_sheet.dart';
 import '../../../utils/formatters.dart';
-import '../../../models/account.dart';
 
 class AmountStepWidget extends StatefulWidget {
   final VoidCallback? onNext;

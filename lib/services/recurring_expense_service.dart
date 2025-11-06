@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -93,7 +92,6 @@ class RecurringExpenseService {
         
       case ExpenseFrequency.oneTime:
       case ExpenseFrequency.custom:
-      default:
         return lastDate; // No change
     }
   }
@@ -175,7 +173,6 @@ class RecurringExpenseService {
           break;
         case ExpenseFrequency.oneTime:
         case ExpenseFrequency.custom:
-        default:
           // Don't include in monthly calculation
           break;
       }
@@ -222,7 +219,6 @@ class RecurringExpenseService {
         break;
       case ExpenseFrequency.oneTime:
       case ExpenseFrequency.custom:
-      default:
         nextBillingDate = null;
     }
     

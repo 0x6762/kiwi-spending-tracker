@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/subscription_service.dart';
 import '../../utils/formatters.dart';
-import '../../utils/icons.dart';
 import '../../theme/theme.dart';
-import '../../theme/design_tokens.dart';
 
 class SubscriptionPlansCard extends StatelessWidget {
   final SubscriptionSummary summary;

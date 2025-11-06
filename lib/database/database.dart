@@ -137,7 +137,6 @@ class AppDatabase extends _$AppDatabase {
         accountsTable,
       ];
 
-  @override
   List<Index> get allIndexes => [
         Index('expenses_date_idx',
             'CREATE INDEX expenses_date_idx ON ${expensesTable.actualTableName} (date)'),

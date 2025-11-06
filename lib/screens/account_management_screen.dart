@@ -69,7 +69,6 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
   Widget _buildAccountCard(Account account) {
     final theme = Theme.of(context);
-    final isModified = account.isDefault && account.isModified;
 
     return Card(
       color: theme.colorScheme.surfaceContainer,

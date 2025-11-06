@@ -1,5 +1,3 @@
-import 'account.dart';
-
 enum ExpenseFrequency {
   oneTime,
   daily,

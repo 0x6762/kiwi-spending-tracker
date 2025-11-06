@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart';
 import '../database/database.dart';
 import '../database/extensions/account_extensions.dart';
 import '../models/account.dart';
@@ -40,9 +39,6 @@ class DriftAccountRepository implements AccountRepository {
   @override
   Future<void> updateAccount(Account oldAccount, Account newAccount) async {
     try {
-      final existingAccount = await _db.getAccountById(oldAccount.id);
-      final isDefault = existingAccount.isDefault;
-      
       await _db.updateAccount(newAccount.toCompanion());
     } catch (e) {
       debugPrint('Error updating account: $e');

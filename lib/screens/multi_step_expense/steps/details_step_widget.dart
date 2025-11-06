@@ -127,7 +127,6 @@ class DetailsStepWidget extends StatelessWidget {
       case ExpenseType.subscription:
         return 'assets/icons/subscription.svg';
       case ExpenseType.variable:
-      default:
         return 'assets/icons/variable_expense.svg';
     }
   }
@@ -139,7 +138,6 @@ class DetailsStepWidget extends StatelessWidget {
       case ExpenseType.subscription:
         return theme.colorScheme.subscriptionColor;
       case ExpenseType.variable:
-      default:
         return theme.colorScheme.variableExpenseColor;
     }
   }
@@ -151,7 +149,6 @@ class DetailsStepWidget extends StatelessWidget {
       case ExpenseType.subscription:
         return 'Subscription';
       case ExpenseType.variable:
-      default:
         return 'Variable';
     }
   }

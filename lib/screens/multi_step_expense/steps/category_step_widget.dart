@@ -62,7 +62,6 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
           setState(() {
             _categoriesFuture = null; // Reset cache to reload categories
           });
-          controller.notifyListeners();
         },
       ),
     );

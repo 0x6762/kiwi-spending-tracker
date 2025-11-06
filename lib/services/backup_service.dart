@@ -4,7 +4,6 @@ import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../database/database.dart';
 
 class BackupService {

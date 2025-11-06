@@ -4,7 +4,6 @@ import '../common/app_card.dart';
 import '../common/app_input.dart';
 import '../common/icon_container.dart';
 import '../../theme/design_tokens.dart';
-import '../../utils/icons.dart';
 
 /// Showcase of the new design system components and design tokens
 /// This file demonstrates proper usage of all standardized components
