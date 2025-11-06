@@ -14,6 +14,7 @@ import 'multi_step_expense/multi_step_expense_screen.dart';
 import '../widgets/expense/today_spending_card.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
+import '../utils/error_handler.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -104,9 +105,7 @@ class _MainScreenState extends State<MainScreen>
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load expenses: ${e.toString()}')),
-        );
+        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
       }
     }
   }
@@ -128,8 +127,17 @@ class _MainScreenState extends State<MainScreen>
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
         onExpenseAdded: (expense) async {
-          await widget.repository.addExpense(expense);
-          _loadExpenses();
+          try {
+            await widget.repository.addExpense(expense);
+            _loadExpenses();
+            if (mounted) {
+              ErrorHandler.showSuccess(context, 'Expense added successfully');
+            }
+          } catch (e) {
+            if (mounted) {
+              ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+            }
+          }
         },
       ),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -158,14 +166,23 @@ class _MainScreenState extends State<MainScreen>
           categoryRepo: widget.categoryRepo,
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
-            await widget.repository.updateExpense(updatedExpense);
-            setState(() {
-              final index =
-                  _expenses.indexWhere((e) => e.id == updatedExpense.id);
-              if (index != -1) {
-                _expenses[index] = updatedExpense;
+            try {
+              await widget.repository.updateExpense(updatedExpense);
+              setState(() {
+                final index =
+                    _expenses.indexWhere((e) => e.id == updatedExpense.id);
+                if (index != -1) {
+                  _expenses[index] = updatedExpense;
+                }
+              });
+              if (mounted) {
+                ErrorHandler.showSuccess(context, 'Expense updated successfully');
               }
-            });
+            } catch (e) {
+              if (mounted) {
+                ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+              }
+            }
           },
         ),
         maintainState: true,
@@ -178,10 +195,19 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _deleteExpense(Expense expense) async {
-    await widget.repository.deleteExpense(expense.id);
-    setState(() {
-      _expenses.removeWhere((e) => e.id == expense.id);
-    });
+    try {
+      await widget.repository.deleteExpense(expense.id);
+      setState(() {
+        _expenses.removeWhere((e) => e.id == expense.id);
+      });
+      if (mounted) {
+        ErrorHandler.showSuccess(context, 'Expense deleted successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+      }
+    }
   }
 
   Widget _buildEmptyState() {
