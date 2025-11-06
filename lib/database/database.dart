@@ -123,27 +123,9 @@ class AppDatabase extends _$AppDatabase {
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');
+          // Only set foreign keys pragma here - this is essential and fast
+          // Index creation is deferred to avoid blocking startup
           await customStatement('PRAGMA foreign_keys = ON');
-
-          // Create indexes if they don't exist
-          await transaction(() async {
-            // Expenses indexes
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
-            );
-
-            // Accounts index
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)',
-            );
-          });
-          debugPrint('Database indexes created/verified');
         },
       );
 
@@ -166,6 +148,35 @@ class AppDatabase extends _$AppDatabase {
         Index('accounts_id_idx',
             'CREATE INDEX accounts_id_idx ON ${accountsTable.actualTableName} (id)'),
       ];
+
+  /// Ensure database indexes exist
+  /// This is called asynchronously after app startup to avoid blocking the UI thread
+  Future<void> ensureIndexes() async {
+    try {
+      await transaction(() async {
+        // Expenses indexes
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
+        );
+
+        // Accounts index
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)',
+        );
+      });
+      debugPrint('Database indexes created/verified');
+    } catch (e) {
+      debugPrint('Error creating database indexes: $e');
+      // Don't rethrow - indexes are optional for functionality
+      // The app can work without them, just slower queries
+    }
+  }
 
   // Basic CRUD operations for Expenses
   Future<List<ExpenseTableData>> getAllExpenses() =>

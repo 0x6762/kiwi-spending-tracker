@@ -14,7 +14,6 @@ import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
 import 'database/database.dart';
-import 'database/database_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,15 +28,14 @@ void main() async {
 
   // Initialize database
   final database = AppDatabase();
-  final databaseProvider = DatabaseProvider();
 
   // Initialize repository provider
   final repositoryProvider = RepositoryProvider(
     database: database,
   );
 
-  // Wait for repositories to initialize
-  await repositoryProvider.initialize();
+  // Note: Repository initialization is deferred to avoid blocking startup
+  // It will be called after the first frame is rendered
 
   // Initialize services
   final analyticsService = ExpenseAnalyticsService(
@@ -56,15 +54,6 @@ void main() async {
 
   // Initialize navigation service
   final navigationService = NavigationService();
-
-  // Process any pending recurring expenses (includes subscriptions, fixed, and variable)
-  try {
-    final processedCount =
-        await recurringExpenseService.processRecurringExpenses();
-    debugPrint('Processed $processedCount recurring expenses');
-  } catch (e) {
-    debugPrint('Error processing recurring expenses: $e');
-  }
 
   // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
@@ -89,6 +78,54 @@ void main() async {
     recurringExpenseService: recurringExpenseService,
     navigationService: navigationService,
   ));
+
+  // Initialize repositories, database indexes, and process recurring expenses
+  // after the app is initialized. This prevents blocking the UI thread during app startup
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initializeRepositoriesInBackground(repositoryProvider);
+    _initializeDatabaseInBackground(database);
+    _processRecurringExpensesInBackground(recurringExpenseService);
+  });
+}
+
+/// Initialize repositories in the background after app initialization
+/// This runs asynchronously and doesn't block the UI
+void _initializeRepositoriesInBackground(RepositoryProvider repositoryProvider) async {
+  try {
+    await repositoryProvider.initialize();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing repositories: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
+}
+
+/// Initialize database indexes in the background after app initialization
+/// This runs asynchronously and doesn't block the UI
+void _initializeDatabaseInBackground(AppDatabase database) async {
+  try {
+    await database.ensureIndexes();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing database indexes: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
+}
+
+/// Process recurring expenses in the background after app initialization
+/// This runs asynchronously and doesn't block the UI
+void _processRecurringExpensesInBackground(
+    RecurringExpenseService recurringExpenseService) async {
+  try {
+    final processedCount =
+        await recurringExpenseService.processRecurringExpenses();
+    if (processedCount > 0) {
+      debugPrint('Processed $processedCount recurring expenses');
+    }
+  } catch (e, stackTrace) {
+    // Log error with stack trace for debugging
+    debugPrint('Error processing recurring expenses: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // In production, you might want to send this to a crash reporting service
+  }
 }
 
 class MyApp extends StatelessWidget {
