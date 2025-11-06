@@ -1,0 +1,26 @@
+# Architecture
+
+## Structure
+- `models/` - Pure domain entities
+- `repositories/` - Abstract interfaces + `drift_*_repository.dart` implementations
+- `repository_provider.dart` - Manages repos, extends ChangeNotifier
+- `services/` - Business logic (receive repos via constructor)
+- `screens/` - UI, receive repos + services via constructor
+- `database/extensions/` - `toDomain()`, `toCompanion()` conversions
+- `widgets/` - Reusable components
+
+## Data Flow
+Database → Extensions → Models → Repositories → Services → Screens → Widgets
+
+## Patterns
+- **Repository**: Abstract interface + Drift impl, managed by RepositoryProvider
+- **Services**: Business logic, instantiated in main.dart, singleton
+- **DI**: All deps created in main.dart, constructor injection
+- **State**: RepositoryProvider, ThemeProvider, NavigationService (all ChangeNotifier)
+- **DB**: Defer init, async indexes via `ensureIndexes()`
+
+## Conventions
+- Background ops: `WidgetsBinding.instance.addPostFrameCallback`
+- Errors: Always use `ErrorHandler.showError/showSuccess`
+- Screens: Receive both repos AND services
+- Models: Pure data, no logic
