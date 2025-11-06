@@ -225,7 +225,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                   future: _subscriptionService
                       .getSubscriptionSummaryForMonth(widget.selectedMonth),
                   builder: (context, subscriptionSnapshot) {
-                    // Create a default summary if no data is available
                     final subscriptionSummary = subscriptionSnapshot.hasData
                         ? subscriptionSnapshot.data!
                         : SubscriptionSummary(

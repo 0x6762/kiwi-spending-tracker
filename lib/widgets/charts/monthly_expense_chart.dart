@@ -42,35 +42,27 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
       });
     }
 
-    // Get all unique months from expenses
     final expenseMonths = widget.expenses
         .map((e) => DateTime(e.date.year, e.date.month))
         .toSet()
         .toList();
 
-    // Sort by date (oldest to newest)
     expenseMonths.sort();
 
-    // Create a continuous range from the first expense month to current month
     final firstMonth = expenseMonths.first;
-    final lastMonth = DateTime(now.year,
-        now.month + 1); // Next month to ensure current month is included
+    final lastMonth = DateTime(now.year, now.month + 1);
 
     final months = <DateTime>[];
 
-    // Add all months from first expense month to current month
     DateTime currentMonth = firstMonth;
     while (currentMonth.isBefore(lastMonth)) {
       months.add(DateTime(currentMonth.year, currentMonth.month));
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
     }
 
-    // Ensure we always show at least 6 bars
     if (months.length < 6) {
-      // Calculate how many months we need to add
       final monthsNeeded = 6 - months.length;
 
-      // Add months before the first month if we have room
       if (months.isNotEmpty) {
         final firstExpenseMonth = months.first;
         for (int i = 1; i <= monthsNeeded; i++) {
@@ -79,10 +71,9 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
             firstExpenseMonth.month - i,
           );
           months.insert(0, monthToAdd);
-        }
-      } else {
-        // Fallback to last 6 months if no expense months
-        return List.generate(6, (index) {
+      }
+    } else {
+      return List.generate(6, (index) {
           return DateTime(
             now.year,
             now.month - (5 - index),
@@ -103,10 +94,8 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
   void _scrollToRightmost(List<DateTime> months) {
     if (_hasScrolledToCurrentMonth || months.isEmpty) return;
 
-    // Simple approach: just scroll to the rightmost position
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
-        // Scroll to the maximum extent (rightmost position)
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 500),
@@ -126,19 +115,16 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
   }
 
   double _calculateBarHeight(double total, double maxTotal) {
-    // Calculate minimum height for non-zero values (10% of max)
     final minHeight = maxTotal * 0.1;
 
-    // Empty months should be 1/3 of the minimum height
     if (total <= 0) return minHeight * 0.3;
 
     return total < minHeight ? minHeight : total;
   }
 
   double _calculateBorderRadius(double total, double maxTotal) {
-    if (total <= 0) return 4; // Minimum radius for empty months
+    if (total <= 0) return 4;
 
-    // Interpolate between 6 and 16 based on the proportion of max value
     return 4 + (total / maxTotal) * 12;
   }
 

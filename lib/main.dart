@@ -16,21 +16,12 @@ import 'database/database.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize currency formatter
   await initializeFormatter();
-
-  // Initialize database
   final database = AppDatabase();
-
-  // Initialize repository provider
   final repositoryProvider = RepositoryProvider(
     database: database,
   );
 
-  // Note: Repository initialization is deferred to avoid blocking startup
-  // It will be called after the first frame is rendered
-
-  // Initialize services
   final analyticsService = ExpenseAnalyticsService(
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
@@ -45,10 +36,8 @@ void main() async {
     repositoryProvider.expenseRepository,
   );
 
-  // Initialize navigation service
   final navigationService = NavigationService();
 
-  // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -59,7 +48,6 @@ void main() async {
     ),
   );
 
-  // Enable edge-to-edge
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
   );
@@ -72,8 +60,6 @@ void main() async {
     navigationService: navigationService,
   ));
 
-  // Initialize repositories, database indexes, and process recurring expenses
-  // after the app is initialized. This prevents blocking the UI thread during app startup
   WidgetsBinding.instance.addPostFrameCallback((_) {
     _initializeRepositoriesInBackground(repositoryProvider);
     _initializeDatabaseInBackground(database);
@@ -81,8 +67,6 @@ void main() async {
   });
 }
 
-/// Initialize repositories in the background after app initialization
-/// This runs asynchronously and doesn't block the UI
 void _initializeRepositoriesInBackground(RepositoryProvider repositoryProvider) async {
   try {
     await repositoryProvider.initialize();
@@ -92,8 +76,6 @@ void _initializeRepositoriesInBackground(RepositoryProvider repositoryProvider) 
   }
 }
 
-/// Initialize database indexes in the background after app initialization
-/// This runs asynchronously and doesn't block the UI
 void _initializeDatabaseInBackground(AppDatabase database) async {
   try {
     await database.ensureIndexes();
@@ -103,8 +85,6 @@ void _initializeDatabaseInBackground(AppDatabase database) async {
   }
 }
 
-/// Process recurring expenses in the background after app initialization
-/// This runs asynchronously and doesn't block the UI
 void _processRecurringExpensesInBackground(
     RecurringExpenseService recurringExpenseService) async {
   try {
@@ -114,10 +94,8 @@ void _processRecurringExpensesInBackground(
       debugPrint('Processed $processedCount recurring expenses');
     }
   } catch (e, stackTrace) {
-    // Log error with stack trace for debugging
     debugPrint('Error processing recurring expenses: $e');
     debugPrint('Stack trace: $stackTrace');
-    // In production, you might want to send this to a crash reporting service
   }
 }
 

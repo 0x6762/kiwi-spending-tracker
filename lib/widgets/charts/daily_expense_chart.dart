@@ -125,12 +125,10 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
     final days = _getDaysInMonth();
     final dailyTotals = <DateTime, double>{};
 
-    // Initialize all days with 0
     for (final day in days) {
       dailyTotals[day] = 0.0;
     }
 
-    // Add up expenses for each day
     for (final expense in widget.expenses) {
       final dayKey =
           DateTime(expense.date.year, expense.date.month, expense.date.day);
@@ -258,7 +256,6 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
                       return const Text('');
                     final day = days[index];
 
-                    // Get first letter of day of week
                     final dayOfWeek = DateFormat('E').format(day);
                     final dayLetter = dayOfWeek.substring(0, 1).toUpperCase();
 

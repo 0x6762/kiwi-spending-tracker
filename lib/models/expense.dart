@@ -32,30 +32,27 @@ class Expense {
   final String id;
   final String title;
   final double amount;
-  final DateTime date; // Transaction date (just the date, no time)
-  final DateTime createdAt; // For sorting same-day items
+  final DateTime date;
+  final DateTime createdAt;
   final String? categoryId;
   final String? notes;
   final ExpenseType type;
   final String accountId;
   
-  // Enhanced classification
   final ExpenseNecessity necessity;
   final bool isRecurring;
   final ExpenseFrequency frequency;
   final ExpenseStatus status;
   
-  // Type-specific fields
-  final String? billingCycle; // For subscriptions (Monthly/Yearly)
-  final DateTime? nextBillingDate; // For subscriptions
-  final DateTime? dueDate; // For fixed expenses (e.g., utilities due on the 15th)
+  final String? billingCycle;
+  final DateTime? nextBillingDate;
+  final DateTime? dueDate;
   
-  // New fields
-  final double? variableAmount; // For variable recurring expenses
-  final DateTime? endDate; // Optional end date for recurring expenses
-  final String? budgetId; // For budget tracking
-  final String? paymentMethod; // How the expense was paid
-  final List<String>? tags; // For flexible filtering
+  final double? variableAmount;
+  final DateTime? endDate;
+  final String? budgetId;
+  final String? paymentMethod;
+  final List<String>? tags;
 
   const Expense({
     required this.id,
@@ -129,7 +126,6 @@ class Expense {
     );
   }
 
-  // Convert to and from JSON for storage
   Map<String, dynamic> toJson() {
     return {
       'id': id,

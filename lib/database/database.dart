@@ -53,19 +53,13 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (Migrator m, int from, int to) async {
           debugPrint('Upgrading database from version $from to $to');
 
-          // If we're upgrading from a version before 4
           if (from < 4) {
-            // Keep existing tables and data
             await m.createAll();
           }
 
-          // If we're upgrading to version 5 (adding new expense fields)
           if (from < 5) {
-            // We need to recreate the table with the new schema
-            // First, create a temporary table with the new schema
             await m.createTable(expensesTable);
 
-            // Then, copy data from the old table to the new one
             await customStatement('''
               ALTER TABLE expenses_table RENAME TO expenses_table_old;
             ''');
@@ -97,7 +91,6 @@ class AppDatabase extends _$AppDatabase {
               );
             ''');
 
-            // Copy data from old table to new table
             await customStatement('''
               INSERT INTO expenses_table (
                 id, title, description, amount, date, created_at, 
@@ -115,7 +108,6 @@ class AppDatabase extends _$AppDatabase {
               FROM expenses_table_old;
             ''');
 
-            // Drop the old table
             await customStatement('''
               DROP TABLE expenses_table_old;
             ''');
@@ -313,7 +305,6 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteAccount(String id) =>
       (delete(accountsTable)..where((t) => t.id.equals(id))).go();
 
-  // Add new query methods for the enhanced expense model
   Future<List<ExpenseTableData>> getExpensesByNecessity(int necessityIndex) {
     return (select(expensesTable)
           ..where((tbl) => tbl.necessity.equals(necessityIndex))

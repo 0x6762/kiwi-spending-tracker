@@ -90,7 +90,6 @@ class SubscriptionService {
   Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
     final subscriptions = await getSubscriptionsForMonth(month);
     
-    // Calculate monthly costs - support both billingCycle and frequency
     final monthlySubscriptions = subscriptions
         .where((sub) => 
           (sub.expense.billingCycle == 'Monthly') ||
@@ -111,14 +110,10 @@ class SubscriptionService {
     final yearlyBillingAmount = yearlySubscriptions.fold(
         0.0, (sum, sub) => sum + sub.expense.amount);
     
-    // Count the full yearly amount in the month it was paid
-    // We still keep the monthly equivalent for reference
     final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
     
-    // Use the monthly equivalent approach to match what getSubscriptionSummary() does
     final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
     
-    // Count subscriptions by status
     final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
     final dueSoonCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.dueSoon).length;
     final overdueCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.overdue).length;
@@ -244,12 +239,10 @@ class SubscriptionService {
       nextBillingDate.day,
     );
     
-    // Check if overdue (billing date is in the past)
     if (billingDate.isBefore(today)) {
       return SubscriptionStatus.overdue;
     }
     
-    // Check if due soon (within next 3 days)
     final threeDaysFromNow = today.add(const Duration(days: 3));
     if (!billingDate.isAfter(threeDaysFromNow)) {
       return SubscriptionStatus.dueSoon;

@@ -53,7 +53,6 @@ class MonthlyAnalytics {
   });
 }
 
-// New class for upcoming expenses
 class UpcomingExpensesAnalytics {
   final List<Expense> upcomingExpenses;
   final double totalAmount;
@@ -79,7 +78,6 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
 
-    // Filter to only include paid expenses that have already occurred (not future expenses)
     final effectiveExpenses = expenses
         .where((expense) =>
                 expense.status == ExpenseStatus.paid &&
@@ -125,7 +123,6 @@ class ExpenseAnalyticsService {
     final expenses =
         await _expenseRepo.getEffectiveExpenses(asOfDate: DateTime.now());
 
-    // Return default values if there are no expenses
     if (expenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
@@ -293,7 +290,6 @@ class ExpenseAnalyticsService {
       monthlyTotal += amount;
       daysWithExpenses.add(expense.date.day);
 
-      // Check if expense is from today
       if (expense.date.day == now.day) {
         todayTotal += amount;
         if (expense.accountId == DefaultAccounts.creditCard.id) {

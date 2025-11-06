@@ -45,7 +45,6 @@ class DriftExpenseRepository implements ExpenseRepository {
     }
   }
 
-  // New methods for enhanced expense structure
   @override
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {
     final expenses = await (_db.select(_db.expensesTable)

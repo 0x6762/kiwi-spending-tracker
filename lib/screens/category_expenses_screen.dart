@@ -72,10 +72,8 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
   Future<void> _loadExpenses() async {
     setState(() => _isLoading = true);
     try {
-      // Get effective expenses (only past and present expenses, not future ones)
       final effectiveExpenses = await widget.repository.getEffectiveExpenses(asOfDate: DateTime.now());
       
-      // Filter expenses by month and category
       final filteredExpenses = effectiveExpenses.where((expense) => 
         expense.date.year == widget.selectedMonth.year &&
         expense.date.month == widget.selectedMonth.month &&
@@ -83,10 +81,8 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
         expense.status == ExpenseStatus.paid
       ).toList();
       
-      // Sort by date (most recent first)
       filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
       
-      // Calculate total amount
       final total = filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
       
       setState(() {
