@@ -40,10 +40,6 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 5;
 
-  Future<void> open() async {
-    await _openConnection();
-  }
-
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
@@ -121,7 +117,6 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
-  // Indexes for better performance
   @override
   Iterable<TableInfo> get allTables => [
         expensesTable,
@@ -129,19 +124,6 @@ class AppDatabase extends _$AppDatabase {
         accountsTable,
       ];
 
-  List<Index> get allIndexes => [
-        Index('expenses_date_idx',
-            'CREATE INDEX expenses_date_idx ON ${expensesTable.actualTableName} (date)'),
-        Index('expenses_category_idx',
-            'CREATE INDEX expenses_category_idx ON ${expensesTable.actualTableName} (category_id)'),
-        Index('expenses_type_idx',
-            'CREATE INDEX expenses_type_idx ON ${expensesTable.actualTableName} (type)'),
-        Index('accounts_id_idx',
-            'CREATE INDEX accounts_id_idx ON ${accountsTable.actualTableName} (id)'),
-      ];
-
-  /// Ensure database indexes exist
-  /// This is called asynchronously after app startup to avoid blocking the UI thread
   Future<void> ensureIndexes() async {
     try {
       await transaction(() async {

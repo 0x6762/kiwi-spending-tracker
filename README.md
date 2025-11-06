@@ -35,10 +35,6 @@ lib/
 └── main.dart       # App entry point
 ```
 
-## Widget Organization
-
-Widgets are organized into categories based on their purpose. See the [widgets README](lib/widgets/README.md) for more details.
-
 ## Getting Started
 
 1. Clone the repository
@@ -60,8 +56,8 @@ Widgets are organized into categories based on their purpose. See the [widgets R
 flutter run
 
 # Release build for Google Play Console
-flutter build appbundle --release    # For Play Store (recommended)
-flutter build apk --release          # For direct APK distribution
+flutter build appbundle --release --no-tree-shake-icons    # For Play Store (recommended)
+flutter build apk --release --no-tree-shake-icons          # For direct APK distribution
 ```
 
 ### Documentation
