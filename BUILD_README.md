@@ -13,10 +13,10 @@ flutter run
 ### Release Build for Google Play Console
 ```bash
 # Build App Bundle (recommended for Play Store)
-flutter build appbundle --release
+flutter build appbundle --release --no-tree-shake-icons
 
 # Or build APK for direct distribution
-flutter build apk --release
+flutter build apk --release --no-tree-shake-icons
 ```
 
 ## 📋 First-Time Setup
@@ -41,9 +41,9 @@ storeFile=path/to/your/keystore.jks
 ```bash
 flutter clean
 flutter pub get
-flutter build appbundle --release    # For Play Store
+flutter build appbundle --release --no-tree-shake-icons    # For Play Store
 # OR
-flutter build apk --release          # For direct APK
+flutter build apk --release --no-tree-shake-icons          # For direct APK
 ```
 
 ### For Debug Testing
@@ -57,7 +57,7 @@ flutter build apk --debug
 
 1. **Build the App Bundle**:
    ```bash
-   flutter build appbundle --release
+   flutter build appbundle --release --no-tree-shake-icons
    ```
 
 2. **Upload to Play Console**:
