@@ -141,7 +141,6 @@ class _CardConfig {
     required this.borderRadius,
     required this.padding,
     required this.elevation,
-    this.border,
-    this.boxShadow,
-  });
+  }) : border = null,
+       boxShadow = null;
 }

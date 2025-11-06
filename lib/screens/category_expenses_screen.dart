@@ -35,7 +35,6 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
   ExpenseCategory? _category;
   bool _isLoading = true;
   final _dateFormat = DateFormat.yMMMd();
-  final _monthFormat = DateFormat.yMMMM();
   double _totalAmount = 0.0;
 
   @override

@@ -56,6 +56,7 @@ class SubscriptionSummary {
 /// Service for managing and analyzing subscription expenses
 class SubscriptionService {
   final ExpenseRepository _expenseRepo;
+  // ignore: unused_field
   final CategoryRepository _categoryRepo;
   final _dateFormat = DateFormat.yMMMd();
   final _uuid = Uuid();

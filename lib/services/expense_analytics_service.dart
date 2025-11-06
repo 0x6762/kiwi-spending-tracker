@@ -68,6 +68,7 @@ class UpcomingExpensesAnalytics {
 
 class ExpenseAnalyticsService {
   final ExpenseRepository _expenseRepo;
+  // ignore: unused_field
   final CategoryRepository _categoryRepo;
 
   ExpenseAnalyticsService(this._expenseRepo, this._categoryRepo);

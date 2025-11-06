@@ -144,8 +144,6 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
 
   String _formatAmount(double amount) {
     if (amount < 1000) {
-      final currentSymbol =
-          formatCurrency(0).replaceAll(RegExp(r'[0-9.,]+'), '');
       // Handle both dot and comma decimal separators
       return formatCurrency(amount)
           .replaceAll(RegExp(r'[.,]00'), '') // Remove .00 or ,00

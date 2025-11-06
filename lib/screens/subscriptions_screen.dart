@@ -34,7 +34,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   SubscriptionSummary? _summary;
   bool _isLoading = true;
   final _dateFormat = DateFormat.yMMMd();
-  final _monthFormat = DateFormat.yMMMM();
 
   @override
   void initState() {
