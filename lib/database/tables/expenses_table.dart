@@ -14,18 +14,15 @@ class ExpensesTable extends Table {
   IntColumn get type => intEnum<ExpenseType>()();
   TextColumn get accountId => text()();
   
-  // Type-specific fields
   TextColumn get billingCycle => text().nullable()();
   DateTimeColumn get nextBillingDate => dateTime().nullable()();
   DateTimeColumn get dueDate => dateTime().nullable()();
   
-  // Enhanced classification
-  IntColumn get necessity => intEnum<ExpenseNecessity>().withDefault(const Constant(1))(); // Default to discretionary
+  IntColumn get necessity => intEnum<ExpenseNecessity>().withDefault(const Constant(1))();
   BoolColumn get isRecurring => boolean().withDefault(const Constant(false))();
-  IntColumn get frequency => intEnum<ExpenseFrequency>().withDefault(const Constant(0))(); // Default to oneTime
-  IntColumn get status => intEnum<ExpenseStatus>().withDefault(const Constant(1))(); // Default to paid
+  IntColumn get frequency => intEnum<ExpenseFrequency>().withDefault(const Constant(0))();
+  IntColumn get status => intEnum<ExpenseStatus>().withDefault(const Constant(1))();
   
-  // New fields
   RealColumn get variableAmount => real().nullable()();
   DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get budgetId => text().nullable()();
@@ -36,7 +33,6 @@ class ExpensesTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// Converter for List<String> to String and back
 class TagsConverter extends TypeConverter<List<String>, String> {
   const TagsConverter();
 

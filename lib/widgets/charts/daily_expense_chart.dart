@@ -125,12 +125,10 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
     final days = _getDaysInMonth();
     final dailyTotals = <DateTime, double>{};
 
-    // Initialize all days with 0
     for (final day in days) {
       dailyTotals[day] = 0.0;
     }
 
-    // Add up expenses for each day
     for (final expense in widget.expenses) {
       final dayKey =
           DateTime(expense.date.year, expense.date.month, expense.date.day);
@@ -144,8 +142,6 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
 
   String _formatAmount(double amount) {
     if (amount < 1000) {
-      final currentSymbol =
-          formatCurrency(0).replaceAll(RegExp(r'[0-9.,]+'), '');
       return formatCurrency(amount)
           .replaceAll(RegExp(r'[.,]00'), '')
           .replaceAll(RegExp(r'[.,][0-9]+'), '');
@@ -221,7 +217,6 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
                   getDotPainter: (spot, percent, barData, index) {
                     // Check if this is today's data point (7th index, 0-based = 6)
                     final isToday = index == 6;
-                    final total = dailyTotals[days[index]] ?? 0.0;
 
                     // Always show dot for today's data point, even if no expenses
                     if (isToday) {
@@ -261,7 +256,6 @@ class _DailyExpenseChartState extends State<DailyExpenseChart>
                       return const Text('');
                     final day = days[index];
 
-                    // Get first letter of day of week
                     final dayOfWeek = DateFormat('E').format(day);
                     final dayLetter = dayOfWeek.substring(0, 1).toUpperCase();
 

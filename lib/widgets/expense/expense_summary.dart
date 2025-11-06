@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import '../../models/expense.dart';
 import '../../repositories/category_repository.dart';
 import '../../utils/formatters.dart';
@@ -44,7 +43,6 @@ class ExpenseSummary extends StatefulWidget {
 }
 
 class _ExpenseSummaryState extends State<ExpenseSummary> {
-  final _monthFormat = DateFormat.yMMMM();
   late SubscriptionService _subscriptionService;
 
   @override
@@ -54,43 +52,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
       _subscriptionService =
           SubscriptionService(widget.repository!, widget.categoryRepo!);
     }
-  }
-
-  Widget _buildMonthComparison(
-      BuildContext context, MonthlyAnalytics analytics) {
-    if (analytics.previousMonthTotal == 0) return const SizedBox.shrink();
-
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        children: [
-          Icon(
-            analytics.isIncrease ? Icons.arrow_upward : Icons.arrow_downward,
-            size: 16,
-            color: analytics.isIncrease
-                ? theme.colorScheme.error
-                : theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${analytics.percentageChange.toStringAsFixed(1)}%',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: analytics.isIncrease
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.primary,
-            ),
-          ),
-          Text(
-            ' ${analytics.isIncrease ? 'more' : 'less'} than last month',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -264,7 +225,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                   future: _subscriptionService
                       .getSubscriptionSummaryForMonth(widget.selectedMonth),
                   builder: (context, subscriptionSnapshot) {
-                    // Create a default summary if no data is available
                     final subscriptionSummary = subscriptionSnapshot.hasData
                         ? subscriptionSnapshot.data!
                         : SubscriptionSummary(
@@ -313,8 +273,6 @@ class _SummaryRow extends StatelessWidget {
   final BuildContext context;
   final String iconAsset;
   final Color iconColor;
-  final VoidCallback? onTap;
-  final bool showArrow;
 
   const _SummaryRow({
     required this.label,
@@ -322,59 +280,45 @@ class _SummaryRow extends StatelessWidget {
     required this.context,
     required this.iconAsset,
     required this.iconColor,
-    this.onTap,
-    this.showArrow = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              iconAsset,
-              width: 24,
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                iconColor,
-                BlendMode.srcIn,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            iconAsset,
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(
+              iconColor,
+              BlendMode.srcIn,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            Text(
-              formatCurrency(amount),
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            if (onTap != null && showArrow) ...[
-              const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+          Text(
+            formatCurrency(amount),
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/expense.dart';
 import '../../models/expense_category.dart';
-import '../../models/account.dart';
 import '../../utils/formatters.dart';
 import '../../repositories/category_repository.dart';
 import '../dialogs/delete_confirmation_dialog.dart';
@@ -64,11 +63,6 @@ class _ExpenseListState extends State<ExpenseList> {
       future: widget.categoryRepo.findCategoryById(expense.categoryId ?? CategoryRepository.uncategorizedId),
       builder: (context, snapshot) {
         final category = snapshot.data;
-        final account = DefaultAccounts.defaultAccounts
-            .firstWhere(
-              (a) => a.id == expense.accountId,
-              orElse: () => DefaultAccounts.checking,
-            );
 
         final theme = Theme.of(context);
 

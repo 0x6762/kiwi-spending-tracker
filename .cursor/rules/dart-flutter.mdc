@@ -1,0 +1,21 @@
+# Dart & Flutter
+
+## Practices
+- `const` constructors, `final` variables
+- Prefer `StatelessWidget`, use `StatefulWidget` only when needed
+- `late` over nullable for required fields
+- Named parameters for clarity
+
+## Performance
+- Defer heavy ops (DB indexes, recurring expenses)
+- Use `FutureBuilder`/`StreamBuilder` appropriately
+- Minimize rebuilds with proper keys
+
+## Dependencies
+- Drift (DB), Provider (state), fl_chart (charts), intl (formatting)
+
+## Patterns
+- `FutureBuilder` for async data
+- `Consumer` for Provider state
+- `ErrorHandler` for feedback
+- `formatCurrency()` for money

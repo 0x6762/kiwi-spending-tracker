@@ -56,7 +56,7 @@ class DesignTokens {
 
   // ==================== COMPONENT DIMENSIONS ====================
   /// Standard component heights
-  static const double buttonHeight = 48;
+  static const double buttonHeight = 56;
   static const double inputHeight = 52;
   static const double appBarHeight = 72;
   static const double chipHeight = 32;

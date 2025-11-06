@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import '../../models/expense_category.dart' as domain;
 import '../database.dart';
-import '../tables/categories_table.dart';
 
 extension CategoryConversions on CategoryTableData {
   domain.ExpenseCategory toDomain() {

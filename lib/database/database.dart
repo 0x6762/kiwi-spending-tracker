@@ -40,10 +40,6 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 5;
 
-  Future<void> open() async {
-    await _openConnection();
-  }
-
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
@@ -53,19 +49,13 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (Migrator m, int from, int to) async {
           debugPrint('Upgrading database from version $from to $to');
 
-          // If we're upgrading from a version before 4
           if (from < 4) {
-            // Keep existing tables and data
             await m.createAll();
           }
 
-          // If we're upgrading to version 5 (adding new expense fields)
           if (from < 5) {
-            // We need to recreate the table with the new schema
-            // First, create a temporary table with the new schema
             await m.createTable(expensesTable);
 
-            // Then, copy data from the old table to the new one
             await customStatement('''
               ALTER TABLE expenses_table RENAME TO expenses_table_old;
             ''');
@@ -97,7 +87,6 @@ class AppDatabase extends _$AppDatabase {
               );
             ''');
 
-            // Copy data from old table to new table
             await customStatement('''
               INSERT INTO expenses_table (
                 id, title, description, amount, date, created_at, 
@@ -115,7 +104,6 @@ class AppDatabase extends _$AppDatabase {
               FROM expenses_table_old;
             ''');
 
-            // Drop the old table
             await customStatement('''
               DROP TABLE expenses_table_old;
             ''');
@@ -123,31 +111,12 @@ class AppDatabase extends _$AppDatabase {
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');
+          // Only set foreign keys pragma here - this is essential and fast
+          // Index creation is deferred to avoid blocking startup
           await customStatement('PRAGMA foreign_keys = ON');
-
-          // Create indexes if they don't exist
-          await transaction(() async {
-            // Expenses indexes
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
-            );
-
-            // Accounts index
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)',
-            );
-          });
-          debugPrint('Database indexes created/verified');
         },
       );
 
-  // Indexes for better performance
   @override
   Iterable<TableInfo> get allTables => [
         expensesTable,
@@ -155,17 +124,32 @@ class AppDatabase extends _$AppDatabase {
         accountsTable,
       ];
 
-  @override
-  List<Index> get allIndexes => [
-        Index('expenses_date_idx',
-            'CREATE INDEX expenses_date_idx ON ${expensesTable.actualTableName} (date)'),
-        Index('expenses_category_idx',
-            'CREATE INDEX expenses_category_idx ON ${expensesTable.actualTableName} (category_id)'),
-        Index('expenses_type_idx',
-            'CREATE INDEX expenses_type_idx ON ${expensesTable.actualTableName} (type)'),
-        Index('accounts_id_idx',
-            'CREATE INDEX accounts_id_idx ON ${accountsTable.actualTableName} (id)'),
-      ];
+  Future<void> ensureIndexes() async {
+    try {
+      await transaction(() async {
+        // Expenses indexes
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_date_idx ON expenses_table (date)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
+        );
+
+        // Accounts index
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS accounts_id_idx ON accounts_table (id)',
+        );
+      });
+      debugPrint('Database indexes created/verified');
+    } catch (e) {
+      debugPrint('Error creating database indexes: $e');
+      // Don't rethrow - indexes are optional for functionality
+      // The app can work without them, just slower queries
+    }
+  }
 
   // Basic CRUD operations for Expenses
   Future<List<ExpenseTableData>> getAllExpenses() =>
@@ -303,7 +287,6 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteAccount(String id) =>
       (delete(accountsTable)..where((t) => t.id.equals(id))).go();
 
-  // Add new query methods for the enhanced expense model
   Future<List<ExpenseTableData>> getExpensesByNecessity(int necessityIndex) {
     return (select(expensesTable)
           ..where((tbl) => tbl.necessity.equals(necessityIndex))

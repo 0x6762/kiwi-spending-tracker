@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import '../database/database.dart';
 import '../database/extensions/expense_extensions.dart';
 import '../models/expense.dart';
@@ -11,26 +10,41 @@ class DriftExpenseRepository implements ExpenseRepository {
 
   @override
   Future<List<Expense>> getAllExpenses() async {
-    final expenses = await _db.getAllExpenses();
-    return expenses.map((e) => e.toDomain()).toList();
+    try {
+      final expenses = await _db.getAllExpenses();
+      return expenses.map((e) => e.toDomain()).toList();
+    } catch (e) {
+      throw Exception('Failed to load expenses: ${e.toString()}');
+    }
   }
 
   @override
   Future<void> addExpense(Expense expense) async {
-    await _db.insertExpense(expense.toCompanion());
+    try {
+      await _db.insertExpense(expense.toCompanion());
+    } catch (e) {
+      throw Exception('Failed to add expense: ${e.toString()}');
+    }
   }
 
   @override
   Future<void> updateExpense(Expense expense) async {
-    await _db.updateExpense(expense.toCompanion());
+    try {
+      await _db.updateExpense(expense.toCompanion());
+    } catch (e) {
+      throw Exception('Failed to update expense: ${e.toString()}');
+    }
   }
 
   @override
   Future<void> deleteExpense(String id) async {
-    await _db.deleteExpense(id);
+    try {
+      await _db.deleteExpense(id);
+    } catch (e) {
+      throw Exception('Failed to delete expense: ${e.toString()}');
+    }
   }
 
-  // New methods for enhanced expense structure
   @override
   Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {
     final expenses = await (_db.select(_db.expensesTable)

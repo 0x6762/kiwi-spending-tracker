@@ -163,8 +163,6 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
         return theme.colorScheme.fixedExpenseColor;
       case ExpenseType.variable:
         return theme.colorScheme.variableExpenseColor;
-      default:
-        return theme.colorScheme.primary;
     }
   }
 

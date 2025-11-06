@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import '../models/expense.dart';
-import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../models/account.dart';
@@ -55,7 +53,6 @@ class MonthlyAnalytics {
   });
 }
 
-// New class for upcoming expenses
 class UpcomingExpensesAnalytics {
   final List<Expense> upcomingExpenses;
   final double totalAmount;
@@ -70,6 +67,7 @@ class UpcomingExpensesAnalytics {
 
 class ExpenseAnalyticsService {
   final ExpenseRepository _expenseRepo;
+  // ignore: unused_field
   final CategoryRepository _categoryRepo;
 
   ExpenseAnalyticsService(this._expenseRepo, this._categoryRepo);
@@ -80,7 +78,6 @@ class ExpenseAnalyticsService {
 
     final now = DateTime.now();
 
-    // Filter to only include paid expenses that have already occurred (not future expenses)
     final effectiveExpenses = expenses
         .where((expense) =>
                 expense.status == ExpenseStatus.paid &&
@@ -126,7 +123,6 @@ class ExpenseAnalyticsService {
     final expenses =
         await _expenseRepo.getEffectiveExpenses(asOfDate: DateTime.now());
 
-    // Return default values if there are no expenses
     if (expenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
@@ -294,7 +290,6 @@ class ExpenseAnalyticsService {
       monthlyTotal += amount;
       daysWithExpenses.add(expense.date.day);
 
-      // Check if expense is from today
       if (expense.date.day == now.day) {
         todayTotal += amount;
         if (expense.accountId == DefaultAccounts.creditCard.id) {

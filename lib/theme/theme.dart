@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'design_tokens.dart';
 
 class AppTheme {
   static TextTheme _buildTextTheme(TextTheme base) {
@@ -18,7 +17,7 @@ class AppTheme {
         height: 1.2,
         fontWeight: FontWeight.w600,
       ),
-      // Used for the total amount in expense summary 
+      // Used for the total amount in expense summary
       headlineMedium: base.headlineMedium?.copyWith(
         fontFamily: 'Inter',
         fontSize: 32,
@@ -59,6 +58,12 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w400,
       ),
+      labelLarge: base.labelLarge?.copyWith(
+        fontFamily: 'Inter',
+        fontSize: 16,
+        height: 1.4,
+        fontWeight: FontWeight.w600,
+      ),
       labelMedium: base.labelMedium?.copyWith(
         fontFamily: 'Inter',
         fontSize: 14,
@@ -71,10 +76,8 @@ class AppTheme {
         height: 1.4,
         fontWeight: FontWeight.w500,
       ),
-
     );
   }
-
 
   static final textTheme = _buildTextTheme(
     ThemeData.light().textTheme,
@@ -202,7 +205,7 @@ extension ExpenseTypeColors on ColorScheme {
   Color get fixedExpenseColor => AppTheme.fixedExpenseColor;
   Color get variableExpenseColor => AppTheme.variableExpenseColor;
   Color get upcomingExpenseColor => AppTheme.upcomingExpenseColor;
-  
+
   // Utility function to get color for expense type
   Color getExpenseTypeColor(String expenseType) {
     switch (expenseType.toLowerCase()) {

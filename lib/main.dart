@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'screens/main_screen.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
@@ -14,32 +12,16 @@ import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
 import 'database/database.dart';
-import 'database/database_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Initialize currency formatter
   await initializeFormatter();
-
-  // Initialize database
   final database = AppDatabase();
-  final databaseProvider = DatabaseProvider();
-
-  // Initialize repository provider
   final repositoryProvider = RepositoryProvider(
     database: database,
   );
 
-  // Wait for repositories to initialize
-  await repositoryProvider.initialize();
-
-  // Initialize services
   final analyticsService = ExpenseAnalyticsService(
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
@@ -54,19 +36,8 @@ void main() async {
     repositoryProvider.expenseRepository,
   );
 
-  // Initialize navigation service
   final navigationService = NavigationService();
 
-  // Process any pending recurring expenses (includes subscriptions, fixed, and variable)
-  try {
-    final processedCount =
-        await recurringExpenseService.processRecurringExpenses();
-    debugPrint('Processed $processedCount recurring expenses');
-  } catch (e) {
-    debugPrint('Error processing recurring expenses: $e');
-  }
-
-  // Set system UI overlay style at app startup
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -77,7 +48,6 @@ void main() async {
     ),
   );
 
-  // Enable edge-to-edge
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
   );
@@ -89,6 +59,44 @@ void main() async {
     recurringExpenseService: recurringExpenseService,
     navigationService: navigationService,
   ));
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initializeRepositoriesInBackground(repositoryProvider);
+    _initializeDatabaseInBackground(database);
+    _processRecurringExpensesInBackground(recurringExpenseService);
+  });
+}
+
+void _initializeRepositoriesInBackground(RepositoryProvider repositoryProvider) async {
+  try {
+    await repositoryProvider.initialize();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing repositories: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
+}
+
+void _initializeDatabaseInBackground(AppDatabase database) async {
+  try {
+    await database.ensureIndexes();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing database indexes: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
+}
+
+void _processRecurringExpensesInBackground(
+    RecurringExpenseService recurringExpenseService) async {
+  try {
+    final processedCount =
+        await recurringExpenseService.processRecurringExpenses();
+    if (processedCount > 0) {
+      debugPrint('Processed $processedCount recurring expenses');
+    }
+  } catch (e, stackTrace) {
+    debugPrint('Error processing recurring expenses: $e');
+    debugPrint('Stack trace: $stackTrace');
+  }
 }
 
 class MyApp extends StatelessWidget {

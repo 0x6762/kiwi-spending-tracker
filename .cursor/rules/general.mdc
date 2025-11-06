@@ -1,0 +1,19 @@
+# General Rules
+
+## Principles
+- Simplicity, performance, user experience
+- Avoid blocking main thread
+- Use ErrorHandler for all user feedback
+- Follow existing patterns
+
+## Error Handling
+- `ErrorHandler.showError()` for errors
+- `ErrorHandler.showSuccess()` for success
+- Wrap async in try-catch
+- Log with stack traces in debug
+
+## State Management
+- Provider pattern
+- ChangeNotifiers: RepositoryProvider, ThemeProvider, NavigationService
+- Services = business logic (not state)
+- Dependencies created in main.dart, passed via constructors

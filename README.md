@@ -35,10 +35,6 @@ lib/
 └── main.dart       # App entry point
 ```
 
-## Widget Organization
-
-Widgets are organized into categories based on their purpose. See the [widgets README](lib/widgets/README.md) for more details.
-
 ## Getting Started
 
 1. Clone the repository
@@ -59,12 +55,11 @@ Widgets are organized into categories based on their purpose. See the [widgets R
 # Debug (run on device/emulator)
 flutter run
 
-# Release build + Firebase distribution
-.\scripts\distribute_app.ps1    # Windows
-./scripts/distribute_app.sh     # Mac/Linux
+# Release build for Google Play Console
+flutter build appbundle --release --no-tree-shake-icons    # For Play Store (recommended)
+flutter build apk --release --no-tree-shake-icons          # For direct APK distribution
 ```
 
 ### Documentation
 
 - **[BUILD_README.md](BUILD_README.md)** - Build instructions
-- **[FIREBASE_SECURITY_SETUP.md](FIREBASE_SECURITY_SETUP.md)** - Security setup

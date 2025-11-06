@@ -10,77 +10,76 @@ Quick guide for building the Kiwi Spending Tracker app.
 flutter run
 ```
 
-### Release Build + Distribution
+### Release Build for Google Play Console
 ```bash
-# Windows - Default (beta-testers)
-.\scripts\distribute_app.ps1
+# Build App Bundle (recommended for Play Store)
+flutter build appbundle --release --no-tree-shake-icons
 
-# Windows - Alpha testers
-.\scripts\distribute_app.ps1 -GroupName "alpha-testers"
-
-# Windows - Beta testers (explicit)
-.\scripts\distribute_app.ps1 -GroupName "beta-testers"
-
-# Windows - With release notes
-.\scripts\distribute_app.ps1 -GroupName "alpha-testers" -ReleaseNotes "New features: Recent Transactions section, 6-month chart view"
-
-# Mac/Linux
-./scripts/distribute_app.sh
+# Or build APK for direct distribution
+flutter build apk --release --no-tree-shake-icons
 ```
 
 ## 📋 First-Time Setup
 
-### 1. Firebase Configuration
-Create your Firebase config files from templates:
+### 1. Install Dependencies
 ```bash
-# Copy templates
-cp lib/firebase_options.dart.template lib/firebase_options.dart
-cp android/app/google-services.json.template android/app/google-services.json
-cp .firebaserc.template .firebaserc
+flutter pub get
 ```
 
-### 2. Update Configuration
-Replace placeholder values in the copied files with your actual Firebase project details.
-
-### 3. Install Firebase CLI
-```bash
-npm install -g firebase-tools
-firebase login
+### 2. Configure Signing (for release builds)
+Create `android/key.properties` with your signing configuration:
+```properties
+storePassword=your_store_password
+keyPassword=your_key_password
+keyAlias=your_key_alias
+storeFile=path/to/your/keystore.jks
 ```
 
 ## 🔧 Manual Build Commands
 
-### For Release (Firebase Distribution)
+### For Release
 ```bash
 flutter clean
 flutter pub get
-flutter build apk --release --no-tree-shake-icons
+flutter build appbundle --release --no-tree-shake-icons    # For Play Store
+# OR
+flutter build apk --release --no-tree-shake-icons          # For direct APK
 ```
-
-## 📱 Distribution Groups
-
-### Available Groups
-- **alpha-testers**: Early access group for internal testing
-- **beta-testers**: Public beta testing group (default)
-
-### Script Parameters
-- `-GroupName`: Target distribution group (default: "beta-testers")
-- `-ReleaseNotes`: Optional release notes for the build
 
 ### For Debug Testing
 ```bash
 flutter build apk --debug
 ```
 
+## 📱 Google Play Console Distribution
+
+### Uploading to Closed Testing
+
+1. **Build the App Bundle**:
+   ```bash
+   flutter build appbundle --release --no-tree-shake-icons
+   ```
+
+2. **Upload to Play Console**:
+   - Go to [Google Play Console](https://play.google.com/console)
+   - Navigate to your app → Testing → Closed testing
+   - Create a new release
+   - Upload `build/app/outputs/bundle/release/app-release.aab`
+   - Add release notes and testers
+   - Submit for review
+
+### APK Location
+- **App Bundle**: `build/app/outputs/bundle/release/app-release.aab`
+- **APK**: `build/app/outputs/flutter-apk/app-release.apk`
+- **Debug APK**: `build/app/outputs/flutter-apk/app-debug.apk`
+
 ## 🔍 Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | **Build fails** | Run `flutter doctor` |
-| **Firebase CLI not found** | Install with `npm install -g firebase-tools` |
-| **Config file missing** | Copy from `.template` files |
-| **Permission denied** | Run `firebase login` |
-| **Debug build fails** | Check that Firebase config matches package name |
+| **Signing errors** | Check `android/key.properties` configuration |
+| **Debug build fails** | Run `flutter clean` and try again |
 
 ## 📱 App Installation
 

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:file_picker/file_picker.dart';
 import 'category_management_screen.dart';
 import 'account_management_screen.dart';
 import '../models/currency_settings.dart';
@@ -80,7 +79,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showThemePicker() {
-    final theme = Theme.of(context);
     final themeProvider = context.read<ThemeProvider>();
 
     PickerSheet.show(
