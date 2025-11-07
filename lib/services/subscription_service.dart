@@ -65,32 +65,41 @@ class SubscriptionService {
 
   SubscriptionService(this._expenseRepo, this._categoryRepo);
 
-  /// Retrieves all subscription expenses and enhances them with status information
+  /// Retrieves all subscription templates and enhances them with status information
+  /// Only returns templates (isRecurring == true), not generated instances
   Future<List<SubscriptionData>> getSubscriptions() async {
     final expenses = await _expenseRepo.getAllExpenses();
     final subscriptions = expenses
-        .where((expense) => expense.type == ExpenseType.subscription)
+        .where((expense) => 
+            expense.type == ExpenseType.subscription &&
+            expense.isRecurring == true)
         .toList();
     
     return _enhanceSubscriptions(subscriptions);
   }
 
-  /// Retrieves subscriptions for a specific month
+  /// Retrieves subscription templates for a specific month
+  /// Returns templates that have a nextBillingDate in the specified month
+  /// Only returns templates (isRecurring == true), not generated instances
   Future<List<SubscriptionData>> getSubscriptionsForMonth(DateTime month) async {
     final expenses = await _expenseRepo.getAllExpenses();
     final subscriptions = expenses
         .where((expense) => 
             expense.type == ExpenseType.subscription &&
-            expense.date.year == month.year &&
-            expense.date.month == month.month)
+            expense.isRecurring == true &&
+            expense.nextBillingDate != null &&
+            expense.nextBillingDate!.year == month.year &&
+            expense.nextBillingDate!.month == month.month)
         .toList();
     
     return _enhanceSubscriptions(subscriptions);
   }
 
   /// Calculates a summary of subscription costs for a specific month
+  /// Note: Returns summary for all active subscription templates, not just those due in the month
   Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
-    final subscriptions = await getSubscriptionsForMonth(month);
+    // Use all subscription templates for the summary, not just those due in the month
+    final subscriptions = await getSubscriptions();
     
     final monthlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
