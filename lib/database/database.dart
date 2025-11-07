@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -176,6 +176,22 @@ class AppDatabase extends _$AppDatabase {
             await customStatement('''
               DROP TABLE expenses_table_old;
             ''');
+          }
+
+          if (from < 7) {
+            // Clean up invalid data: fixed and variable expenses should not be recurring
+            // Set is_recurring = 0, frequency = 0 (oneTime), and clear next_billing_date
+            // for any fixed or variable expenses that are incorrectly marked as recurring
+            await customStatement('''
+              UPDATE expenses_table 
+              SET is_recurring = 0,
+                  frequency = 0,
+                  next_billing_date = NULL
+              WHERE (type = 1 OR type = 2) 
+                AND (is_recurring = 1 OR frequency != 0);
+            ''');
+            // Note: type = 1 is fixed, type = 2 is variable, type = 0 is subscription
+            // frequency = 0 is oneTime
           }
         },
         beforeOpen: (details) async {

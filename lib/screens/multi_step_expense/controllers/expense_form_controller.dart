@@ -121,6 +121,9 @@ class ExpenseFormController extends ChangeNotifier {
   void setFixedExpense(bool isFixed) {
     _isFixedExpense = isFixed;
     _selectedExpenseType = isFixed ? ExpenseType.fixed : ExpenseType.variable;
+    // Fixed and variable expenses cannot be recurring
+    _isRecurring = false;
+    _frequency = ExpenseFrequency.oneTime;
     notifyListeners();
   }
 
@@ -142,6 +145,10 @@ class ExpenseFormController extends ChangeNotifier {
   }
 
   void setRecurring(bool isRecurring) {
+    // Only subscriptions can be recurring
+    if (_selectedExpenseType != ExpenseType.subscription) {
+      return;
+    }
     _isRecurring = isRecurring;
     if (!isRecurring) {
       _frequency = ExpenseFrequency.oneTime;

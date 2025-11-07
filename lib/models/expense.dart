@@ -18,9 +18,9 @@ enum ExpenseNecessity {
 }
 
 enum ExpenseType {
-  subscription, // Fixed recurring (Netflix, Spotify)
-  fixed, // Variable recurring (Electricity, Water)
-  variable // Variable Variable (Groceries, Entertainment)
+  subscription, // Auto-recurring with fixed amount (Netflix, Spotify)
+  fixed, // Recurring pattern but variable amount - manually entered (Electricity, Water)
+  variable // One-time expenses (Groceries, Entertainment)
 }
 
 class Expense {
