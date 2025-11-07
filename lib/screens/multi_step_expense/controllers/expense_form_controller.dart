@@ -223,7 +223,6 @@ class ExpenseFormController extends ChangeNotifier {
       notes: null,
       type: expenseType,
       accountId: _selectedAccountId,
-      billingCycle: null, // No longer using billingCycle, using frequency instead
       nextBillingDate: nextBillingDate,
       dueDate: null,
       necessity: necessity,

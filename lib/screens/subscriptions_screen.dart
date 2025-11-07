@@ -189,7 +189,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       ),
                     ),
                     Text(
-                      subscription.expense.billingCycle ?? 'Monthly',
+                      subscription.billingCycle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

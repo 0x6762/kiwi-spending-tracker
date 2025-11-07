@@ -93,17 +93,11 @@ class SubscriptionService {
     final subscriptions = await getSubscriptionsForMonth(month);
     
     final monthlySubscriptions = subscriptions
-        .where((sub) => 
-          (sub.expense.billingCycle == 'Monthly') ||
-          (sub.expense.frequency == ExpenseFrequency.monthly)
-        )
+        .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
         .toList();
     
     final yearlySubscriptions = subscriptions
-        .where((sub) => 
-          (sub.expense.billingCycle == 'Yearly') ||
-          (sub.expense.frequency == ExpenseFrequency.yearly)
-        )
+        .where((sub) => sub.expense.frequency == ExpenseFrequency.yearly)
         .toList();
     
     final monthlyBillingAmount = monthlySubscriptions.fold(
@@ -141,19 +135,13 @@ class SubscriptionService {
   Future<SubscriptionSummary> getSubscriptionSummary() async {
     final subscriptions = await getSubscriptions();
     
-    // Calculate monthly costs - support both billingCycle and frequency
+    // Calculate monthly costs based on frequency
     final monthlySubscriptions = subscriptions
-        .where((sub) => 
-          (sub.expense.billingCycle == 'Monthly') ||
-          (sub.expense.frequency == ExpenseFrequency.monthly)
-        )
+        .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
         .toList();
     
     final yearlySubscriptions = subscriptions
-        .where((sub) => 
-          (sub.expense.billingCycle == 'Yearly') ||
-          (sub.expense.frequency == ExpenseFrequency.yearly)
-        )
+        .where((sub) => sub.expense.frequency == ExpenseFrequency.yearly)
         .toList();
     
     final monthlyBillingAmount = monthlySubscriptions.fold(
@@ -185,46 +173,24 @@ class SubscriptionService {
   DateTime calculateNextBillingDate(Expense subscription) {
     final lastBillingDate = subscription.nextBillingDate ?? subscription.date;
     
-    // First try to use the new frequency-based system
-    if (subscription.frequency != ExpenseFrequency.oneTime) {
-      switch (subscription.frequency) {
-        case ExpenseFrequency.monthly:
-          return DateTime(
-            lastBillingDate.year,
-            lastBillingDate.month + 1,
-            lastBillingDate.day,
-          );
-        case ExpenseFrequency.yearly:
-          return DateTime(
-            lastBillingDate.year + 1,
-            lastBillingDate.month,
-            lastBillingDate.day,
-          );
-        default:
-          // For other frequencies, fall back to billing cycle
-          break;
-      }
+    // Use frequency-based system
+    switch (subscription.frequency) {
+      case ExpenseFrequency.monthly:
+        return DateTime(
+          lastBillingDate.year,
+          lastBillingDate.month + 1,
+          lastBillingDate.day,
+        );
+      case ExpenseFrequency.yearly:
+        return DateTime(
+          lastBillingDate.year + 1,
+          lastBillingDate.month,
+          lastBillingDate.day,
+        );
+      default:
+        // For other frequencies or oneTime, return the last billing date
+        return lastBillingDate;
     }
-    
-    // Fall back to the old billing cycle system for backward compatibility
-    final billingCycle = subscription.billingCycle ?? 'Monthly';
-    
-    if (billingCycle == 'Monthly') {
-      return DateTime(
-        lastBillingDate.year,
-        lastBillingDate.month + 1,
-        lastBillingDate.day,
-      );
-    } else if (billingCycle == 'Yearly') {
-      return DateTime(
-        lastBillingDate.year + 1,
-        lastBillingDate.month,
-        lastBillingDate.day,
-      );
-    }
-    
-    // Default fallback
-    return lastBillingDate;
   }
 
   /// Determines the status of a subscription based on its next billing date
@@ -277,19 +243,20 @@ class SubscriptionService {
       final nextBillingDate = subscription.nextBillingDate;
       final status = getSubscriptionStatus(nextBillingDate);
       
-      // Determine billing cycle - support both new frequency and old billingCycle
+      // Determine billing cycle from frequency
       String billingCycle;
       if (subscription.frequency == ExpenseFrequency.monthly) {
         billingCycle = 'Monthly';
       } else if (subscription.frequency == ExpenseFrequency.yearly) {
         billingCycle = 'Yearly';
       } else {
-        billingCycle = subscription.billingCycle ?? 'Monthly';
+        // Default to Monthly for other frequencies
+        billingCycle = 'Monthly';
       }
       
       // Calculate monthly equivalent cost
       double monthlyEquivalentCost = subscription.amount;
-      if (billingCycle == 'Yearly' || subscription.frequency == ExpenseFrequency.yearly) {
+      if (subscription.frequency == ExpenseFrequency.yearly) {
         monthlyEquivalentCost = subscription.amount / 12;
       }
       

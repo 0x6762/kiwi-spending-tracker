@@ -9,8 +9,7 @@ import 'package:uuid/uuid.dart';
 /// - Fixed expenses (ExpenseType.fixed)
 /// - Variable expenses (ExpenseType.variable)
 /// 
-/// Uses frequency enum for scheduling, with fallback to billingCycle for
-/// backward compatibility with legacy subscriptions.
+/// Uses frequency enum for scheduling recurring expenses.
 class RecurringExpenseService {
   final ExpenseRepository _expenseRepo;
   final _uuid = Uuid();
@@ -64,68 +63,45 @@ class RecurringExpenseService {
   }
 
   /// Calculate the next occurrence date based on frequency.
-  /// Falls back to billingCycle for backward compatibility with legacy subscriptions.
   DateTime _calculateNextDate(Expense template) {
     final lastDate = template.nextBillingDate ?? template.date;
     
-    // Use frequency if available and not oneTime
-    if (template.frequency != ExpenseFrequency.oneTime && 
-        template.frequency != ExpenseFrequency.custom) {
-      switch (template.frequency) {
-        case ExpenseFrequency.daily:
-          return lastDate.add(const Duration(days: 1));
-          
-        case ExpenseFrequency.weekly:
-          return lastDate.add(const Duration(days: 7));
-          
-        case ExpenseFrequency.biWeekly:
-          return lastDate.add(const Duration(days: 14));
-          
-        case ExpenseFrequency.monthly:
-          return DateTime(
-            lastDate.year,
-            lastDate.month + 1,
-            lastDate.day,
-          );
-          
-        case ExpenseFrequency.quarterly:
-          return DateTime(
-            lastDate.year,
-            lastDate.month + 3,
-            lastDate.day,
-          );
-          
-        case ExpenseFrequency.yearly:
-          return DateTime(
-            lastDate.year + 1,
-            lastDate.month,
-            lastDate.day,
-          );
-          
-        case ExpenseFrequency.oneTime:
-        case ExpenseFrequency.custom:
-          break;
-      }
-    }
-    
-    // Fallback to billingCycle for backward compatibility (legacy subscriptions)
-    if (template.billingCycle != null) {
-      if (template.billingCycle == 'Monthly') {
+    // Use frequency to calculate next date
+    switch (template.frequency) {
+      case ExpenseFrequency.daily:
+        return lastDate.add(const Duration(days: 1));
+        
+      case ExpenseFrequency.weekly:
+        return lastDate.add(const Duration(days: 7));
+        
+      case ExpenseFrequency.biWeekly:
+        return lastDate.add(const Duration(days: 14));
+        
+      case ExpenseFrequency.monthly:
         return DateTime(
           lastDate.year,
           lastDate.month + 1,
           lastDate.day,
         );
-      } else if (template.billingCycle == 'Yearly') {
+        
+      case ExpenseFrequency.quarterly:
+        return DateTime(
+          lastDate.year,
+          lastDate.month + 3,
+          lastDate.day,
+        );
+        
+      case ExpenseFrequency.yearly:
         return DateTime(
           lastDate.year + 1,
           lastDate.month,
           lastDate.day,
         );
-      }
+        
+      case ExpenseFrequency.oneTime:
+      case ExpenseFrequency.custom:
+        return lastDate;
     }
-    
-    return lastDate;
   }
 
   /// Get all recurring expense templates

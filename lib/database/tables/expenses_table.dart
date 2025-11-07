@@ -14,7 +14,6 @@ class ExpensesTable extends Table {
   IntColumn get type => intEnum<ExpenseType>()();
   TextColumn get accountId => text()();
   
-  TextColumn get billingCycle => text().nullable()();
   DateTimeColumn get nextBillingDate => dateTime().nullable()();
   DateTimeColumn get dueDate => dateTime().nullable()();
   

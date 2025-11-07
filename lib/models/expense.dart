@@ -9,23 +9,18 @@ enum ExpenseFrequency {
   custom
 }
 
-enum ExpenseStatus {
-  pending,
-  paid,
-  overdue,
-  cancelled
-}
+enum ExpenseStatus { pending, paid, overdue, cancelled }
 
 enum ExpenseNecessity {
-  essential,    // Needs (food, housing, utilities)
+  essential, // Needs (food, housing, utilities)
   discretionary, // Wants (entertainment, dining out)
-  savings       // Future needs/wants
+  savings // Future needs/wants
 }
 
 enum ExpenseType {
-  subscription,  // Fixed recurring (Netflix, Spotify)
-  fixed,        // Variable recurring (Electricity, Water)
-  variable      // Variable Variable (Groceries, Entertainment)
+  subscription, // Fixed recurring (Netflix, Spotify)
+  fixed, // Variable recurring (Electricity, Water)
+  variable // Variable Variable (Groceries, Entertainment)
 }
 
 class Expense {
@@ -38,16 +33,15 @@ class Expense {
   final String? notes;
   final ExpenseType type;
   final String accountId;
-  
+
   final ExpenseNecessity necessity;
   final bool isRecurring;
   final ExpenseFrequency frequency;
   final ExpenseStatus status;
-  
-  final String? billingCycle;
+
   final DateTime? nextBillingDate;
   final DateTime? dueDate;
-  
+
   final double? variableAmount;
   final DateTime? endDate;
   final String? budgetId;
@@ -64,7 +58,6 @@ class Expense {
     this.notes,
     this.type = ExpenseType.variable,
     required this.accountId,
-    this.billingCycle,
     this.nextBillingDate,
     this.dueDate,
     this.necessity = ExpenseNecessity.discretionary,
@@ -88,7 +81,6 @@ class Expense {
     String? notes,
     ExpenseType? type,
     String? accountId,
-    String? billingCycle,
     DateTime? nextBillingDate,
     DateTime? dueDate,
     ExpenseNecessity? necessity,
@@ -111,7 +103,6 @@ class Expense {
       notes: notes ?? this.notes,
       type: type ?? this.type,
       accountId: accountId ?? this.accountId,
-      billingCycle: billingCycle ?? this.billingCycle,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
       necessity: necessity ?? this.necessity,
@@ -137,7 +128,6 @@ class Expense {
       'notes': notes,
       'type': type.index,
       'accountId': accountId,
-      'billingCycle': billingCycle,
       'nextBillingDate': nextBillingDate?.toIso8601String(),
       'dueDate': dueDate?.toIso8601String(),
       'necessity': necessity.index,
@@ -161,34 +151,29 @@ class Expense {
       createdAt: DateTime.parse(json['createdAt']),
       categoryId: json['categoryId'],
       notes: json['notes'],
-      type: json['type'] != null ? ExpenseType.values[json['type'] as int] : ExpenseType.variable,
+      type: json['type'] != null
+          ? ExpenseType.values[json['type'] as int]
+          : ExpenseType.variable,
       accountId: json['accountId'],
-      billingCycle: json['billingCycle'],
-      nextBillingDate: json['nextBillingDate'] != null 
+      nextBillingDate: json['nextBillingDate'] != null
           ? DateTime.parse(json['nextBillingDate'])
           : null,
-      dueDate: json['dueDate'] != null 
-          ? DateTime.parse(json['dueDate'])
-          : null,
-      necessity: json['necessity'] != null 
-          ? ExpenseNecessity.values[json['necessity'] as int] 
+      dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
+      necessity: json['necessity'] != null
+          ? ExpenseNecessity.values[json['necessity'] as int]
           : ExpenseNecessity.discretionary,
       isRecurring: json['isRecurring'] ?? false,
-      frequency: json['frequency'] != null 
-          ? ExpenseFrequency.values[json['frequency'] as int] 
+      frequency: json['frequency'] != null
+          ? ExpenseFrequency.values[json['frequency'] as int]
           : ExpenseFrequency.oneTime,
-      status: json['status'] != null 
-          ? ExpenseStatus.values[json['status'] as int] 
+      status: json['status'] != null
+          ? ExpenseStatus.values[json['status'] as int]
           : ExpenseStatus.paid,
       variableAmount: json['variableAmount'],
-      endDate: json['endDate'] != null 
-          ? DateTime.parse(json['endDate'])
-          : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       budgetId: json['budgetId'],
       paymentMethod: json['paymentMethod'],
-      tags: json['tags'] != null 
-          ? List<String>.from(json['tags']) 
-          : null,
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
     );
   }
 }
