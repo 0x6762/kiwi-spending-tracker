@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -17,6 +18,7 @@ class RecurringExpenseService {
   RecurringExpenseService(this._expenseRepo);
 
   /// Process all recurring expenses to create new expense entries for due/overdue items
+  /// Processes all overdue cycles for each template until caught up
   Future<int> processRecurringExpenses() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -30,15 +32,29 @@ class RecurringExpenseService {
     ).toList();
     
     for (final template in recurringExpenses) {
-      final nextDate = template.nextBillingDate;
+      // Keep processing until all overdue cycles are caught up
+      // Safety limit: max 100 iterations per template to prevent infinite loops
+      int iterations = 0;
+      const maxIterations = 100;
       
-      // If next date is null, in the past, or today - process it
-      if (nextDate != null && 
-          (nextDate.isBefore(today) || 
-           nextDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
+      var currentTemplate = template;
+      var nextDate = currentTemplate.nextBillingDate;
+      
+      // Process all overdue cycles for this template
+      while (nextDate != null && 
+             iterations < maxIterations &&
+             (nextDate.isBefore(today) || 
+              nextDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
+        
+        // Check if template has expired
+        if (currentTemplate.endDate != null && 
+            currentTemplate.endDate!.isBefore(nextDate)) {
+          // Template expired before this date, stop processing
+          break;
+        }
         
         // Create a new expense entry based on the template
-        final newExpense = template.copyWith(
+        final newExpense = currentTemplate.copyWith(
           id: _uuid.v4(),
           date: nextDate,
           createdAt: now,
@@ -49,13 +65,26 @@ class RecurringExpenseService {
         
         await _expenseRepo.addExpense(newExpense);
         
+        // Calculate the next billing date
+        final calculatedNextDate = _calculateNextDate(currentTemplate);
+        
         // Update the template with the next date
-        final updatedTemplate = template.copyWith(
-          nextBillingDate: _calculateNextDate(template),
+        currentTemplate = currentTemplate.copyWith(
+          nextBillingDate: calculatedNextDate,
         );
         
-        await _expenseRepo.updateExpense(updatedTemplate);
+        await _expenseRepo.updateExpense(currentTemplate);
+        
+        // Update for next iteration
+        nextDate = calculatedNextDate;
         processedCount++;
+        iterations++;
+      }
+      
+      // Safety check: if we hit max iterations, log a warning
+      if (iterations >= maxIterations) {
+        debugPrint('Warning: Reached max iterations for template ${template.id}. '
+                   'There may be more overdue cycles to process.');
       }
     }
     
