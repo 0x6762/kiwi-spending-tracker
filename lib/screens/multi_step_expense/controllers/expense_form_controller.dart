@@ -64,8 +64,15 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedDate = expense.date;
     _selectedExpenseType = expense.type;
     _isFixedExpense = expense.type == ExpenseType.fixed;
-    _isRecurring = expense.isRecurring;
-    _frequency = expense.frequency;
+    
+    // Only subscriptions can be recurring
+    if (expense.type == ExpenseType.subscription) {
+      _isRecurring = expense.isRecurring;
+      _frequency = expense.frequency;
+    } else {
+      _isRecurring = false;
+      _frequency = ExpenseFrequency.oneTime;
+    }
     
     await _loadCategory(expense.categoryId);
     await _loadAccount(expense.accountId);
@@ -121,10 +128,14 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedExpenseType = type;
     _isFixedExpense = type == ExpenseType.fixed;
     
-    // Auto-set recurring for subscriptions
+    // Only subscriptions can have frequency/recurring
     if (type == ExpenseType.subscription) {
       _isRecurring = true;
       _frequency = ExpenseFrequency.monthly; // Default to monthly for subscriptions
+    } else {
+      // Fixed and variable expenses are one-time only
+      _isRecurring = false;
+      _frequency = ExpenseFrequency.oneTime;
     }
     
     notifyListeners();
@@ -139,6 +150,10 @@ class ExpenseFormController extends ChangeNotifier {
   }
 
   void setFrequency(ExpenseFrequency frequency) {
+    // Frequency can only be set for subscriptions
+    if (_selectedExpenseType != ExpenseType.subscription) {
+      return;
+    }
     _frequency = frequency;
     // Automatically set isRecurring based on frequency
     _isRecurring = frequency != ExpenseFrequency.oneTime;
@@ -173,30 +188,14 @@ class ExpenseFormController extends ChangeNotifier {
     // Determine necessity based on category
     final necessity = _determineNecessity();
 
-    // Calculate next billing date for recurring expenses
+    // Calculate next billing date for recurring expenses (subscriptions only)
     DateTime? nextBillingDate;
-    if (_isRecurring) {
+    if (_isRecurring && expenseType == ExpenseType.subscription) {
       switch (_frequency) {
-        case ExpenseFrequency.daily:
-          nextBillingDate = _selectedDate.add(const Duration(days: 1));
-          break;
-        case ExpenseFrequency.weekly:
-          nextBillingDate = _selectedDate.add(const Duration(days: 7));
-          break;
-        case ExpenseFrequency.biWeekly:
-          nextBillingDate = _selectedDate.add(const Duration(days: 14));
-          break;
         case ExpenseFrequency.monthly:
           nextBillingDate = DateTime(
             _selectedDate.year, 
             _selectedDate.month + 1, 
-            _selectedDate.day,
-          );
-          break;
-        case ExpenseFrequency.quarterly:
-          nextBillingDate = DateTime(
-            _selectedDate.year, 
-            _selectedDate.month + 3, 
             _selectedDate.day,
           );
           break;
@@ -207,10 +206,12 @@ class ExpenseFormController extends ChangeNotifier {
             _selectedDate.day,
           );
           break;
-        case ExpenseFrequency.oneTime:
-        case ExpenseFrequency.custom:
+        default:
           nextBillingDate = null;
       }
+    } else {
+      // Ensure non-subscriptions are not recurring
+      nextBillingDate = null;
     }
     
     return Expense(
@@ -226,8 +227,8 @@ class ExpenseFormController extends ChangeNotifier {
       nextBillingDate: nextBillingDate,
       dueDate: null,
       necessity: necessity,
-      isRecurring: _isRecurring,
-      frequency: _frequency,
+      isRecurring: expenseType == ExpenseType.subscription && _isRecurring,
+      frequency: expenseType == ExpenseType.subscription ? _frequency : ExpenseFrequency.oneTime,
       status: ExpenseStatus.paid,
       variableAmount: null,
       endDate: null,

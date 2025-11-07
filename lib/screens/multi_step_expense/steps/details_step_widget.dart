@@ -69,25 +69,15 @@ class DetailsStepWidget extends StatelessWidget {
   }
 
   void _showFrequencyPicker(BuildContext context, ExpenseFormController controller) {
-    final isSubscription = controller.selectedExpenseType == ExpenseType.subscription;
-    
-    final frequencyOptions = isSubscription 
-      ? [
-          {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
-          {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
-        ]
-      : [
-          {'label': 'One-time', 'value': ExpenseFrequency.oneTime},
-          {'label': 'Weekly', 'value': ExpenseFrequency.weekly},
-          {'label': 'Bi-weekly', 'value': ExpenseFrequency.biWeekly},
-          {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
-          {'label': 'Quarterly', 'value': ExpenseFrequency.quarterly},
-          {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
-        ];
+    // Frequency is only available for subscriptions
+    final frequencyOptions = [
+      {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
+      {'label': 'Yearly', 'value': ExpenseFrequency.yearly},
+    ];
 
     PickerSheet.show(
       context: context,
-      title: isSubscription ? 'Billing Cycle' : 'Frequency',
+      title: 'Billing Cycle',
       children: frequencyOptions.map(
         (option) => ListTile(
           title: Text(option['label'] as String),
@@ -234,27 +224,26 @@ class DetailsStepWidget extends StatelessWidget {
                       ),
                     ),
                     
-                    const SizedBox(height: 24),
-                    
-                    // Frequency section - always visible
-                    // Frequency label
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, bottom: 16),
-                      child: Text(
-                        controller.selectedExpenseType == ExpenseType.subscription 
-                          ? 'Billing Cycle' 
-                          : 'Frequency',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                    // Frequency section - only for subscriptions
+                    if (controller.selectedExpenseType == ExpenseType.subscription) ...[
+                      const SizedBox(height: 24),
+                      // Frequency label
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 16),
+                        child: Text(
+                          'Billing Cycle',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
-                    ),
-                    // Frequency picker
-                    PickerButton(
-                      label: _getFrequencyLabel(controller.frequency),
-                      icon: AppIcons.calendar,
-                      onTap: () => _showFrequencyPicker(context, controller),
-                    ),
+                      // Frequency picker
+                      PickerButton(
+                        label: _getFrequencyLabel(controller.frequency),
+                        icon: AppIcons.calendar,
+                        onTap: () => _showFrequencyPicker(context, controller),
+                      ),
+                    ],
                   ],
                 ),
               ),

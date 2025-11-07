@@ -3,14 +3,13 @@ import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import 'package:uuid/uuid.dart';
 
-/// Service for managing and automating recurring expenses of all types.
+/// Service for managing and automating recurring expenses.
 /// 
-/// Handles processing of all recurring expenses including:
-/// - Subscriptions (ExpenseType.subscription)
-/// - Fixed expenses (ExpenseType.fixed)
-/// - Variable expenses (ExpenseType.variable)
+/// Handles processing of subscription expenses only (ExpenseType.subscription).
+/// Subscriptions are the only expense type that can be auto-recurring with frequency.
 /// 
-/// Uses frequency enum for scheduling recurring expenses.
+/// Fixed and variable expenses are manually entered and do not use auto-recurring.
+/// Uses frequency enum (monthly/yearly) for scheduling subscription expenses.
 class RecurringExpenseService {
   final ExpenseRepository _expenseRepo;
   final _uuid = Uuid();
@@ -24,9 +23,10 @@ class RecurringExpenseService {
     final today = DateTime(now.year, now.month, now.day);
     int processedCount = 0;
     
-    // Get all active recurring expense templates
+    // Get all active recurring expense templates (subscriptions only)
     final expenses = await _expenseRepo.getAllExpenses();
     final recurringExpenses = expenses.where((expense) => 
+      expense.type == ExpenseType.subscription &&
       expense.isRecurring == true &&
       (expense.endDate == null || expense.endDate!.isAfter(today))
     ).toList();
@@ -92,31 +92,16 @@ class RecurringExpenseService {
   }
 
   /// Calculate the next occurrence date based on frequency.
+  /// Only supports monthly and yearly frequencies (subscriptions only)
   DateTime _calculateNextDate(Expense template) {
     final lastDate = template.nextBillingDate ?? template.date;
     
-    // Use frequency to calculate next date
+    // Use frequency to calculate next date (subscriptions only support monthly/yearly)
     switch (template.frequency) {
-      case ExpenseFrequency.daily:
-        return lastDate.add(const Duration(days: 1));
-        
-      case ExpenseFrequency.weekly:
-        return lastDate.add(const Duration(days: 7));
-        
-      case ExpenseFrequency.biWeekly:
-        return lastDate.add(const Duration(days: 14));
-        
       case ExpenseFrequency.monthly:
         return DateTime(
           lastDate.year,
           lastDate.month + 1,
-          lastDate.day,
-        );
-        
-      case ExpenseFrequency.quarterly:
-        return DateTime(
-          lastDate.year,
-          lastDate.month + 3,
           lastDate.day,
         );
         
@@ -127,16 +112,19 @@ class RecurringExpenseService {
           lastDate.day,
         );
         
-      case ExpenseFrequency.oneTime:
-      case ExpenseFrequency.custom:
+      default:
+        // For unsupported frequencies, return the last date
         return lastDate;
     }
   }
 
-  /// Get all recurring expense templates
+  /// Get all recurring expense templates (subscriptions only)
   Future<List<Expense>> getRecurringTemplates() async {
     final expenses = await _expenseRepo.getAllExpenses();
-    return expenses.where((expense) => expense.isRecurring == true).toList();
+    return expenses.where((expense) => 
+      expense.type == ExpenseType.subscription &&
+      expense.isRecurring == true
+    ).toList();
   }
 
   /// Get recurring templates by type
@@ -218,12 +206,12 @@ class RecurringExpenseService {
     return total;
   }
 
-  /// Example: Create a recurring expense template
-  /// This is a helper method to demonstrate how to create recurring expenses
+  /// Example: Create a recurring subscription template
+  /// This is a helper method to demonstrate how to create recurring subscriptions
+  /// Only supports subscription type with monthly or yearly frequency
   Future<Expense> createRecurringTemplate({
     required String title,
     required double amount,
-    required ExpenseType type,
     required ExpenseFrequency frequency,
     required String categoryId,
     required String accountId,
@@ -233,29 +221,16 @@ class RecurringExpenseService {
     final now = DateTime.now();
     final start = startDate ?? now;
     
-    // Calculate the first next billing date
+    // Calculate the first next billing date (only monthly/yearly supported)
     DateTime? nextBillingDate;
     switch (frequency) {
-      case ExpenseFrequency.daily:
-        nextBillingDate = start.add(const Duration(days: 1));
-        break;
-      case ExpenseFrequency.weekly:
-        nextBillingDate = start.add(const Duration(days: 7));
-        break;
-      case ExpenseFrequency.biWeekly:
-        nextBillingDate = start.add(const Duration(days: 14));
-        break;
       case ExpenseFrequency.monthly:
         nextBillingDate = DateTime(start.year, start.month + 1, start.day);
-        break;
-      case ExpenseFrequency.quarterly:
-        nextBillingDate = DateTime(start.year, start.month + 3, start.day);
         break;
       case ExpenseFrequency.yearly:
         nextBillingDate = DateTime(start.year + 1, start.month, start.day);
         break;
-      case ExpenseFrequency.oneTime:
-      case ExpenseFrequency.custom:
+      default:
         nextBillingDate = null;
     }
     
@@ -266,7 +241,7 @@ class RecurringExpenseService {
       date: start,
       createdAt: now,
       categoryId: categoryId,
-      type: type,
+      type: ExpenseType.subscription, // Only subscriptions can be recurring
       accountId: accountId,
       isRecurring: true,
       frequency: frequency,
