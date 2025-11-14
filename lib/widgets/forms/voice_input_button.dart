@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import '../../models/expense.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/category_repository.dart';
-import '../../utils/formatters.dart';
 
 class VoiceInputButton extends StatefulWidget {
   final ExpenseRepository repository;
@@ -156,17 +155,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       widget.onExpenseAdded!();
     }
 
-    // Show success message and close dialog
+    // Close dialog
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Added expense: ${formatCurrency(amount)} for $description',
-          ),
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-        ),
-      );
     }
   }
 

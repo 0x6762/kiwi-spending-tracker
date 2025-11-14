@@ -130,9 +130,6 @@ class _MainScreenState extends State<MainScreen>
           try {
             await widget.repository.addExpense(expense);
             _loadExpenses();
-            if (mounted) {
-              ErrorHandler.showSuccess(context, 'Expense added successfully');
-            }
           } catch (e) {
             if (mounted) {
               ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
@@ -175,9 +172,6 @@ class _MainScreenState extends State<MainScreen>
                   _expenses[index] = updatedExpense;
                 }
               });
-              if (mounted) {
-                ErrorHandler.showSuccess(context, 'Expense updated successfully');
-              }
             } catch (e) {
               if (mounted) {
                 ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
@@ -200,9 +194,6 @@ class _MainScreenState extends State<MainScreen>
       setState(() {
         _expenses.removeWhere((e) => e.id == expense.id);
       });
-      if (mounted) {
-        ErrorHandler.showSuccess(context, 'Expense deleted successfully');
-      }
     } catch (e) {
       if (mounted) {
         ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
