@@ -342,7 +342,7 @@ class _MainScreenState extends State<MainScreen>
                               children: [
                                 Text(
                                   'See all',
-                                  style: theme.textTheme.labelSmall?.copyWith(
+                                  style: theme.textTheme.titleSmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
