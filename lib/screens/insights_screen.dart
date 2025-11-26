@@ -7,9 +7,9 @@ import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
 import '../widgets/expense/category_statistics.dart';
 import '../widgets/expense/expense_summary.dart';
-import '../widgets/navigation/scroll_direction_detector.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
+import '../utils/scroll_aware_button_controller.dart';
 import 'settings_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
@@ -36,20 +36,48 @@ class InsightsScreen extends StatefulWidget {
   State<InsightsScreen> createState() => _InsightsScreenState();
 }
 
-class _InsightsScreenState extends State<InsightsScreen> {
+class _InsightsScreenState extends State<InsightsScreen>
+    with SingleTickerProviderStateMixin {
   late DateTime _selectedMonth;
   final _monthFormat = DateFormat.yMMMM();
   final ScrollController _scrollController = ScrollController();
+  late AnimationController _navAnimationController;
+  late ScrollAwareButtonController _navController;
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+    
+    // Initialize animation controller for nav bar hide/show
+    _navAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    
+    // Initialize scroll-aware controller
+    _navController = ScrollAwareButtonController(
+      animationController: _navAnimationController,
+      minScrollOffset: 100.0,
+      scrollThreshold: 10.0,
+      onShow: _showNavigation,
+      onHide: _hideNavigation,
+    );
+    
+    // Add scroll listener
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      _navController.handleScroll(_scrollController.position);
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _navAnimationController.dispose();
     super.dispose();
   }
 
@@ -144,22 +172,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
         ],
       ),
-      body: ScrollDirectionDetector(
-        scrollController: _scrollController,
-        onScrollDirectionChanged: (isScrollingUp) {
-          // Control navigation visibility based on scroll direction
-          if (isScrollingUp) {
-            // Scrolling up - show navigation
-            _showNavigation();
-          } else {
-            // Scrolling down - hide navigation
-            _hideNavigation();
-          }
-        },
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Wrap expensive widgets in RepaintBoundary for better performance
@@ -205,8 +221,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
