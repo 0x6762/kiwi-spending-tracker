@@ -442,4 +442,121 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch();
   }
+
+  // Pagination methods
+  Future<List<ExpenseTableData>> getExpensesPaginated({
+    required int limit,
+    required int offset,
+    DateTime? startDate,
+    DateTime? endDate,
+    List<int>? types,
+    List<String>? categoryIds,
+    List<String>? accountIds,
+    String? searchQuery,
+  }) {
+    final query = select(expensesTable);
+
+    // Build where conditions
+    final conditions = <Expression<bool>>[];
+
+    if (startDate != null) {
+      conditions.add(expensesTable.date.isBiggerOrEqualValue(startDate));
+    }
+
+    if (endDate != null) {
+      conditions.add(expensesTable.date.isSmallerOrEqualValue(endDate));
+    }
+
+    if (types != null && types.isNotEmpty) {
+      conditions.add(expensesTable.type.isIn(types));
+    }
+
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      conditions.add(expensesTable.categoryId.isIn(categoryIds));
+    }
+
+    if (accountIds != null && accountIds.isNotEmpty) {
+      conditions.add(expensesTable.accountId.isIn(accountIds));
+    }
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final searchLower = '%${searchQuery.toLowerCase()}%';
+      conditions.add(
+        expensesTable.title.lower().like(searchLower) |
+        expensesTable.notes.lower().like(searchLower)
+      );
+    }
+
+    // Apply all conditions
+    if (conditions.isNotEmpty) {
+      query.where((_) {
+        Expression<bool> combined = conditions.first;
+        for (var i = 1; i < conditions.length; i++) {
+          combined = combined & conditions[i];
+        }
+        return combined;
+      });
+    }
+
+    // Order by date descending, then apply pagination
+    query
+      ..orderBy([(t) => OrderingTerm.desc(t.date)])
+      ..limit(limit, offset: offset);
+
+    return query.get();
+  }
+
+  Future<int> getExpenseCount({
+    DateTime? startDate,
+    DateTime? endDate,
+    List<int>? types,
+    List<String>? categoryIds,
+    List<String>? accountIds,
+    String? searchQuery,
+  }) async {
+    final query = selectOnly(expensesTable)..addColumns([expensesTable.id.count()]);
+
+    // Build where conditions
+    final conditions = <Expression<bool>>[];
+
+    if (startDate != null) {
+      conditions.add(expensesTable.date.isBiggerOrEqualValue(startDate));
+    }
+
+    if (endDate != null) {
+      conditions.add(expensesTable.date.isSmallerOrEqualValue(endDate));
+    }
+
+    if (types != null && types.isNotEmpty) {
+      conditions.add(expensesTable.type.isIn(types));
+    }
+
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      conditions.add(expensesTable.categoryId.isIn(categoryIds));
+    }
+
+    if (accountIds != null && accountIds.isNotEmpty) {
+      conditions.add(expensesTable.accountId.isIn(accountIds));
+    }
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      final searchLower = '%${searchQuery.toLowerCase()}%';
+      conditions.add(
+        expensesTable.title.lower().like(searchLower) |
+        expensesTable.notes.lower().like(searchLower)
+      );
+    }
+
+    // Apply all conditions
+    if (conditions.isNotEmpty) {
+      Expression<bool> combined = conditions.first;
+      for (var i = 1; i < conditions.length; i++) {
+        combined = combined & conditions[i];
+      }
+      query.where(combined);
+    }
+
+    final result = await query.getSingle();
+    return result.read(expensesTable.id.count()) ?? 0;
+  }
 }

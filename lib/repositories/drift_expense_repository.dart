@@ -1,6 +1,12 @@
 import '../database/database.dart';
 import '../database/extensions/expense_extensions.dart';
+import '../database/extensions/category_extensions.dart';
+import '../database/extensions/account_extensions.dart';
 import '../models/expense.dart';
+import '../models/expense_category.dart';
+import '../models/account.dart';
+import '../models/expense_filters.dart';
+import '../models/paginated_expenses.dart';
 import 'expense_repository.dart';
 
 class DriftExpenseRepository implements ExpenseRepository {
@@ -130,5 +136,103 @@ class DriftExpenseRepository implements ExpenseRepository {
     return _db.watchExpensesByDateRange(start, end).map(
           (expenses) => expenses.map((e) => e.toDomain()).toList(),
         );
+  }
+
+  @override
+  Future<PaginatedExpenses> getExpensesPaginated({
+    int page = 0,
+    int pageSize = 20,
+    ExpenseFilters? filters,
+  }) async {
+    try {
+      final offset = page * pageSize;
+
+      // Convert filter types to indices
+      final typeIndices = filters?.types?.map((t) => t.index).toList();
+
+      // Get paginated expenses
+      final expenseData = await _db.getExpensesPaginated(
+        limit: pageSize,
+        offset: offset,
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        types: typeIndices,
+        categoryIds: filters?.categoryIds,
+        accountIds: filters?.accountIds,
+        searchQuery: filters?.searchQuery,
+      );
+
+      final expenses = expenseData.map((e) => e.toDomain()).toList();
+
+      // Get total count
+      final totalCount = await _db.getExpenseCount(
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        types: typeIndices,
+        categoryIds: filters?.categoryIds,
+        accountIds: filters?.accountIds,
+        searchQuery: filters?.searchQuery,
+      );
+
+      // Preload categories and accounts
+      final categoryIds = expenses
+          .where((e) => e.categoryId != null)
+          .map((e) => e.categoryId!)
+          .toSet()
+          .toList();
+
+      final accountIds = expenses.map((e) => e.accountId).toSet().toList();
+
+      final categoriesMap = <String, ExpenseCategory>{};
+      if (categoryIds.isNotEmpty) {
+        final categoriesData = await _db.select(_db.categoriesTable).get();
+        for (final catData in categoriesData) {
+          if (categoryIds.contains(catData.id)) {
+            categoriesMap[catData.id] = catData.toDomain();
+          }
+        }
+      }
+
+      final accountsMap = <String, Account>{};
+      if (accountIds.isNotEmpty) {
+        final accountsData = await _db.select(_db.accountsTable).get();
+        for (final accData in accountsData) {
+          if (accountIds.contains(accData.id)) {
+            accountsMap[accData.id] = accData.toDomain();
+          }
+        }
+      }
+
+      final hasMore = (offset + expenses.length) < totalCount;
+
+      return PaginatedExpenses(
+        expenses: expenses,
+        totalCount: totalCount,
+        currentPage: page,
+        hasMore: hasMore,
+        categories: categoriesMap,
+        accounts: accountsMap,
+      );
+    } catch (e) {
+      throw Exception('Failed to load paginated expenses: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<int> getExpenseCount({ExpenseFilters? filters}) async {
+    try {
+      final typeIndices = filters?.types?.map((t) => t.index).toList();
+
+      return await _db.getExpenseCount(
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        types: typeIndices,
+        categoryIds: filters?.categoryIds,
+        accountIds: filters?.accountIds,
+        searchQuery: filters?.searchQuery,
+      );
+    } catch (e) {
+      throw Exception('Failed to get expense count: ${e.toString()}');
+    }
   }
 } 

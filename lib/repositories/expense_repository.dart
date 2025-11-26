@@ -1,4 +1,6 @@
 import '../models/expense.dart';
+import '../models/expense_filters.dart';
+import '../models/paginated_expenses.dart';
 
 /// Abstract repository interface
 abstract class ExpenseRepository {
@@ -16,4 +18,14 @@ abstract class ExpenseRepository {
 
   Future<List<Expense>> getEffectiveExpenses({DateTime? asOfDate});
   Future<List<Expense>> getUpcomingExpenses({DateTime? fromDate});
+
+  /// Get expenses with pagination and filters
+  Future<PaginatedExpenses> getExpensesPaginated({
+    int page = 0,
+    int pageSize = 20,
+    ExpenseFilters? filters,
+  });
+
+  /// Get total count of expenses matching filters
+  Future<int> getExpenseCount({ExpenseFilters? filters});
 }

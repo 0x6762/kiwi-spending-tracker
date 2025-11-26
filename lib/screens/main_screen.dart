@@ -320,11 +320,9 @@ class _MainScreenState extends State<MainScreen>
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => AllExpensesScreen(
-                                    expenses: _expenses,
-                                    categoryRepo: widget.categoryRepo,
                                     repository: widget.repository,
+                                    categoryRepo: widget.categoryRepo,
                                     accountRepo: widget.accountRepo,
-                                    onDelete: _deleteExpense,
                                     onExpenseUpdated: _loadExpenses,
                                   ),
                                 ),
