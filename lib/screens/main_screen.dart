@@ -8,13 +8,13 @@ import '../services/expense_analytics_service.dart';
 import '../services/navigation_service.dart';
 import '../widgets/expense/expense_list.dart';
 import '../widgets/navigation/bottom_navigation.dart';
-import '../widgets/navigation/scroll_direction_detector.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
 import '../widgets/expense/today_spending_card.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import '../utils/error_handler.dart';
+import '../utils/scroll_aware_button_controller.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -44,6 +44,8 @@ class _MainScreenState extends State<MainScreen>
   bool _isLoading = true;
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
+  late ScrollController _scrollController;
+  ScrollAwareButtonController? _navController;
   final GlobalKey<BottomNavigationState> _navigationKey =
       GlobalKey<BottomNavigationState>();
 
@@ -61,6 +63,8 @@ class _MainScreenState extends State<MainScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     _loadExpenses();
     _initializeAnimation();
   }
@@ -80,6 +84,12 @@ class _MainScreenState extends State<MainScreen>
     ));
   }
 
+  void _onScroll() {
+    if (_navController != null && _scrollController.hasClients) {
+      _navController!.handleScroll(_scrollController.position);
+    }
+  }
+
   void _showNavigation() {
     _navigationKey.currentState?.showNavigation();
   }
@@ -90,6 +100,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _arrowAnimationController.dispose();
     super.dispose();
   }
@@ -264,28 +275,18 @@ class _MainScreenState extends State<MainScreen>
       body: RefreshIndicator(
         onRefresh: _loadExpenses,
         color: theme.colorScheme.primary,
-        child: ScrollDirectionDetector(
-          onScrollDirectionChanged: (isScrollingUp) {
-            // Control navigation visibility based on scroll direction
-            if (isScrollingUp) {
-              // Scrolling up - show navigation
-              _showNavigation();
-            } else {
-              // Scrolling down - hide navigation
-              _hideNavigation();
-            }
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(
-              left: 8,
-              right: 8,
-              bottom: 120,
-              top: 0,
-            ),
-            clipBehavior: Clip.none,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(
+            left: 8,
+            right: 8,
+            bottom: 120,
+            top: 0,
+          ),
+          clipBehavior: Clip.none,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
                 _isLoading
                     ? const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16),
@@ -370,7 +371,6 @@ class _MainScreenState extends State<MainScreen>
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -378,6 +378,17 @@ class _MainScreenState extends State<MainScreen>
   Widget build(BuildContext context) {
     return Consumer<NavigationService>(
       builder: (context, navigationService, child) {
+        // Initialize nav controller after first build when we have the key
+        if (_navController == null && _navigationKey.currentState != null) {
+          _navController = ScrollAwareButtonController(
+            animationController: _navigationKey.currentState!.animationController,
+            minScrollOffset: 100.0,
+            scrollThreshold: 10.0,
+            onShow: _showNavigation,
+            onHide: _hideNavigation,
+          );
+        }
+
         return Scaffold(
           extendBody: true,
           resizeToAvoidBottomInset: false,

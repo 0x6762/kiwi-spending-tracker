@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'bottom_navigation_bar.dart';
 import 'navigation_item.dart';
+import '../../utils/scroll_aware_button_controller.dart';
 
 class BottomNavigation extends StatefulWidget {
   final List<NavigationItem> items;
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
+  final ScrollAwareButtonController? controller;
   final VoidCallback? onShow;
   final VoidCallback? onHide;
 
@@ -14,6 +16,7 @@ class BottomNavigation extends StatefulWidget {
     required this.items,
     required this.selectedIndex,
     required this.onDestinationSelected,
+    this.controller,
     this.onShow,
     this.onHide,
   });
@@ -24,11 +27,11 @@ class BottomNavigation extends StatefulWidget {
 
 class BottomNavigationState extends State<BottomNavigation>
     with SingleTickerProviderStateMixin {
-  bool _isVisible = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
+  ScrollAwareButtonController? _internalController;
 
   static const Duration _animationDuration = Duration(milliseconds: 250);
 
@@ -63,6 +66,15 @@ class BottomNavigationState extends State<BottomNavigation>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
+
+    // Create internal controller if none provided
+    if (widget.controller == null) {
+      _internalController = ScrollAwareButtonController(
+        animationController: _animationController,
+        onShow: widget.onShow,
+        onHide: widget.onHide,
+      );
+    }
   }
 
   @override
@@ -71,25 +83,23 @@ class BottomNavigationState extends State<BottomNavigation>
     super.dispose();
   }
 
-  // Expose methods for external control
+  ScrollAwareButtonController get _controller =>
+      widget.controller ?? _internalController!;
+
+  // Expose animation controller for external use
+  AnimationController get animationController => _animationController;
+
+  // Expose methods for backward compatibility (now delegates to controller)
   void showNavigation() {
-    if (!_isVisible) {
-      setState(() {
-        _isVisible = true;
-      });
-      _animationController.reverse();
-      widget.onShow?.call();
-    }
+    setState(() {
+      _controller.show();
+    });
   }
 
   void hideNavigation() {
-    if (_isVisible) {
-      setState(() {
-        _isVisible = false;
-      });
-      _animationController.forward();
-      widget.onHide?.call();
-    }
+    setState(() {
+      _controller.hide();
+    });
   }
 
   @override

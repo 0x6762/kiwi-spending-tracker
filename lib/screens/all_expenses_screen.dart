@@ -9,6 +9,7 @@ import '../repositories/account_repository.dart';
 import '../widgets/expense/expense_list.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
+import '../utils/scroll_aware_button_controller.dart';
 import 'expense_detail_screen.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
@@ -32,15 +33,63 @@ class AllExpensesScreen extends StatefulWidget {
   State<AllExpensesScreen> createState() => _AllExpensesScreenState();
 }
 
-class _AllExpensesScreenState extends State<AllExpensesScreen> {
+class _AllExpensesScreenState extends State<AllExpensesScreen>
+    with SingleTickerProviderStateMixin {
   late ScrollController _scrollController;
   late ExpenseListProvider _provider;
+  late AnimationController _buttonAnimationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  late ScrollAwareButtonController _buttonController;
+
+  static const Duration _animationDuration = Duration(milliseconds: 250);
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controller
+    _buttonAnimationController = AnimationController(
+      duration: _animationDuration,
+      vsync: this,
+    );
+
+    // Initialize animations (same as nav bar)
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _slideAnimation = Tween<double>(
+      begin: 0.0,
+      end: 50.0,
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // Initialize scroll controller and button controller
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+
+    _buttonController = ScrollAwareButtonController(
+      animationController: _buttonAnimationController,
+      minScrollOffset: 100.0,
+      scrollThreshold: 10.0,
+    );
+
     _provider = ExpenseListProvider(widget.repository);
     _provider.loadExpenses();
   }
@@ -48,14 +97,21 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _buttonAnimationController.dispose();
     _provider.dispose();
     super.dispose();
   }
 
   void _onScroll() {
+    // Handle pagination
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _provider.loadMore();
+    }
+
+    // Handle button visibility
+    if (_scrollController.hasClients) {
+      _buttonController.handleScroll(_scrollController.position);
     }
   }
 
@@ -151,7 +207,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
       showGeneralDialog(
         context: context,
         barrierDismissible: true,
-        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
         barrierColor: Colors.black.withOpacity(0.5),
         transitionDuration: const Duration(milliseconds: 200),
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -194,125 +251,140 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           children: [
             // Main content
             Consumer<ExpenseListProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (provider.error != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: ${provider.error}'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => provider.refresh(),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (provider.expenses.isEmpty) {
-              return const Center(
-                child: Text('No expenses found'),
-              );
-            }
-
-            final groupedExpenses = _groupExpensesByDate(provider.expenses);
-
-            // Sort the entries to ensure upcoming is first, then by date descending
-            final sortedEntries = groupedExpenses.entries.toList()
-              ..sort((a, b) {
-                if (a.key == DateTime(9999, 12, 31)) return -1;
-                if (b.key == DateTime(9999, 12, 31)) return 1;
-                return b.key.compareTo(a.key);
-              });
-
-            return ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8),
-              itemCount: sortedEntries.length + (provider.hasMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Load more indicator
-                if (index == sortedEntries.length) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: provider.isLoadingMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : const SizedBox.shrink(),
-                  );
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
                 }
 
-                final entry = sortedEntries[index];
-                final dayTotal = entry.value
-                    .fold<double>(0, (sum, expense) => sum + expense.amount);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _formatSectionTitle(entry.key),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          Text(
-                            'Total: ${formatCurrency(dayTotal)}',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ExpenseList(
-                      expenses: entry.value,
-                      categoryRepo: widget.categoryRepo,
-                      onTap: _viewExpenseDetails,
-                      onDelete: _handleDelete,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-            // Add expense button - styled like nav bar button
-            Positioned(
-              bottom: 24,
-              right: 16,
-              child: Hero(
-                tag: 'add_expense_button',
-                child: GestureDetector(
-                  onTap: _showAddExpenseDialog,
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(56),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          blurRadius: 25,
-                          offset: const Offset(0, 0),
+                if (provider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: ${provider.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => provider.refresh(),
+                          child: const Text('Retry'),
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: 32,
-                        color: theme.colorScheme.surfaceContainerLow,
+                  );
+                }
+
+                if (provider.expenses.isEmpty) {
+                  return const Center(
+                    child: Text('No expenses found'),
+                  );
+                }
+
+                final groupedExpenses = _groupExpensesByDate(provider.expenses);
+
+                // Sort the entries to ensure upcoming is first, then by date descending
+                final sortedEntries = groupedExpenses.entries.toList()
+                  ..sort((a, b) {
+                    if (a.key == DateTime(9999, 12, 31)) return -1;
+                    if (b.key == DateTime(9999, 12, 31)) return 1;
+                    return b.key.compareTo(a.key);
+                  });
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(8),
+                  itemCount: sortedEntries.length + (provider.hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    // Load more indicator
+                    if (index == sortedEntries.length) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: provider.isLoadingMore
+                            ? const Center(child: CircularProgressIndicator())
+                            : const SizedBox.shrink(),
+                      );
+                    }
+
+                    final entry = sortedEntries[index];
+                    final dayTotal = entry.value.fold<double>(
+                        0, (sum, expense) => sum + expense.amount);
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatSectionTitle(entry.key),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                'Total: ${formatCurrency(dayTotal)}',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ExpenseList(
+                          expenses: entry.value,
+                          categoryRepo: widget.categoryRepo,
+                          onTap: _viewExpenseDetails,
+                          onDelete: _handleDelete,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            // Add expense button - styled like nav bar button with animations
+            Positioned(
+              bottom: 24,
+              right: 16,
+              child: AnimatedBuilder(
+                animation: _buttonAnimationController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _slideAnimation.value),
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: 'add_expense_button',
+                  child: GestureDetector(
+                    onTap: _showAddExpenseDialog,
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(56),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 25,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.add_rounded,
+                          size: 32,
+                          color: theme.colorScheme.surfaceContainerLow,
+                        ),
                       ),
                     ),
                   ),
@@ -325,5 +397,3 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     );
   }
 }
-
-
