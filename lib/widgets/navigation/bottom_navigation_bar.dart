@@ -57,12 +57,15 @@ class AppBottomNavigationBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16), // 20px spacing between groups
-          // Right side: Add button (no background)
-          _buildNavigationItem(
-            context,
-            items[2],
-            selectedIndex == 2,
-            () => onDestinationSelected(2),
+          // Right side: Add button (no background) - wrapped in Hero for animation
+          Hero(
+            tag: 'add_expense_button',
+            child: _buildNavigationItem(
+              context,
+              items[2],
+              selectedIndex == 2,
+              () => onDestinationSelected(2),
+            ),
           ),
         ],
       ),

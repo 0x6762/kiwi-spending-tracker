@@ -10,12 +10,14 @@ import '../widgets/expense/expense_list.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
+import 'multi_step_expense/multi_step_expense_screen.dart';
 
 class AllExpensesScreen extends StatefulWidget {
   final ExpenseRepository repository;
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final void Function() onExpenseUpdated;
+  final void Function()? onAddExpense;
 
   const AllExpensesScreen({
     super.key,
@@ -23,6 +25,7 @@ class AllExpensesScreen extends StatefulWidget {
     required this.categoryRepo,
     required this.accountRepo,
     required this.onExpenseUpdated,
+    this.onAddExpense,
   });
 
   @override
@@ -141,6 +144,40 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     }
   }
 
+  void _showAddExpenseDialog() {
+    if (widget.onAddExpense != null) {
+      widget.onAddExpense!();
+    } else {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiStepExpenseScreen(
+          type: ExpenseType.variable,
+          categoryRepo: widget.categoryRepo,
+          accountRepo: widget.accountRepo,
+          onExpenseAdded: (expense) async {
+            await widget.repository.addExpense(expense);
+            _provider.refresh();
+            widget.onExpenseUpdated();
+          },
+        ),
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -153,7 +190,10 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
           title: 'All Expenses',
           leading: const Icon(Icons.arrow_back),
         ),
-        body: Consumer<ExpenseListProvider>(
+        body: Stack(
+          children: [
+            // Main content
+            Consumer<ExpenseListProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -246,8 +286,44 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
             );
           },
         ),
+            // Add expense button - styled like nav bar button
+            Positioned(
+              bottom: 24,
+              right: 16,
+              child: Hero(
+                tag: 'add_expense_button',
+                child: GestureDetector(
+                  onTap: _showAddExpenseDialog,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(56),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 25,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.add_rounded,
+                        size: 32,
+                        color: theme.colorScheme.surfaceContainerLow,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
 

@@ -324,6 +324,7 @@ class _MainScreenState extends State<MainScreen>
                                     categoryRepo: widget.categoryRepo,
                                     accountRepo: widget.accountRepo,
                                     onExpenseUpdated: _loadExpenses,
+                                    onAddExpense: _showAddExpenseDialog,
                                   ),
                                 ),
                               );
