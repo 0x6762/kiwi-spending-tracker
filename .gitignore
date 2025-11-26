@@ -51,7 +51,7 @@ app.*.map.json
 /android/app/release
 
 # Platform specific directories (if not targeting these platforms)
-/ios/
+# /ios/
 /macos/
 /linux/
 /windows/
