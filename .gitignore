@@ -12,6 +12,21 @@
 .swiftpm/
 migrate_working_dir/
 
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -34,7 +49,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Note: pubspec.lock should be committed for reproducible builds
 *.lock
+!pubspec.lock
 
 # Web related
 lib/generated_plugin_registrant.dart
