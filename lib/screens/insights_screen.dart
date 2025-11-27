@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/account_repository.dart';
 import '../services/expense_analytics_service.dart';
+import '../providers/expense_state_manager.dart';
 import '../widgets/expense/category_statistics.dart';
 import '../widgets/expense/expense_summary.dart';
 import '../widgets/common/app_bar.dart';
@@ -13,7 +15,6 @@ import '../utils/scroll_aware_button_controller.dart';
 import 'settings_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
-  final List<Expense> expenses;
   final CategoryRepository categoryRepo;
   final ExpenseAnalyticsService analyticsService;
   final ExpenseRepository repository;
@@ -23,7 +24,6 @@ class InsightsScreen extends StatefulWidget {
 
   const InsightsScreen({
     super.key,
-    required this.expenses,
     required this.categoryRepo,
     required this.analyticsService,
     required this.repository,
@@ -48,13 +48,13 @@ class _InsightsScreenState extends State<InsightsScreen>
   void initState() {
     super.initState();
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
-    
+
     // Initialize animation controller for nav bar hide/show
     _navAnimationController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
-    
+
     // Initialize scroll-aware controller
     _navController = ScrollAwareButtonController(
       animationController: _navAnimationController,
@@ -63,7 +63,7 @@ class _InsightsScreenState extends State<InsightsScreen>
       onShow: _showNavigation,
       onHide: _hideNavigation,
     );
-    
+
     // Add scroll listener
     _scrollController.addListener(_onScroll);
   }
@@ -81,21 +81,21 @@ class _InsightsScreenState extends State<InsightsScreen>
     super.dispose();
   }
 
-  List<Expense> get _filteredExpenses {
-    return widget.expenses
+  List<Expense> _filteredExpenses(List<Expense> expenses) {
+    return expenses
         .where((expense) =>
             expense.date.year == _selectedMonth.year &&
             expense.date.month == _selectedMonth.month)
         .toList();
   }
 
-  void _showMonthPicker() async {
+  void _showMonthPicker(List<Expense> expenses) async {
     final DateTime? picked = await showDialog<DateTime>(
       context: context,
       builder: (BuildContext context) {
         return MonthPickerDialog(
           selectedMonth: _selectedMonth,
-          expenses: widget.expenses,
+          expenses: expenses,
         );
       },
     );
@@ -119,109 +119,115 @@ class _InsightsScreenState extends State<InsightsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: KiwiAppBar(
-        titleWidget: TextButton(
-          onPressed: _showMonthPicker,
-          style: TextButton.styleFrom(
-            backgroundColor: theme.colorScheme.surface,
-            foregroundColor: theme.colorScheme.surface,
-            padding: const EdgeInsets.only(
-              left: 8,
-              right: 10,
-              top: 12,
-              bottom: 12,
+    return Consumer<ExpenseStateManager>(
+      builder: (context, expenseStateManager, child) {
+        final expenses = expenseStateManager.allExpenses ?? [];
+
+        return Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          appBar: KiwiAppBar(
+            titleWidget: TextButton(
+              onPressed: () => _showMonthPicker(expenses),
+              style: TextButton.styleFrom(
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.surface,
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  right: 10,
+                  top: 12,
+                  bottom: 12,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _monthFormat.format(_selectedMonth),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _monthFormat.format(_selectedMonth),
-                style: theme.textTheme.titleSmall?.copyWith(
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  AppIcons.more,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.keyboard_arrow_down,
-                color: theme.colorScheme.onSurfaceVariant,
-                size: 20,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsScreen(
+                        categoryRepo: widget.categoryRepo,
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(
-              AppIcons.more,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsScreen(
+          body: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Wrap expensive widgets in RepaintBoundary for better performance
+                RepaintBoundary(
+                  child: ExpenseSummary(
+                    expenses: expenses,
+                    selectedMonth: _selectedMonth,
+                    onMonthSelected: (month) {
+                      setState(() {
+                        _selectedMonth = month;
+                      });
+                    },
+                    analyticsService: widget.analyticsService,
+                    repository: widget.repository,
                     categoryRepo: widget.categoryRepo,
+                    accountRepo: widget.accountRepo,
+                    showChart: true,
+                    showMonthlyChart: expenses.isNotEmpty,
                   ),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Wrap expensive widgets in RepaintBoundary for better performance
-              RepaintBoundary(
-                child: ExpenseSummary(
-                  expenses: widget.expenses,
-                  selectedMonth: _selectedMonth,
-                  onMonthSelected: (month) {
-                    setState(() {
-                      _selectedMonth = month;
-                    });
-                  },
-                  analyticsService: widget.analyticsService,
-                  repository: widget.repository,
-                  categoryRepo: widget.categoryRepo,
-                  accountRepo: widget.accountRepo,
-                  showChart: true,
-                  showMonthlyChart: widget.expenses.isNotEmpty,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Text(
-                  'Spending by Category',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: Text(
+                    'Spending by Category',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              ),
-              // Wrap expensive widgets in RepaintBoundary for better performance
-              RepaintBoundary(
-                child: CategoryStatistics(
-                  expenses: _filteredExpenses,
-                  categoryRepo: widget.categoryRepo,
-                  analyticsService: widget.analyticsService,
-                  selectedMonth: _selectedMonth,
-                  accountRepo: widget.accountRepo,
-                  repository: widget.repository,
+                // Wrap expensive widgets in RepaintBoundary for better performance
+                RepaintBoundary(
+                  child: CategoryStatistics(
+                    expenses: _filteredExpenses(expenses),
+                    categoryRepo: widget.categoryRepo,
+                    analyticsService: widget.analyticsService,
+                    selectedMonth: _selectedMonth,
+                    accountRepo: widget.accountRepo,
+                    repository: widget.repository,
+                  ),
                 ),
-              ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-            ],
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      },
+    );
   }
 }
 

@@ -392,18 +392,13 @@ class _MainScreenState extends State<MainScreen>
             index: navigationService.screenIndex,
             children: [
               _buildExpensesScreen(),
-              Consumer<ExpenseStateManager>(
-                builder: (context, expenseStateManager, child) {
-                  return InsightsScreen(
-                    expenses: expenseStateManager.allExpenses ?? [],
-                    categoryRepo: widget.categoryRepo,
-                    analyticsService: widget.analyticsService,
-                    repository: widget.repository,
-                    accountRepo: widget.accountRepo,
-                    onShowNavigation: _showNavigation,
-                    onHideNavigation: _hideNavigation,
-                  );
-                },
+              InsightsScreen(
+                categoryRepo: widget.categoryRepo,
+                analyticsService: widget.analyticsService,
+                repository: widget.repository,
+                accountRepo: widget.accountRepo,
+                onShowNavigation: _showNavigation,
+                onHideNavigation: _hideNavigation,
               ),
             ],
           ),
