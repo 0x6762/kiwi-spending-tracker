@@ -284,9 +284,11 @@ class _CategoryStepWidgetState extends State<CategoryStepWidget> with TickerProv
                   // Dismiss keyboard if it's open
                   FocusScope.of(context).unfocus();
                   controller.setCategory(category);
-                  // Always call onNext directly, regardless of current availability
-                  // This ensures the first tap works immediately
-                  widget.onNext?.call();
+                  // Defer page transition to next frame to avoid frame drops
+                  // This allows keyboard dismissal animation to start before page transition
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    widget.onNext?.call();
+                  });
                 },
                 style: TextButton.styleFrom(
                   backgroundColor: theme.colorScheme.surfaceContainer,

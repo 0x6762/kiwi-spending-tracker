@@ -144,11 +144,20 @@ class _InsightsScreenState extends State<InsightsScreen>
         final isLoading = expenseStateManager.isLoadingAll;
 
         // Invalidate cache when expenses change
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_cachedAvailableMonths != null) {
+        if (_cachedAvailableMonths != null && expenses.isNotEmpty) {
+          final currentMonths = expenses
+              .map((e) => DateTime(e.date.year, e.date.month))
+              .toSet()
+              .toList();
+          currentMonths.sort((a, b) => b.compareTo(a));
+
+          // Only invalidate if months actually changed
+          if (_cachedAvailableMonths!.length != currentMonths.length ||
+              !_cachedAvailableMonths!.every((m) => currentMonths
+                  .any((cm) => cm.year == m.year && cm.month == m.month))) {
             _cachedAvailableMonths = null;
           }
-        });
+        }
 
         // Show loading state
         if (isLoading && expenses.isEmpty) {

@@ -150,7 +150,9 @@ class CategoryStatistics extends StatelessWidget {
               itemBuilder: (context, index) {
                 final spending = categorySpending[index];
                 final category = categoriesMap[spending.categoryId];
-                return _buildCategoryRow(context, spending, category);
+                return RepaintBoundary(
+                  child: _buildCategoryRow(context, spending, category),
+                );
               },
             );
           },

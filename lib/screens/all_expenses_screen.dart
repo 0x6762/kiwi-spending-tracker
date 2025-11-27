@@ -39,6 +39,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late ScrollAwareButtonController _buttonController;
+  Map<DateTime, List<Expense>>? _cachedGroupedExpenses;
+  List<Expense>? _lastExpensesForGrouping;
 
   static const Duration _animationDuration = Duration(milliseconds: 250);
 
@@ -173,6 +175,11 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   }
 
   Map<DateTime, List<Expense>> _groupExpensesByDate(List<Expense> expenses) {
+    // Use cache if expenses haven't changed
+    if (_cachedGroupedExpenses != null && _lastExpensesForGrouping == expenses) {
+      return _cachedGroupedExpenses!;
+    }
+
     final groupedExpenses = <DateTime, List<Expense>>{};
     final sortedExpenses = List<Expense>.from(expenses)
       ..sort((a, b) => b.date.compareTo(a.date));
@@ -198,6 +205,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
       }
     }
 
+    _cachedGroupedExpenses = groupedExpenses;
+    _lastExpensesForGrouping = expenses;
     return groupedExpenses;
   }
 
@@ -334,37 +343,39 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                     final dayTotal = entry.value.fold<double>(
                         0, (sum, expense) => sum + expense.amount);
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _formatSectionTitle(entry.key),
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                    return RepaintBoundary(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _formatSectionTitle(entry.key),
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                'Total: ${formatCurrency(dayTotal)}',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                Text(
+                                  'Total: ${formatCurrency(dayTotal)}',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        ExpenseList(
-                          expenses: entry.value,
-                          categoryRepo: widget.categoryRepo,
-                          onTap: _viewExpenseDetails,
-                          onDelete: _handleDelete,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+                          ExpenseList(
+                            expenses: entry.value,
+                            categoryRepo: widget.categoryRepo,
+                            onTap: _viewExpenseDetails,
+                            onDelete: _handleDelete,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
                     );
                   },
                 );

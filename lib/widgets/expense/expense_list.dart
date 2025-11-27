@@ -30,6 +30,48 @@ class ExpenseList extends StatefulWidget {
 
 class _ExpenseListState extends State<ExpenseList> {
   final _dateFormat = DateFormat.yMMMd();
+  Map<String, ExpenseCategory?>? _categoriesCache;
+  List<Expense>? _cachedSortedExpenses;
+  List<Expense>? _lastExpenses;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  @override
+  void didUpdateWidget(ExpenseList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expenses != widget.expenses) {
+      _cachedSortedExpenses = null;
+      _loadCategories();
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    final categoryIds = widget.expenses
+        .map((e) => e.categoryId ?? CategoryRepository.uncategorizedId)
+        .toSet()
+        .toList();
+    
+    final Map<String, ExpenseCategory?> categoriesMap = {};
+    final futures = categoryIds.map((id) async {
+      final category = await widget.categoryRepo.findCategoryById(id);
+      return MapEntry(id, category);
+    });
+    
+    final results = await Future.wait(futures);
+    for (final entry in results) {
+      categoriesMap[entry.key] = entry.value;
+    }
+    
+    if (mounted) {
+      setState(() {
+        _categoriesCache = categoriesMap;
+      });
+    }
+  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -47,7 +89,11 @@ class _ExpenseListState extends State<ExpenseList> {
   }
 
   List<Expense> get _sortedExpenses {
-    return [...widget.expenses]..sort((a, b) {
+    if (_cachedSortedExpenses != null && _lastExpenses == widget.expenses) {
+      return _cachedSortedExpenses!;
+    }
+    
+    final sorted = [...widget.expenses]..sort((a, b) {
         // First compare by date
         final dateComparison = b.date.compareTo(a.date);
         if (dateComparison != 0) {
@@ -56,17 +102,18 @@ class _ExpenseListState extends State<ExpenseList> {
         // If same date, compare by creation time
         return b.createdAt.compareTo(a.createdAt);
       });
+    
+    _cachedSortedExpenses = sorted;
+    _lastExpenses = widget.expenses;
+    return sorted;
   }
 
   Widget _buildExpenseItem(BuildContext context, Expense expense) {
-    return FutureBuilder<ExpenseCategory?>(
-      future: widget.categoryRepo.findCategoryById(expense.categoryId ?? CategoryRepository.uncategorizedId),
-      builder: (context, snapshot) {
-        final category = snapshot.data;
+    final category = _categoriesCache?[expense.categoryId ?? CategoryRepository.uncategorizedId];
+    final theme = Theme.of(context);
 
-        final theme = Theme.of(context);
-
-        return Dismissible(
+    return RepaintBoundary(
+      child: Dismissible(
           key: Key(expense.id),
           direction: DismissDirection.endToStart,
           background: Container(
@@ -148,8 +195,7 @@ class _ExpenseListState extends State<ExpenseList> {
               ),
             ),
           ),
-        );
-      },
+        ),
     );
   }
 
