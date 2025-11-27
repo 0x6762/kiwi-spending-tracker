@@ -8,6 +8,7 @@ import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../providers/expense_state_manager.dart';
 import '../widgets/common/app_bar.dart';
+import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import 'expense_detail_screen.dart';
@@ -146,23 +147,7 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
         ),
       ),
       confirmDismiss: (direction) async {
-        return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete Expense'),
-            content: const Text('Are you sure you want to delete this expense?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('CANCEL'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('DELETE'),
-              ),
-            ],
-          ),
-        ) ?? false;
+        return await DeleteConfirmationDialog.show(context) ?? false;
       },
       onDismissed: (_) => _deleteExpense(expense, expenseStateManager),
       child: GestureDetector(
