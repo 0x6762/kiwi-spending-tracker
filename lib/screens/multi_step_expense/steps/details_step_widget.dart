@@ -147,9 +147,29 @@ class DetailsStepWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Consumer<ExpenseFormController>(
-      builder: (context, controller, child) {
-        return Column(
+    return Selector<ExpenseFormController, bool>(
+      selector: (_, controller) => controller.canProceedFromStep(2),
+      shouldRebuild: (prev, next) => prev != next,
+      builder: (context, canProceed, child) {
+        final controller = Provider.of<ExpenseFormController>(context, listen: false);
+        
+        return Selector<ExpenseFormController, String>(
+          selector: (_, controller) => controller.expenseName,
+          shouldRebuild: (prev, next) => prev != next,
+          builder: (context, expenseName, child) {
+            return Selector<ExpenseFormController, ExpenseType>(
+              selector: (_, controller) => controller.selectedExpenseType,
+              shouldRebuild: (prev, next) => prev != next,
+              builder: (context, selectedExpenseType, child) {
+                return Selector<ExpenseFormController, ExpenseFrequency>(
+                  selector: (_, controller) => controller.frequency,
+                  shouldRebuild: (prev, next) => prev != next,
+                  builder: (context, frequency, child) {
+                    return Selector<ExpenseFormController, bool>(
+                      selector: (_, controller) => controller.isEditMode,
+                      shouldRebuild: (prev, next) => prev != next,
+                      builder: (context, isEditMode, child) {
+                        return Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
@@ -159,7 +179,7 @@ class DetailsStepWidget extends StatelessWidget {
                   children: [
                     // Expense name
                     AppInput(
-                      initialValue: controller.expenseName,
+                      initialValue: expenseName,
                       hintText: 'Expense name (optional)',
                       onChanged: controller.setExpenseName,
                       style: theme.textTheme.titleSmall?.copyWith(
@@ -203,13 +223,13 @@ class DetailsStepWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _buildSvgIcon(
-                            _getExpenseTypeIcon(controller.selectedExpenseType),
-                            _getExpenseTypeColor(controller.selectedExpenseType, theme),
+                            _getExpenseTypeIcon(selectedExpenseType),
+                            _getExpenseTypeColor(selectedExpenseType, theme),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              _getExpenseTypeLabel(controller.selectedExpenseType),
+                              _getExpenseTypeLabel(selectedExpenseType),
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onSurface,
                               ),
@@ -225,7 +245,7 @@ class DetailsStepWidget extends StatelessWidget {
                     ),
                     
                     // Frequency section - only for subscriptions
-                    if (controller.selectedExpenseType == ExpenseType.subscription) ...[
+                    if (selectedExpenseType == ExpenseType.subscription) ...[
                       const SizedBox(height: 24),
                       // Frequency label
                       Padding(
@@ -239,7 +259,7 @@ class DetailsStepWidget extends StatelessWidget {
                       ),
                       // Frequency picker
                       PickerButton(
-                        label: _getFrequencyLabel(controller.frequency),
+                        label: _getFrequencyLabel(frequency),
                         icon: AppIcons.calendar,
                         onTap: () => _showFrequencyPicker(context, controller),
                       ),
@@ -253,12 +273,20 @@ class DetailsStepWidget extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               child: AppButton.primary(
-                text: controller.isEditMode ? 'Update' : 'Add Expense',
-                onPressed: onSubmit,
+                text: isEditMode ? 'Update' : 'Add Expense',
+                onPressed: canProceed && onSubmit != null ? onSubmit! : null,
                 isExpanded: true,
               ),
             ),
           ],
+        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
         );
       },
     );

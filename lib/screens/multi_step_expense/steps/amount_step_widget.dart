@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 import '../controllers/expense_form_controller.dart';
+import '../../../models/account.dart';
 import '../../../widgets/forms/number_pad.dart';
 import '../../../widgets/forms/picker_button.dart';
 import '../../../widgets/sheets/picker_sheet.dart';
@@ -51,6 +52,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       curve: Curves.easeInOut,
     ));
   }
+
 
   @override
   void dispose() {
@@ -232,14 +234,34 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     final theme = Theme.of(context);
     final dateFormat = DateFormat.yMMMd();
 
-    return Consumer<ExpenseFormController>(
-      builder: (context, controller, child) {
-        // Update account picker visibility based on amount
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _updateAccountPickerVisibility(controller.amount);
-        });
+    return Selector<ExpenseFormController, String>(
+      selector: (_, controller) => controller.amount,
+      shouldRebuild: (prev, next) => prev != next,
+      builder: (context, amount, child) {
+        final controller = Provider.of<ExpenseFormController>(context, listen: false);
+        
+        // Update account picker visibility when amount changes
+        final shouldShow = amount != '0' && amount.isNotEmpty;
+        if (shouldShow != _isAccountPickerVisible) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _updateAccountPickerVisibility(amount);
+            }
+          });
+        }
 
-        return Column(
+        return Selector<ExpenseFormController, DateTime>(
+          selector: (_, controller) => controller.selectedDate,
+          shouldRebuild: (prev, next) => prev != next,
+          builder: (context, selectedDate, child) {
+            return Selector<ExpenseFormController, Account?>(
+              selector: (_, controller) => controller.selectedAccount,
+              shouldRebuild: (Account? prev, Account? next) => prev?.id != next?.id,
+              builder: (context, selectedAccount, child) {
+                final controller = Provider.of<ExpenseFormController>(context, listen: false);
+                final canProceed = controller.canProceedFromStep(0);
+                
+                return Column(
           children: [
             Expanded(
               child: Column(
@@ -264,7 +286,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  dateFormat.format(controller.selectedDate),
+                                  dateFormat.format(selectedDate),
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -293,7 +315,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
                                   Expanded(
                                     child: _buildDynamicAmountDisplay(
                                       theme, 
-                                      controller.amount, 
+                                      amount, 
                                       constraints.maxWidth - 48, // Account for padding + buffer
                                     ),
                                   ),
@@ -319,7 +341,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
                     opacity: _fadeAnimation.value,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                      child: _isAccountPickerVisible && controller.selectedAccount != null
+                      child: _isAccountPickerVisible && selectedAccount != null
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -335,9 +357,9 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
                                 ),
                                 // Account picker button
                                 PickerButton(
-                                  label: controller.selectedAccount!.name,
-                                  icon: controller.selectedAccount!.icon,
-                                  iconColor: controller.selectedAccount!.color,
+                                  label: selectedAccount!.name,
+                                  icon: selectedAccount!.icon,
+                                  iconColor: selectedAccount!.color,
                                   onTap: () => _showAccountPicker(context, controller),
                                 ),
                               ],
@@ -353,42 +375,46 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
               color: theme.colorScheme.surface,
               child: NumberPad(
                 onDigitPressed: (digit) {
-                  String newAmount = controller.amount;
-                  if (controller.amount == '0') {
+                  String newAmount = amount;
+                  if (amount == '0') {
                     newAmount = digit;
                   } else {
-                    if (controller.amount.contains('.')) {
-                      final parts = controller.amount.split('.');
+                    if (amount.contains('.')) {
+                      final parts = amount.split('.');
                       if (parts.length > 1 && parts[1].length >= 2) {
                         return;
                       }
                     }
-                    newAmount = controller.amount + digit;
+                    newAmount = amount + digit;
                   }
                   controller.setAmount(newAmount);
                 },
                 onDecimalPointPressed: () {
-                  if (!controller.amount.contains('.')) {
-                    controller.setAmount(controller.amount + '.');
+                  if (!amount.contains('.')) {
+                    controller.setAmount(amount + '.');
                   }
                 },
                 onDoubleZeroPressed: () {
-                  if (controller.amount != '0') {
-                    controller.setAmount(controller.amount + '00');
+                  if (amount != '0') {
+                    controller.setAmount(amount + '00');
                   }
                 },
                 onBackspacePressed: () {
-                  if (controller.amount.isNotEmpty) {
-                    final newAmount = controller.amount.substring(0, controller.amount.length - 1);
+                  if (amount.isNotEmpty) {
+                    final newAmount = amount.substring(0, amount.length - 1);
                     controller.setAmount(newAmount.isEmpty ? '0' : newAmount);
                   }
                 },
                 onDatePressed: () => _selectDate(context, controller),
-                onSubmitPressed: widget.onNext ?? () {},
+                onSubmitPressed: canProceed && widget.onNext != null ? widget.onNext! : () {},
                 submitButtonText: 'Next',
               ),
             ),
           ],
+        );
+              },
+            );
+          },
         );
       },
     );

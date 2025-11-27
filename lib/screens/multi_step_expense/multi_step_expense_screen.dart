@@ -141,25 +141,27 @@ class _MultiStepExpenseScreenState extends State<MultiStepExpenseScreen> {
                 ),
               ],
             ),
-            body: Consumer<ExpenseFormController>(
-              builder: (context, controller, child) {
-                return PageView(
-                  controller: _pageController,
-                  onPageChanged: _onPageChanged,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    AmountStepWidget(
-                      onNext: controller.canProceedFromStep(0) ? _nextStep : null,
-                    ),
-                    CategoryStepWidget(
-                      onNext: _nextStep,
-                    ),
-                    DetailsStepWidget(
-                      onSubmit: controller.canProceedFromStep(2) ? _submitExpense : null,
-                    ),
-                  ],
-                );
-              },
+            body: PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                RepaintBoundary(
+                  child: AmountStepWidget(
+                    onNext: _nextStep,
+                  ),
+                ),
+                RepaintBoundary(
+                  child: CategoryStepWidget(
+                    onNext: _nextStep,
+                  ),
+                ),
+                RepaintBoundary(
+                  child: DetailsStepWidget(
+                    onSubmit: _submitExpense,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
