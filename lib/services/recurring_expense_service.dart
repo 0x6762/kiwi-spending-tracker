@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
+import '../providers/expense_state_manager.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service for managing and automating recurring expenses.
@@ -12,9 +13,10 @@ import 'package:uuid/uuid.dart';
 /// Uses frequency enum (monthly/yearly) for scheduling subscription expenses.
 class RecurringExpenseService {
   final ExpenseRepository _expenseRepo;
+  final ExpenseStateManager? _expenseStateManager;
   final _uuid = Uuid();
 
-  RecurringExpenseService(this._expenseRepo);
+  RecurringExpenseService(this._expenseRepo, [this._expenseStateManager]);
 
   /// Process all recurring expenses to create new expense entries for due/overdue items
   /// Processes all overdue cycles for each template until caught up
@@ -30,6 +32,10 @@ class RecurringExpenseService {
       expense.isRecurring == true &&
       (expense.endDate == null || expense.endDate!.isAfter(today))
     ).toList();
+    
+    // Collect all changes for batch processing
+    final expensesToAdd = <Expense>[];
+    final expensesToUpdate = <Expense>[];
     
     for (final template in recurringExpenses) {
       // Keep processing until all overdue cycles are caught up
@@ -63,8 +69,6 @@ class RecurringExpenseService {
           // Keep the original type for the generated instance
         );
         
-        await _expenseRepo.addExpense(newExpense);
-        
         // Calculate the next billing date
         final calculatedNextDate = _calculateNextDate(currentTemplate);
         
@@ -73,7 +77,9 @@ class RecurringExpenseService {
           nextBillingDate: calculatedNextDate,
         );
         
-        await _expenseRepo.updateExpense(currentTemplate);
+        // Collect for batch processing
+        expensesToAdd.add(newExpense);
+        expensesToUpdate.add(currentTemplate);
         
         // Update for next iteration
         nextDate = calculatedNextDate;
@@ -85,6 +91,24 @@ class RecurringExpenseService {
       if (iterations >= maxIterations) {
         debugPrint('Warning: Reached max iterations for template ${template.id}. '
                    'There may be more overdue cycles to process.');
+      }
+    }
+    
+    // Process all changes in a single batch
+    if (expensesToAdd.isNotEmpty || expensesToUpdate.isNotEmpty) {
+      if (_expenseStateManager != null) {
+        await _expenseStateManager!.processBatchExpenses(
+          expensesToAdd: expensesToAdd,
+          expensesToUpdate: expensesToUpdate,
+        );
+      } else {
+        // Fallback to direct repository calls if ExpenseStateManager not provided
+        for (final expense in expensesToAdd) {
+          await _expenseRepo.addExpense(expense);
+        }
+        for (final expense in expensesToUpdate) {
+          await _expenseRepo.updateExpense(expense);
+        }
       }
     }
     
@@ -251,7 +275,11 @@ class RecurringExpenseService {
       status: ExpenseStatus.paid,
     );
     
-    await _expenseRepo.addExpense(template);
+    if (_expenseStateManager != null) {
+      await _expenseStateManager!.addExpense(template);
+    } else {
+      await _expenseRepo.addExpense(template);
+    }
     return template;
   }
 } 

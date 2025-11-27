@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
+import '../providers/expense_state_manager.dart';
 import '../services/subscription_service.dart';
 import '../widgets/common/app_bar.dart';
+import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
-  final ExpenseRepository repository;
+  final ExpenseRepository repository; // Required for SubscriptionService initialization
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final DateTime selectedMonth;
@@ -30,16 +33,29 @@ class SubscriptionsScreen extends StatefulWidget {
 
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   late SubscriptionService _subscriptionService;
-  List<SubscriptionData> _subscriptions = [];
-  SubscriptionSummary? _summary;
-  bool _isLoading = true;
   final _dateFormat = DateFormat.yMMMd();
 
   @override
   void initState() {
     super.initState();
-    _subscriptionService = SubscriptionService(widget.repository, widget.categoryRepo);
-    _loadSubscriptions();
+    // SubscriptionService constructor requires repository, but the methods we use
+    // (getSubscriptionsFromExpenses, etc.) don't actually use the repository
+    // They just process the expenses list from ExpenseStateManager
+    _subscriptionService = SubscriptionService(
+      widget.repository,
+      widget.categoryRepo,
+    );
+  }
+
+  /// Get subscriptions from ExpenseStateManager expenses
+  List<SubscriptionData> _getSubscriptions(List<Expense> expenses) {
+    return _subscriptionService.getSubscriptionsFromExpenses(expenses);
+  }
+
+  /// Get subscription summary from ExpenseStateManager expenses
+  SubscriptionSummary _getSubscriptionSummary(List<Expense> expenses) {
+    return _subscriptionService.getSubscriptionSummaryForMonthFromExpenses(
+        expenses, widget.selectedMonth);
   }
 
   String _formatDate(DateTime date) {
@@ -57,35 +73,21 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
   }
 
-  Future<void> _loadSubscriptions() async {
-    setState(() => _isLoading = true);
+  Future<void> _deleteSubscription(
+      Expense expense, ExpenseStateManager expenseStateManager) async {
     try {
-      // Get all subscriptions instead of just those for the selected month
-      final subscriptions = await _subscriptionService.getSubscriptions();
-      // Still get the summary for the selected month
-      final summary = await _subscriptionService.getSubscriptionSummaryForMonth(widget.selectedMonth);
-      
-      setState(() {
-        _subscriptions = subscriptions;
-        _summary = summary;
-        _isLoading = false;
-      });
+      await expenseStateManager.deleteExpense(expense.id);
     } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load subscriptions: ${e.toString()}')),
+          SnackBar(content: Text('Failed to delete subscription: ${e.toString()}')),
         );
       }
     }
   }
 
-  Future<void> _deleteSubscription(Expense expense) async {
-    await widget.repository.deleteExpense(expense.id);
-    _loadSubscriptions();
-  }
-
-  void _viewSubscriptionDetails(Expense expense) async {
+  void _viewSubscriptionDetails(
+      Expense expense, ExpenseStateManager expenseStateManager) async {
     final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
@@ -94,8 +96,15 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           categoryRepo: widget.categoryRepo,
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
-            await widget.repository.updateExpense(updatedExpense);
-            _loadSubscriptions();
+            try {
+              await expenseStateManager.updateExpense(updatedExpense);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update subscription: ${e.toString()}')),
+                );
+              }
+            }
           },
         ),
         maintainState: true,
@@ -103,50 +112,34 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
 
     if (result == true) {
-      await _deleteSubscription(expense);
+      await _deleteSubscription(expense, expenseStateManager);
     }
   }
 
-  Widget _buildSubscriptionItem(BuildContext context, SubscriptionData subscription) {
+  Widget _buildSubscriptionItem(BuildContext context, SubscriptionData subscription,
+      ExpenseCategory? category, ExpenseStateManager expenseStateManager) {
     final theme = Theme.of(context);
     
-    return FutureBuilder<ExpenseCategory?>(
-      future: widget.categoryRepo.findCategoryById(subscription.expense.categoryId ?? CategoryRepository.uncategorizedId),
-      builder: (context, snapshot) {
-        final category = snapshot.data;
-        
-        return Dismissible(
-          key: Key(subscription.expense.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: theme.colorScheme.surfaceContainer,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 24),
-            child: Icon(
-              Icons.delete,
-              color: theme.colorScheme.error,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            return await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Subscription'),
-                content: const Text('Are you sure you want to delete this subscription?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('CANCEL'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('DELETE'),
-                  ),
-                ],
-              ),
-            ) ?? false;
-          },
-          onDismissed: (_) => _deleteSubscription(subscription.expense),
+    return Dismissible(
+      key: Key(subscription.expense.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: Icon(
+          Icons.delete,
+          color: theme.colorScheme.error,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await DeleteConfirmationDialog.show(
+          context,
+          title: 'Delete Subscription',
+          message: 'Are you sure you want to delete this subscription?',
+        ) ?? false;
+      },
+      onDismissed: (_) => _deleteSubscription(subscription.expense, expenseStateManager),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
@@ -204,18 +197,15 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            onTap: () => _viewSubscriptionDetails(subscription.expense),
+            onTap: () => _viewSubscriptionDetails(subscription.expense, expenseStateManager),
           ),
         );
-      },
-    );
   }
 
-  Widget _buildSubscriptionSummary() {
+  Widget _buildSubscriptionSummary(SubscriptionSummary summary) {
     final theme = Theme.of(context);
     
-    // Use the summary from the service if available
-    final totalMonthlyAmount = _summary?.totalMonthlyAmount ?? 0.0;
+    final totalMonthlyAmount = summary.totalMonthlyAmount;
     
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 16, 8, 16),
@@ -245,7 +235,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${_summary?.totalSubscriptions} active plans',
+              '${summary.totalSubscriptions} active plans',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -254,6 +244,31 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         ),
       ),
     );
+  }
+
+  /// Batch load all categories at once to avoid N+1 queries
+  Future<Map<String, ExpenseCategory?>> _loadCategoriesBatch(
+      List<SubscriptionData> subscriptions) async {
+    final Map<String, ExpenseCategory?> categoriesMap = {};
+    
+    // Get unique category IDs
+    final categoryIds = subscriptions
+        .map((sub) => sub.expense.categoryId ?? CategoryRepository.uncategorizedId)
+        .toSet()
+        .toList();
+    
+    // Load all categories in parallel
+    final futures = categoryIds.map((id) async {
+      final category = await widget.categoryRepo.findCategoryById(id);
+      return MapEntry(id, category);
+    });
+    
+    final results = await Future.wait(futures);
+    for (final entry in results) {
+      categoriesMap[entry.key] = entry.value;
+    }
+    
+    return categoriesMap;
   }
 
   @override
@@ -270,61 +285,91 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadSubscriptions,
-        color: theme.colorScheme.primary,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _subscriptions.isEmpty
-                ? Center(
-                    child: Text(
-                      'No subscription plans found',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildSubscriptionSummary(),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Active Subscription Plans',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
+      body: Consumer<ExpenseStateManager>(
+        builder: (context, expenseStateManager, child) {
+          final allExpenses = expenseStateManager.allExpenses ?? [];
+          final isLoading = expenseStateManager.isLoadingAll && allExpenses.isEmpty;
+
+          if (isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final subscriptions = _getSubscriptions(allExpenses);
+          final summary = _getSubscriptionSummary(allExpenses);
+
+          if (subscriptions.isEmpty) {
+            return Center(
+              child: Text(
+                'No subscription plans found',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => expenseStateManager.refreshAll(),
+            color: theme.colorScheme.primary,
+            child: FutureBuilder<Map<String, ExpenseCategory?>>(
+              future: _loadCategoriesBatch(subscriptions),
+              builder: (context, categorySnapshot) {
+                final categoriesMap = categorySnapshot.data ?? {};
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildSubscriptionSummary(summary),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Active Subscription Plans',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                         ),
-                        Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          color: theme.colorScheme.surfaceContainer,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          elevation: 0,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: _subscriptions.length,
-                            itemBuilder: (context, index) {
-                              return _buildSubscriptionItem(context, _subscriptions[index]);
-                            },
-                          ),
+                      ),
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        color: theme.colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
                         ),
-                      ],
-                    ),
+                        elevation: 0,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: subscriptions.length,
+                          itemBuilder: (context, index) {
+                            final subscription = subscriptions[index];
+                            final categoryId = subscription.expense.categoryId ??
+                                CategoryRepository.uncategorizedId;
+                            final category = categoriesMap[categoryId];
+                            return _buildSubscriptionItem(
+                              context,
+                              subscription,
+                              category,
+                              expenseStateManager,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

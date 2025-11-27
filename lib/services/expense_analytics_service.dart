@@ -341,8 +341,8 @@ class ExpenseAnalyticsService {
   // Updated method to use unified upcoming service
   Future<UpcomingExpensesAnalytics> getUpcomingExpenses(
       {DateTime? fromDate}) async {
-    // Create unified service instance
-    final recurringService = RecurringExpenseService(_expenseRepo);
+    // Create unified service instance (read-only, doesn't need ExpenseStateManager)
+    final recurringService = RecurringExpenseService(_expenseRepo, null);
     final upcomingService =
         UnifiedUpcomingService(_expenseRepo, recurringService);
 

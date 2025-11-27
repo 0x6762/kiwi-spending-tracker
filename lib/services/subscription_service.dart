@@ -69,6 +69,12 @@ class SubscriptionService {
   /// Only returns templates (isRecurring == true), not generated instances
   Future<List<SubscriptionData>> getSubscriptions() async {
     final expenses = await _expenseRepo.getAllExpenses();
+    return getSubscriptionsFromExpenses(expenses);
+  }
+
+  /// Get subscriptions from provided expenses list
+  /// Only returns templates (isRecurring == true), not generated instances
+  List<SubscriptionData> getSubscriptionsFromExpenses(List<Expense> expenses) {
     final subscriptions = expenses
         .where((expense) => 
             expense.type == ExpenseType.subscription &&
@@ -83,6 +89,12 @@ class SubscriptionService {
   /// Only returns templates (isRecurring == true), not generated instances
   Future<List<SubscriptionData>> getSubscriptionsForMonth(DateTime month) async {
     final expenses = await _expenseRepo.getAllExpenses();
+    return getSubscriptionsForMonthFromExpenses(expenses, month);
+  }
+
+  /// Get subscriptions for a specific month from provided expenses list
+  List<SubscriptionData> getSubscriptionsForMonthFromExpenses(
+      List<Expense> expenses, DateTime month) {
     final subscriptions = expenses
         .where((expense) => 
             expense.type == ExpenseType.subscription &&
@@ -98,8 +110,15 @@ class SubscriptionService {
   /// Calculates a summary of subscription costs for a specific month
   /// Note: Returns summary for all active subscription templates, not just those due in the month
   Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
+    final expenses = await _expenseRepo.getAllExpenses();
+    return getSubscriptionSummaryForMonthFromExpenses(expenses, month);
+  }
+
+  /// Calculate subscription summary from provided expenses list
+  SubscriptionSummary getSubscriptionSummaryForMonthFromExpenses(
+      List<Expense> expenses, DateTime month) {
     // Use all subscription templates for the summary, not just those due in the month
-    final subscriptions = await getSubscriptions();
+    final subscriptions = getSubscriptionsFromExpenses(expenses);
     
     final monthlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
@@ -136,13 +155,26 @@ class SubscriptionService {
 
   /// Retrieves subscriptions filtered by status
   Future<List<SubscriptionData>> getSubscriptionsByStatus(SubscriptionStatus status) async {
-    final allSubscriptions = await getSubscriptions();
+    final expenses = await _expenseRepo.getAllExpenses();
+    return getSubscriptionsByStatusFromExpenses(expenses, status);
+  }
+
+  /// Get subscriptions filtered by status from provided expenses list
+  List<SubscriptionData> getSubscriptionsByStatusFromExpenses(
+      List<Expense> expenses, SubscriptionStatus status) {
+    final allSubscriptions = getSubscriptionsFromExpenses(expenses);
     return allSubscriptions.where((sub) => sub.status == status).toList();
   }
 
   /// Calculates a summary of subscription costs and statistics
   Future<SubscriptionSummary> getSubscriptionSummary() async {
-    final subscriptions = await getSubscriptions();
+    final expenses = await _expenseRepo.getAllExpenses();
+    return getSubscriptionSummaryFromExpenses(expenses);
+  }
+
+  /// Calculate subscription summary from provided expenses list
+  SubscriptionSummary getSubscriptionSummaryFromExpenses(List<Expense> expenses) {
+    final subscriptions = getSubscriptionsFromExpenses(expenses);
     
     // Calculate monthly costs based on frequency
     final monthlySubscriptions = subscriptions

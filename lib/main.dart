@@ -33,15 +33,16 @@ void main() async {
     repositoryProvider.categoryRepository,
   );
 
-  final recurringExpenseService = RecurringExpenseService(
-    repositoryProvider.expenseRepository,
-  );
-
-  final navigationService = NavigationService();
-
   final expenseStateManager = ExpenseStateManager(
     repositoryProvider.expenseRepository,
   );
+
+  final recurringExpenseService = RecurringExpenseService(
+    repositoryProvider.expenseRepository,
+    expenseStateManager,
+  );
+
+  final navigationService = NavigationService();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

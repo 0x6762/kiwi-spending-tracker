@@ -114,5 +114,44 @@ class ExpenseStateManager extends ChangeNotifier {
   Future<void> refreshAll() async {
     await loadAllExpenses(forceRefresh: true);
   }
+
+  /// Process batch operations (add/update multiple expenses)
+  /// Used by background services like RecurringExpenseService
+  /// Notifies listeners once after all operations complete
+  Future<void> processBatchExpenses({
+    required List<Expense> expensesToAdd,
+    required List<Expense> expensesToUpdate,
+  }) async {
+    try {
+      // Save all to repository
+      for (final expense in expensesToAdd) {
+        await _repository.addExpense(expense);
+      }
+      for (final expense in expensesToUpdate) {
+        await _repository.updateExpense(expense);
+      }
+
+      // Update cached data
+      if (_allExpenses != null) {
+        // Add new expenses
+        _allExpenses = [...expensesToAdd, ..._allExpenses!];
+        
+        // Update existing expenses
+        for (final updatedExpense in expensesToUpdate) {
+          final index = _allExpenses!.indexWhere((e) => e.id == updatedExpense.id);
+          if (index != -1) {
+            _allExpenses![index] = updatedExpense;
+          }
+        }
+      }
+
+      // Notify all listeners once after batch is complete
+      notifyListeners();
+    } catch (e) {
+      // On error, invalidate cache to force fresh load
+      invalidateCache();
+      rethrow;
+    }
+  }
 }
 
