@@ -53,14 +53,14 @@ class UpcomingExpenseItem {
   }
 }
 
-/// Unified service for handling all upcoming expenses
+/// Service for handling all upcoming expenses
 /// Combines recurring expense templates and manually created future expenses
-class UnifiedUpcomingService {
+class UpcomingExpenseService {
   final ExpenseRepository _expenseRepo;
   final RecurringExpenseService _recurringService;
   final ExpenseStateManager? _expenseStateManager;
 
-  UnifiedUpcomingService(
+  UpcomingExpenseService(
     this._expenseRepo,
     this._recurringService, [
     this._expenseStateManager,
@@ -402,4 +402,5 @@ class UpcomingExpensesSummary {
 
   /// Check if there are any manual upcoming expenses
   bool get hasManualUpcoming => manualCount > 0;
-} 
+}
+

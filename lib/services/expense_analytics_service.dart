@@ -3,7 +3,7 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../models/account.dart';
 import '../providers/expense_state_manager.dart';
-import 'unified_upcoming_service.dart';
+import 'upcoming_expense_service.dart';
 import 'recurring_expense_service.dart';
 
 class CategorySpending {
@@ -342,10 +342,10 @@ class ExpenseAnalyticsService {
   // Updated method to use unified upcoming service
   Future<UpcomingExpensesAnalytics> getUpcomingExpenses(
       {DateTime? fromDate, ExpenseStateManager? expenseStateManager}) async {
-    // Create unified service instance
+    // Create upcoming expense service instance
     final recurringService = RecurringExpenseService(_expenseRepo, expenseStateManager);
     final upcomingService =
-        UnifiedUpcomingService(_expenseRepo, recurringService, expenseStateManager);
+        UpcomingExpenseService(_expenseRepo, recurringService, expenseStateManager);
 
     // Get comprehensive summary
     final summary = await upcomingService.getUpcomingExpensesSummary(
