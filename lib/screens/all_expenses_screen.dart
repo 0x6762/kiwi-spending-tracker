@@ -10,6 +10,7 @@ import '../widgets/expense/expense_list.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import '../utils/scroll_aware_button_controller.dart';
+import '../providers/expense_state_manager.dart';
 import 'expense_detail_screen.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
@@ -17,16 +18,12 @@ class AllExpensesScreen extends StatefulWidget {
   final ExpenseRepository repository;
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
-  final void Function() onExpenseUpdated;
-  final void Function()? onAddExpense;
 
   const AllExpensesScreen({
     super.key,
     required this.repository,
     required this.categoryRepo,
     required this.accountRepo,
-    required this.onExpenseUpdated,
-    this.onAddExpense,
   });
 
   @override
@@ -124,24 +121,48 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
           categoryRepo: widget.categoryRepo,
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
-            await widget.repository.updateExpense(updatedExpense);
-            _provider.updateExpenseInList(updatedExpense);
-            widget.onExpenseUpdated();
+            try {
+              final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+              // Save via ExpenseStateManager (single source of truth)
+              await expenseStateManager.updateExpense(updatedExpense);
+              // Update local provider list
+              _provider.updateExpenseInList(updatedExpense);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update expense: $e')),
+                );
+              }
+            }
           },
         ),
       ),
     );
 
     if (result == true) {
-      await _provider.deleteExpense(expense.id);
-      widget.onExpenseUpdated();
+      try {
+        final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+        // Save via ExpenseStateManager (single source of truth)
+        await expenseStateManager.deleteExpense(expense.id);
+        // Update local provider list without saving again
+        _provider.removeExpenseFromList(expense.id);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete expense: $e')),
+          );
+        }
+      }
     }
   }
 
   Future<void> _handleDelete(Expense expense) async {
     try {
-      await _provider.deleteExpense(expense.id);
-      widget.onExpenseUpdated();
+      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      // Save via ExpenseStateManager (single source of truth)
+      await expenseStateManager.deleteExpense(expense.id);
+      // Update local provider list without saving again
+      _provider.removeExpenseFromList(expense.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -201,38 +222,44 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   }
 
   void _showAddExpenseDialog() {
-    if (widget.onAddExpense != null) {
-      widget.onAddExpense!();
-    } else {
-      showGeneralDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierLabel:
-            MaterialLocalizations.of(context).modalBarrierDismissLabel,
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionDuration: const Duration(milliseconds: 200),
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            MultiStepExpenseScreen(
-          type: ExpenseType.variable,
-          categoryRepo: widget.categoryRepo,
-          accountRepo: widget.accountRepo,
-          onExpenseAdded: (expense) async {
-            await widget.repository.addExpense(expense);
-            _provider.refresh();
-            widget.onExpenseUpdated();
-          },
-        ),
-        transitionBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          );
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel:
+          MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          MultiStepExpenseScreen(
+        type: ExpenseType.variable,
+        categoryRepo: widget.categoryRepo,
+        accountRepo: widget.accountRepo,
+        onExpenseAdded: (expense) async {
+          try {
+            final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+            // Save via ExpenseStateManager (single source of truth)
+            await expenseStateManager.addExpense(expense);
+            // Update local provider list without saving again
+            _provider.addExpenseToList(expense);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to add expense: $e')),
+              );
+            }
+          }
         },
-      );
-    }
+      ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
+    );
   }
 
   @override

@@ -15,6 +15,7 @@ import '../widgets/common/app_bar.dart';
 import '../utils/icons.dart';
 import '../utils/error_handler.dart';
 import '../utils/scroll_aware_button_controller.dart';
+import '../providers/expense_state_manager.dart';
 import 'settings_screen.dart';
 import 'expense_detail_screen.dart';
 import 'insights_screen.dart';
@@ -40,8 +41,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
-  List<Expense> _expenses = [];
-  bool _isLoading = true;
   late AnimationController _arrowAnimationController;
   late Animation<double> _arrowAnimation;
   late ScrollController _scrollController;
@@ -65,8 +64,13 @@ class _MainScreenState extends State<MainScreen>
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    _loadExpenses();
     _initializeAnimation();
+    
+    // Load expenses from shared state manager
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      expenseStateManager.loadAllExpenses();
+    });
   }
 
   void _initializeAnimation() {
@@ -106,15 +110,10 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _loadExpenses() async {
-    setState(() => _isLoading = true);
     try {
-      final expenses = await widget.repository.getAllExpenses();
-      setState(() {
-        _expenses = expenses;
-        _isLoading = false;
-      });
+      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      await expenseStateManager.loadAllExpenses(forceRefresh: true);
     } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
         ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
       }
@@ -139,8 +138,8 @@ class _MainScreenState extends State<MainScreen>
         accountRepo: widget.accountRepo,
         onExpenseAdded: (expense) async {
           try {
-            await widget.repository.addExpense(expense);
-            _loadExpenses();
+            final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+            await expenseStateManager.addExpense(expense);
           } catch (e) {
             if (mounted) {
               ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
@@ -175,14 +174,8 @@ class _MainScreenState extends State<MainScreen>
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             try {
-              await widget.repository.updateExpense(updatedExpense);
-              setState(() {
-                final index =
-                    _expenses.indexWhere((e) => e.id == updatedExpense.id);
-                if (index != -1) {
-                  _expenses[index] = updatedExpense;
-                }
-              });
+              final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+              await expenseStateManager.updateExpense(updatedExpense);
             } catch (e) {
               if (mounted) {
                 ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
@@ -201,10 +194,8 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _deleteExpense(Expense expense) async {
     try {
-      await widget.repository.deleteExpense(expense.id);
-      setState(() {
-        _expenses.removeWhere((e) => e.id == expense.id);
-      });
+      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      await expenseStateManager.deleteExpense(expense.id);
     } catch (e) {
       if (mounted) {
         ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
@@ -253,56 +244,61 @@ class _MainScreenState extends State<MainScreen>
 
   Widget _buildExpensesScreen() {
     final theme = Theme.of(context);
-    final now = DateTime.now();
-    final todayExpenses = _expenses
-        .where((expense) =>
-            expense.date.year == now.year &&
-            expense.date.month == now.month &&
-            expense.date.day == now.day)
-        .toList();
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      extendBody: true,
-      appBar: KiwiAppBar(
-        title: _greeting,
-        actions: [
-          _SettingsButton(
-            categoryRepo: widget.categoryRepo,
+    return Consumer<ExpenseStateManager>(
+      builder: (context, expenseStateManager, child) {
+        final expenses = expenseStateManager.allExpenses ?? [];
+        final isLoading = expenseStateManager.isLoadingAll;
+        final now = DateTime.now();
+        final todayExpenses = expenses
+            .where((expense) =>
+                expense.date.year == now.year &&
+                expense.date.month == now.month &&
+                expense.date.day == now.day)
+            .toList();
+
+        return Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          extendBody: true,
+          appBar: KiwiAppBar(
+            title: _greeting,
+            actions: [
+              _SettingsButton(
+                categoryRepo: widget.categoryRepo,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadExpenses,
-        color: theme.colorScheme.primary,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.only(
-            left: 8,
-            right: 8,
-            bottom: 120,
-            top: 0,
-          ),
-          clipBehavior: Clip.none,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-                _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    : TodaySpendingCard(
-                        expenses: _expenses,
-                        analyticsService: widget.analyticsService,
-                      ),
-                const SizedBox(height: 8),
-                if (!_isLoading) ...[
-                  if (_expenses.isEmpty)
-                    _buildEmptyState()
-                  else ...[
+          body: RefreshIndicator(
+            onRefresh: _loadExpenses,
+            color: theme.colorScheme.primary,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: const EdgeInsets.only(
+                left: 8,
+                right: 8,
+                bottom: 120,
+                top: 0,
+              ),
+              clipBehavior: Clip.none,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                    isLoading
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : TodaySpendingCard(
+                            expenses: expenses,
+                            analyticsService: widget.analyticsService,
+                          ),
+                    const SizedBox(height: 8),
+                    if (!isLoading) ...[
+                      if (expenses.isEmpty)
+                        _buildEmptyState()
+                      else ...[
                     // Recent Transactions title section
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -324,8 +320,6 @@ class _MainScreenState extends State<MainScreen>
                                     repository: widget.repository,
                                     categoryRepo: widget.categoryRepo,
                                     accountRepo: widget.accountRepo,
-                                    onExpenseUpdated: _loadExpenses,
-                                    onAddExpense: _showAddExpenseDialog,
                                   ),
                                 ),
                               );
@@ -359,18 +353,20 @@ class _MainScreenState extends State<MainScreen>
                         ],
                       ),
                     ),
-                    ExpenseList(
-                      expenses: todayExpenses,
-                      categoryRepo: widget.categoryRepo,
-                      onTap: _viewExpenseDetails,
-                      onDelete: _deleteExpense,
-                    ),
+                        ExpenseList(
+                          expenses: todayExpenses,
+                          categoryRepo: widget.categoryRepo,
+                          onTap: _viewExpenseDetails,
+                          onDelete: _deleteExpense,
+                        ),
+                      ],
+                    ],
                   ],
-                ],
-              ],
+              ),
             ),
           ),
-        ),
+        );
+      },
     );
   }
 
@@ -396,14 +392,18 @@ class _MainScreenState extends State<MainScreen>
             index: navigationService.screenIndex,
             children: [
               _buildExpensesScreen(),
-              InsightsScreen(
-                expenses: _expenses,
-                categoryRepo: widget.categoryRepo,
-                analyticsService: widget.analyticsService,
-                repository: widget.repository,
-                accountRepo: widget.accountRepo,
-                onShowNavigation: _showNavigation,
-                onHideNavigation: _hideNavigation,
+              Consumer<ExpenseStateManager>(
+                builder: (context, expenseStateManager, child) {
+                  return InsightsScreen(
+                    expenses: expenseStateManager.allExpenses ?? [],
+                    categoryRepo: widget.categoryRepo,
+                    analyticsService: widget.analyticsService,
+                    repository: widget.repository,
+                    accountRepo: widget.accountRepo,
+                    onShowNavigation: _showNavigation,
+                    onHideNavigation: _hideNavigation,
+                  );
+                },
               ),
             ],
           ),
@@ -418,7 +418,8 @@ class _MainScreenState extends State<MainScreen>
               if (navigationService.isAddButtonSelected) {
                 _showAddExpenseDialog();
               } else if (index == 0) {
-                _loadExpenses();
+                final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+                expenseStateManager.loadAllExpenses(forceRefresh: true);
               }
             },
           ),

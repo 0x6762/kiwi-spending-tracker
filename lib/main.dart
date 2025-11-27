@@ -12,6 +12,7 @@ import 'theme/theme.dart';
 import 'theme/theme_provider.dart';
 import 'utils/formatters.dart';
 import 'database/database.dart';
+import 'providers/expense_state_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,10 @@ void main() async {
 
   final navigationService = NavigationService();
 
+  final expenseStateManager = ExpenseStateManager(
+    repositoryProvider.expenseRepository,
+  );
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -58,6 +63,7 @@ void main() async {
     subscriptionService: subscriptionService,
     recurringExpenseService: recurringExpenseService,
     navigationService: navigationService,
+    expenseStateManager: expenseStateManager,
   ));
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,6 +111,7 @@ class MyApp extends StatelessWidget {
   final SubscriptionService subscriptionService;
   final RecurringExpenseService recurringExpenseService;
   final NavigationService navigationService;
+  final ExpenseStateManager expenseStateManager;
 
   const MyApp({
     super.key,
@@ -113,6 +120,7 @@ class MyApp extends StatelessWidget {
     required this.subscriptionService,
     required this.recurringExpenseService,
     required this.navigationService,
+    required this.expenseStateManager,
   });
 
   @override
@@ -122,6 +130,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider.value(value: repositoryProvider),
         ChangeNotifierProvider.value(value: navigationService),
+        ChangeNotifierProvider.value(value: expenseStateManager),
         Provider.value(value: subscriptionService),
         Provider.value(value: recurringExpenseService),
       ],

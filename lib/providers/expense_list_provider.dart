@@ -125,32 +125,42 @@ class ExpenseListProvider extends ChangeNotifier {
     await loadExpenses();
   }
 
-  /// Delete an expense and update list
-  Future<void> deleteExpense(String id) async {
-    try {
-      await _repository.deleteExpense(id);
-      
-      // Remove from local list
-      _expenses.removeWhere((e) => e.id == id);
-      
-      // Update total count
-      if (_currentPage != null) {
-        _currentPage = _currentPage!.copyWith(
-          expenses: _expenses,
-          totalCount: _currentPage!.totalCount - 1,
-        );
-      }
-      
-      notifyListeners();
-      
-      // If we're running low on items and have more, load more
-      if (_expenses.length < _pageSize && hasMore) {
-        await loadMore();
-      }
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      rethrow;
+  /// Add an expense to the list without saving (for use with ExpenseStateManager)
+  /// This is used when ExpenseStateManager has already saved the expense
+  void addExpenseToList(Expense expense) {
+    // Optimistically add to local list (insert at beginning for newest first)
+    _expenses.insert(0, expense);
+    
+    // Update total count
+    if (_currentPage != null) {
+      _currentPage = _currentPage!.copyWith(
+        expenses: _expenses,
+        totalCount: _currentPage!.totalCount + 1,
+      );
+    }
+    
+    notifyListeners();
+  }
+
+  /// Remove an expense from the list without saving (for use with ExpenseStateManager)
+  /// This is used when ExpenseStateManager has already deleted the expense
+  void removeExpenseFromList(String expenseId) {
+    // Remove from local list
+    _expenses.removeWhere((e) => e.id == expenseId);
+    
+    // Update total count
+    if (_currentPage != null) {
+      _currentPage = _currentPage!.copyWith(
+        expenses: _expenses,
+        totalCount: _currentPage!.totalCount - 1,
+      );
+    }
+    
+    notifyListeners();
+    
+    // If we're running low on items and have more, load more
+    if (_expenses.length < _pageSize && hasMore) {
+      loadMore();
     }
   }
 
