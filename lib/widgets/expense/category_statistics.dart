@@ -102,7 +102,6 @@ class CategoryStatistics extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => CategoryExpensesScreen(
-          repository: repository!,
           categoryRepo: categoryRepo,
           accountRepo: accountRepo!,
           categoryId: categoryId,

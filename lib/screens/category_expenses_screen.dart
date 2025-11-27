@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
+import '../providers/expense_state_manager.dart';
 import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
 import 'expense_detail_screen.dart';
 
 class CategoryExpensesScreen extends StatefulWidget {
-  final ExpenseRepository repository;
+  final ExpenseRepository? repository; // Optional, for backward compatibility
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final String categoryId;
@@ -19,7 +21,7 @@ class CategoryExpensesScreen extends StatefulWidget {
 
   const CategoryExpensesScreen({
     super.key,
-    required this.repository,
+    this.repository,
     required this.categoryRepo,
     required this.accountRepo,
     required this.categoryId,
@@ -31,24 +33,41 @@ class CategoryExpensesScreen extends StatefulWidget {
 }
 
 class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
-  List<Expense> _expenses = [];
   ExpenseCategory? _category;
-  bool _isLoading = true;
+  bool _isLoadingCategory = true;
   final _dateFormat = DateFormat.yMMMd();
-  double _totalAmount = 0.0;
 
   @override
   void initState() {
     super.initState();
     _loadCategory();
-    _loadExpenses();
   }
 
   Future<void> _loadCategory() async {
     final category = await widget.categoryRepo.findCategoryById(widget.categoryId);
     setState(() {
       _category = category;
+      _isLoadingCategory = false;
     });
+  }
+
+  /// Filter expenses from ExpenseStateManager
+  List<Expense> _getFilteredExpenses(List<Expense> allExpenses) {
+    final now = DateTime.now();
+    return allExpenses
+        .where((expense) =>
+            expense.date.year == widget.selectedMonth.year &&
+            expense.date.month == widget.selectedMonth.month &&
+            expense.categoryId == widget.categoryId &&
+            expense.status != ExpenseStatus.cancelled &&
+            expense.date.isBefore(now.add(const Duration(days: 1))))
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  /// Calculate total amount from filtered expenses
+  double _calculateTotal(List<Expense> expenses) {
+    return expenses.fold(0.0, (sum, expense) => sum + expense.amount);
   }
 
   String _formatDate(DateTime date) {
@@ -69,43 +88,19 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
     }
   }
 
-  Future<void> _loadExpenses() async {
-    setState(() => _isLoading = true);
+  Future<void> _deleteExpense(Expense expense, ExpenseStateManager expenseStateManager) async {
     try {
-      final effectiveExpenses = await widget.repository.getEffectiveExpenses(asOfDate: DateTime.now());
-      
-      final filteredExpenses = effectiveExpenses.where((expense) => 
-        expense.date.year == widget.selectedMonth.year &&
-        expense.date.month == widget.selectedMonth.month &&
-        expense.categoryId == widget.categoryId &&
-        expense.status == ExpenseStatus.paid
-      ).toList();
-      
-      filteredExpenses.sort((a, b) => b.date.compareTo(a.date));
-      
-      final total = filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
-      
-      setState(() {
-        _expenses = filteredExpenses;
-        _totalAmount = total;
-        _isLoading = false;
-      });
+      await expenseStateManager.deleteExpense(expense.id);
     } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load category expenses: ${e.toString()}')),
+          SnackBar(content: Text('Failed to delete expense: ${e.toString()}')),
         );
       }
     }
   }
 
-  Future<void> _deleteExpense(Expense expense) async {
-    await widget.repository.deleteExpense(expense.id);
-    _loadExpenses();
-  }
-
-  void _viewExpenseDetails(Expense expense) async {
+  void _viewExpenseDetails(Expense expense, ExpenseStateManager expenseStateManager) async {
     final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
@@ -114,8 +109,15 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
           categoryRepo: widget.categoryRepo,
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
-            await widget.repository.updateExpense(updatedExpense);
-            _loadExpenses();
+            try {
+              await expenseStateManager.updateExpense(updatedExpense);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update expense: ${e.toString()}')),
+                );
+              }
+            }
           },
         ),
         maintainState: true,
@@ -123,11 +125,12 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
     );
 
     if (result == true) {
-      await _deleteExpense(expense);
+      await _deleteExpense(expense, expenseStateManager);
     }
   }
 
-  Widget _buildExpenseItem(BuildContext context, Expense expense) {
+  Widget _buildExpenseItem(
+      BuildContext context, Expense expense, ExpenseStateManager expenseStateManager) {
     final theme = Theme.of(context);
     
     return Dismissible(
@@ -161,10 +164,10 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
           ),
         ) ?? false;
       },
-      onDismissed: (_) => _deleteExpense(expense),
+      onDismissed: (_) => _deleteExpense(expense, expenseStateManager),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _viewExpenseDetails(expense),
+        onTap: () => _viewExpenseDetails(expense, expenseStateManager),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -239,7 +242,7 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
     );
   }
 
-  Widget _buildCategorySummary() {
+  Widget _buildCategorySummary(double totalAmount) {
     final theme = Theme.of(context);
     
     return Card(
@@ -264,7 +267,7 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                formatCurrency(_totalAmount),
+                formatCurrency(totalAmount),
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
@@ -287,51 +290,78 @@ class _CategoryExpensesScreenState extends State<CategoryExpensesScreen> {
         title: _category?.name ?? 'Category Expenses',
         leading: const Icon(AppIcons.back),
       ),
-      body: _isLoading
+      body: _isLoadingCategory
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildCategorySummary(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Expenses',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        color: theme.colorScheme.surfaceContainer,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        elevation: 0,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: _expenses.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            return _buildExpenseItem(context, _expenses[index]);
-                          },
+          : Consumer<ExpenseStateManager>(
+              builder: (context, expenseStateManager, child) {
+                final allExpenses = expenseStateManager.allExpenses ?? [];
+                final isLoading = expenseStateManager.isLoadingAll && allExpenses.isEmpty;
+                
+                if (isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final filteredExpenses = _getFilteredExpenses(allExpenses);
+                final totalAmount = _calculateTotal(filteredExpenses);
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildCategorySummary(totalAmount),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Expenses',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+                      Expanded(
+                        child: filteredExpenses.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No expenses in this category for ${DateFormat.yMMMM().format(widget.selectedMonth)}',
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              )
+                            : SingleChildScrollView(
+                                child: Card(
+                                  margin: EdgeInsets.zero,
+                                  color: theme.colorScheme.surfaceContainer,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                  elevation: 0,
+                                  child: ListView.builder(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    itemCount: filteredExpenses.length,
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, index) {
+                                      return _buildExpenseItem(
+                                        context,
+                                        filteredExpenses[index],
+                                        expenseStateManager,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
     );
   }
