@@ -5,7 +5,7 @@ import '../../repositories/category_repository.dart';
 import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
 import '../../services/expense_analytics_service.dart';
-import '../../services/subscription_service.dart';
+import '../../services/recurring_expense_service.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/account_repository.dart';
 import '../../screens/subscriptions_screen.dart';
@@ -43,14 +43,14 @@ class ExpenseSummary extends StatefulWidget {
 }
 
 class _ExpenseSummaryState extends State<ExpenseSummary> {
-  late SubscriptionService _subscriptionService;
+  late RecurringExpenseService _recurringExpenseService;
 
   @override
   void initState() {
     super.initState();
-    if (widget.repository != null && widget.categoryRepo != null) {
-      _subscriptionService =
-          SubscriptionService(widget.repository!, widget.categoryRepo!);
+    if (widget.repository != null) {
+      _recurringExpenseService =
+          RecurringExpenseService(widget.repository!, null);
     }
   }
 
@@ -217,7 +217,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
               // Subscription Plans Card
               if (widget.repository != null && widget.categoryRepo != null)
                 FutureBuilder<SubscriptionSummary>(
-                  future: _subscriptionService
+                  future: _recurringExpenseService
                       .getSubscriptionSummaryForMonth(widget.selectedMonth),
                   builder: (context, subscriptionSnapshot) {
                     final subscriptionSummary = subscriptionSnapshot.hasData

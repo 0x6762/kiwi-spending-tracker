@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../services/subscription_service.dart';
+import '../../services/recurring_expense_service.dart';
 import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
 

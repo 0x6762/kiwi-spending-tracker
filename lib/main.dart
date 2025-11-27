@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'screens/main_screen.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
-import 'services/subscription_service.dart';
 import 'services/recurring_expense_service.dart';
 import 'services/navigation_service.dart';
 
@@ -24,11 +23,6 @@ void main() async {
   );
 
   final analyticsService = ExpenseAnalyticsService(
-    repositoryProvider.expenseRepository,
-    repositoryProvider.categoryRepository,
-  );
-
-  final subscriptionService = SubscriptionService(
     repositoryProvider.expenseRepository,
     repositoryProvider.categoryRepository,
   );
@@ -61,7 +55,6 @@ void main() async {
   runApp(MyApp(
     repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
-    subscriptionService: subscriptionService,
     recurringExpenseService: recurringExpenseService,
     navigationService: navigationService,
     expenseStateManager: expenseStateManager,
@@ -109,7 +102,6 @@ void _processRecurringExpensesInBackground(
 class MyApp extends StatelessWidget {
   final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
-  final SubscriptionService subscriptionService;
   final RecurringExpenseService recurringExpenseService;
   final NavigationService navigationService;
   final ExpenseStateManager expenseStateManager;
@@ -118,7 +110,6 @@ class MyApp extends StatelessWidget {
     super.key,
     required this.repositoryProvider,
     required this.analyticsService,
-    required this.subscriptionService,
     required this.recurringExpenseService,
     required this.navigationService,
     required this.expenseStateManager,
@@ -132,7 +123,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: repositoryProvider),
         ChangeNotifierProvider.value(value: navigationService),
         ChangeNotifierProvider.value(value: expenseStateManager),
-        Provider.value(value: subscriptionService),
         Provider.value(value: recurringExpenseService),
       ],
       child: Consumer<ThemeProvider>(

@@ -7,14 +7,14 @@ import '../repositories/expense_repository.dart';
 import '../repositories/category_repository.dart';
 import '../repositories/account_repository.dart';
 import '../providers/expense_state_manager.dart';
-import '../services/subscription_service.dart';
+import '../services/recurring_expense_service.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
-  final ExpenseRepository repository; // Required for SubscriptionService initialization
+  final ExpenseRepository repository; // Required for RecurringExpenseService initialization
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final DateTime selectedMonth;
@@ -32,29 +32,29 @@ class SubscriptionsScreen extends StatefulWidget {
 }
 
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
-  late SubscriptionService _subscriptionService;
+  late RecurringExpenseService _recurringExpenseService;
   final _dateFormat = DateFormat.yMMMd();
 
   @override
   void initState() {
     super.initState();
-    // SubscriptionService constructor requires repository, but the methods we use
+    // RecurringExpenseService constructor requires repository, but the methods we use
     // (getSubscriptionsFromExpenses, etc.) don't actually use the repository
     // They just process the expenses list from ExpenseStateManager
-    _subscriptionService = SubscriptionService(
+    _recurringExpenseService = RecurringExpenseService(
       widget.repository,
-      widget.categoryRepo,
+      null, // No ExpenseStateManager needed for read-only methods
     );
   }
 
   /// Get subscriptions from ExpenseStateManager expenses
   List<SubscriptionData> _getSubscriptions(List<Expense> expenses) {
-    return _subscriptionService.getSubscriptionsFromExpenses(expenses);
+    return _recurringExpenseService.getSubscriptionsFromExpenses(expenses);
   }
 
   /// Get subscription summary from ExpenseStateManager expenses
   SubscriptionSummary _getSubscriptionSummary(List<Expense> expenses) {
-    return _subscriptionService.getSubscriptionSummaryForMonthFromExpenses(
+    return _recurringExpenseService.getSubscriptionSummaryForMonthFromExpenses(
         expenses, widget.selectedMonth);
   }
 
