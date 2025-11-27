@@ -1,6 +1,7 @@
 import '../models/expense.dart';
 import '../repositories/expense_repository.dart';
 import '../services/recurring_expense_service.dart';
+import '../providers/expense_state_manager.dart';
 
 /// Represents an upcoming expense with additional context
 class UpcomingExpenseItem {
@@ -57,8 +58,21 @@ class UpcomingExpenseItem {
 class UnifiedUpcomingService {
   final ExpenseRepository _expenseRepo;
   final RecurringExpenseService _recurringService;
+  final ExpenseStateManager? _expenseStateManager;
 
-  UnifiedUpcomingService(this._expenseRepo, this._recurringService);
+  UnifiedUpcomingService(
+    this._expenseRepo,
+    this._recurringService, [
+    this._expenseStateManager,
+  ]);
+
+  /// Get all expenses from ExpenseStateManager cache or repository
+  Future<List<Expense>> _getAllExpenses() async {
+    if (_expenseStateManager != null && _expenseStateManager!.hasCachedData) {
+      return _expenseStateManager!.allExpenses ?? [];
+    }
+    return await _expenseRepo.getAllExpenses();
+  }
 
 
 
@@ -190,7 +204,19 @@ class UnifiedUpcomingService {
   /// Get overdue recurring expenses that should have been processed
   Future<List<UpcomingExpenseItem>> getOverdueRecurringExpenses() async {
     final now = DateTime.now();
-    final templates = await _recurringService.getRecurringTemplates();
+    
+    // Use cached data if available
+    List<Expense> templates;
+    if (_expenseStateManager != null && _expenseStateManager!.hasCachedData) {
+      final allExpenses = _expenseStateManager!.allExpenses ?? [];
+      templates = allExpenses.where((expense) => 
+        expense.type == ExpenseType.subscription &&
+        expense.isRecurring == true
+      ).toList();
+    } else {
+      templates = await _recurringService.getRecurringTemplates();
+    }
+    
     final overdue = <UpcomingExpenseItem>[];
 
     for (final template in templates) {
@@ -250,7 +276,7 @@ class UnifiedUpcomingService {
     DateTime fromDate,
     DateTime toDate,
   ) async {
-    final allExpenses = await _expenseRepo.getAllExpenses();
+    final allExpenses = await _getAllExpenses();
     final manualUpcoming = <UpcomingExpenseItem>[];
 
     for (final expense in allExpenses) {
@@ -274,7 +300,18 @@ class UnifiedUpcomingService {
     DateTime fromDate,
     DateTime toDate,
   ) async {
-    final templates = await _recurringService.getRecurringTemplates();
+    // Use cached data if available
+    List<Expense> templates;
+    if (_expenseStateManager != null && _expenseStateManager!.hasCachedData) {
+      final allExpenses = _expenseStateManager!.allExpenses ?? [];
+      templates = allExpenses.where((expense) => 
+        expense.type == ExpenseType.subscription &&
+        expense.isRecurring == true
+      ).toList();
+    } else {
+      templates = await _recurringService.getRecurringTemplates();
+    }
+    
     final templateUpcoming = <UpcomingExpenseItem>[];
 
     for (final template in templates) {
@@ -299,7 +336,7 @@ class UnifiedUpcomingService {
     DateTime fromDate,
     DateTime toDate,
   ) async {
-    final allExpenses = await _expenseRepo.getAllExpenses();
+    final allExpenses = await _getAllExpenses();
     final generatedUpcoming = <UpcomingExpenseItem>[];
 
     for (final expense in allExpenses) {
