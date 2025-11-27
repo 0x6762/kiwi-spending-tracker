@@ -118,12 +118,27 @@ class ExpenseAnalyticsService {
     return result;
   }
 
+  /// Get monthly analytics from repository (legacy method)
   Future<MonthlyAnalytics> getMonthlyAnalytics(DateTime selectedMonth) async {
     // Get only paid expenses
     final expenses =
         await _expenseRepo.getEffectiveExpenses(asOfDate: DateTime.now());
+    return getMonthlyAnalyticsFromExpenses(expenses, selectedMonth);
+  }
 
-    if (expenses.isEmpty) {
+  /// Get monthly analytics from provided expenses list
+  /// Filters to paid expenses and calculates analytics
+  MonthlyAnalytics getMonthlyAnalyticsFromExpenses(
+      List<Expense> expenses, DateTime selectedMonth) {
+    // Filter to only paid expenses (effective expenses)
+    final now = DateTime.now();
+    final effectiveExpenses = expenses
+        .where((expense) =>
+            expense.status != ExpenseStatus.cancelled &&
+            expense.date.isBefore(now.add(const Duration(days: 1))))
+        .toList();
+
+    if (effectiveExpenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
         subscriptionExpenses: 0.0,
@@ -137,7 +152,7 @@ class ExpenseAnalyticsService {
     }
 
     // Filter expenses for selected month
-    final monthlyExpenses = expenses
+    final monthlyExpenses = effectiveExpenses
         .where((expense) =>
             expense.date.year == selectedMonth.year &&
             expense.date.month == selectedMonth.month)
@@ -168,7 +183,7 @@ class ExpenseAnalyticsService {
 
     // Calculate previous month total
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
-    final previousMonthTotal = expenses
+    final previousMonthTotal = effectiveExpenses
         .where((expense) =>
             expense.date.year == previousMonth.year &&
             expense.date.month == previousMonth.month)
@@ -185,7 +200,6 @@ class ExpenseAnalyticsService {
     }
 
     // Calculate monthly average (based on last 6 months)
-    final now = DateTime.now();
     final last6Months = List.generate(6, (index) {
       return DateTime(now.year, now.month - (5 - index));
     });
@@ -194,7 +208,7 @@ class ExpenseAnalyticsService {
     int monthsWithData = 0;
 
     for (final month in last6Months) {
-      final monthExpenses = expenses.where((expense) =>
+      final monthExpenses = effectiveExpenses.where((expense) =>
           expense.date.year == month.year &&
           expense.date.month == month.month &&
           expense.status == ExpenseStatus.paid);

@@ -58,16 +58,11 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return FutureBuilder<MonthlyAnalytics>(
-      future: widget.analyticsService.getMonthlyAnalytics(widget.selectedMonth),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // Use synchronous method with provided expenses
+    final analytics = widget.analyticsService
+        .getMonthlyAnalyticsFromExpenses(widget.expenses, widget.selectedMonth);
 
-        final analytics = snapshot.data!;
-
-        return Padding(
+    return Padding(
           padding: const EdgeInsets.all(0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -262,8 +257,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
             ],
           ),
         );
-      },
-    );
   }
 }
 

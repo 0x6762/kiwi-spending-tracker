@@ -26,16 +26,12 @@ class CategoryStatistics extends StatelessWidget {
     this.repository,
   });
 
-  Widget _buildCategoryRow(BuildContext context, CategorySpending spending) {
+  Widget _buildCategoryRow(
+      BuildContext context, CategorySpending spending, ExpenseCategory? category) {
     final theme = Theme.of(context);
+    final categoryName = category?.name ?? 'Uncategorized';
 
-    return FutureBuilder<ExpenseCategory?>(
-      future: categoryRepo.findCategoryById(spending.categoryId),
-      builder: (context, snapshot) {
-        final categoryInfo = snapshot.data;
-        final categoryName = categoryInfo?.name ?? 'Uncategorized';
-
-        return GestureDetector(
+    return GestureDetector(
           onTap: (repository != null && accountRepo != null)
               ? () => _navigateToCategoryDetails(
                   context, spending.categoryId, categoryName)
@@ -58,7 +54,7 @@ class CategoryStatistics extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      categoryInfo?.icon ?? Icons.category_outlined,
+                      category?.icon ?? Icons.category_outlined,
                       size: 24,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -96,8 +92,6 @@ class CategoryStatistics extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 
   void _navigateToCategoryDetails(
@@ -137,18 +131,51 @@ class CategoryStatistics extends StatelessWidget {
         }
 
         final categorySpending = snapshot.data!;
+        
+        // Batch load all categories at once
+        final categoryIds = categorySpending
+            .map((spending) => spending.categoryId)
+            .toSet()
+            .toList();
+        
+        return FutureBuilder<Map<String, ExpenseCategory?>>(
+          future: _loadCategoriesBatch(categoryIds),
+          builder: (context, categorySnapshot) {
+            final categoriesMap = categorySnapshot.data ?? {};
 
-        return ListView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: categorySpending.length,
-          itemBuilder: (context, index) {
-            final spending = categorySpending[index];
-            return _buildCategoryRow(context, spending);
+            return ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: categorySpending.length,
+              itemBuilder: (context, index) {
+                final spending = categorySpending[index];
+                final category = categoriesMap[spending.categoryId];
+                return _buildCategoryRow(context, spending, category);
+              },
+            );
           },
         );
       },
     );
+  }
+
+  /// Batch load all categories at once to avoid N+1 queries
+  Future<Map<String, ExpenseCategory?>> _loadCategoriesBatch(
+      List<String> categoryIds) async {
+    final Map<String, ExpenseCategory?> categoriesMap = {};
+    
+    // Load all categories in parallel
+    final futures = categoryIds.map((id) async {
+      final category = await categoryRepo.findCategoryById(id);
+      return MapEntry(id, category);
+    });
+    
+    final results = await Future.wait(futures);
+    for (final entry in results) {
+      categoriesMap[entry.key] = entry.value;
+    }
+    
+    return categoriesMap;
   }
 }

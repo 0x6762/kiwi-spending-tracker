@@ -43,6 +43,7 @@ class _InsightsScreenState extends State<InsightsScreen>
   final ScrollController _scrollController = ScrollController();
   late AnimationController _navAnimationController;
   late ScrollAwareButtonController _navController;
+  List<DateTime>? _cachedAvailableMonths;
 
   @override
   void initState() {
@@ -89,13 +90,31 @@ class _InsightsScreenState extends State<InsightsScreen>
         .toList();
   }
 
+  /// Get available months from expenses, with caching
+  List<DateTime> _getAvailableMonths(List<Expense> expenses) {
+    if (_cachedAvailableMonths != null) {
+      return _cachedAvailableMonths!;
+    }
+
+    final months = expenses
+        .map((e) => DateTime(e.date.year, e.date.month))
+        .toSet()
+        .toList();
+    months.sort((a, b) => b.compareTo(a)); // Most recent first
+
+    _cachedAvailableMonths = months;
+    return months;
+  }
+
   void _showMonthPicker(List<Expense> expenses) async {
+    final availableMonths = _getAvailableMonths(expenses);
+
     final DateTime? picked = await showDialog<DateTime>(
       context: context,
       builder: (BuildContext context) {
         return MonthPickerDialog(
           selectedMonth: _selectedMonth,
-          expenses: expenses,
+          availableMonths: availableMonths,
         );
       },
     );
@@ -122,6 +141,75 @@ class _InsightsScreenState extends State<InsightsScreen>
     return Consumer<ExpenseStateManager>(
       builder: (context, expenseStateManager, child) {
         final expenses = expenseStateManager.allExpenses ?? [];
+        final isLoading = expenseStateManager.isLoadingAll;
+
+        // Invalidate cache when expenses change
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_cachedAvailableMonths != null) {
+            _cachedAvailableMonths = null;
+          }
+        });
+
+        // Show loading state
+        if (isLoading && expenses.isEmpty) {
+          return Scaffold(
+            backgroundColor: theme.colorScheme.surface,
+            appBar: KiwiAppBar(
+              titleWidget: TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surface,
+                  foregroundColor: theme.colorScheme.surface,
+                  padding: const EdgeInsets.only(
+                    left: 8,
+                    right: 10,
+                    top: 12,
+                    bottom: 12,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _monthFormat.format(_selectedMonth),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+              centerTitle: false,
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    AppIcons.more,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SettingsScreen(
+                          categoryRepo: widget.categoryRepo,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
         return Scaffold(
           backgroundColor: theme.colorScheme.surface,
@@ -233,27 +321,17 @@ class _InsightsScreenState extends State<InsightsScreen>
 
 class MonthPickerDialog extends StatelessWidget {
   final DateTime selectedMonth;
-  final List<Expense> expenses;
+  final List<DateTime> availableMonths;
 
   const MonthPickerDialog({
     super.key,
     required this.selectedMonth,
-    required this.expenses,
+    required this.availableMonths,
   });
-
-  List<DateTime> get _availableMonths {
-    final months = expenses
-        .map((e) => DateTime(e.date.year, e.date.month))
-        .toSet()
-        .toList();
-    months.sort((a, b) => b.compareTo(a)); // Most recent first
-    return months;
-  }
 
   @override
   Widget build(BuildContext context) {
     final monthFormat = DateFormat.yMMMM();
-    final months = _availableMonths;
     final theme = Theme.of(context);
 
     return Dialog(
@@ -284,9 +362,9 @@ class MonthPickerDialog extends StatelessWidget {
               constraints: const BoxConstraints(maxHeight: 300),
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: months.length,
+                itemCount: availableMonths.length,
                 itemBuilder: (context, index) {
-                  final month = months[index];
+                  final month = availableMonths[index];
                   final isSelected = month.year == selectedMonth.year &&
                       month.month == selectedMonth.month;
 
