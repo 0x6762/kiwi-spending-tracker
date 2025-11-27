@@ -35,7 +35,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _slideAnimation = Tween<double>(
       begin: 30.0,
       end: 0.0,
@@ -43,7 +43,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -52,7 +52,6 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       curve: Curves.easeInOut,
     ));
   }
-
 
   @override
   void dispose() {
@@ -66,7 +65,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       setState(() {
         _isAccountPickerVisible = shouldShow;
       });
-      
+
       if (shouldShow) {
         _animationController.forward();
       } else {
@@ -75,7 +74,8 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     }
   }
 
-  Future<void> _selectDate(BuildContext context, ExpenseFormController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, ExpenseFormController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: controller.selectedDate,
@@ -87,7 +87,8 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     }
   }
 
-  void _showAccountPicker(BuildContext context, ExpenseFormController controller) async {
+  void _showAccountPicker(
+      BuildContext context, ExpenseFormController controller) async {
     await controller.accountRepo.loadAccounts();
     final accounts = await controller.accountRepo.getAllAccounts();
     accounts.sort((a, b) {
@@ -102,38 +103,42 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     PickerSheet.show(
       context: context,
       title: 'Select Account',
-      children: accounts.map(
-        (account) => ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: account.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+      children: accounts
+          .map(
+            (account) => ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: account.color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  account.icon,
+                  color: account.color,
+                ),
+              ),
+              title: Text(account.name),
+              selected: controller.selectedAccount?.id == account.id,
+              onTap: () {
+                controller.setAccount(account);
+                Navigator.pop(context);
+              },
             ),
-            child: Icon(
-              account.icon,
-              color: account.color,
-            ),
-          ),
-          title: Text(account.name),
-          selected: controller.selectedAccount?.id == account.id,
-          onTap: () {
-            controller.setAccount(account);
-            Navigator.pop(context);
-          },
-        ),
-      ).toList(),
+          )
+          .toList(),
     );
   }
 
-  Widget _buildDynamicAmountDisplay(ThemeData theme, String amount, double availableWidth) {
+  Widget _buildDynamicAmountDisplay(
+      ThemeData theme, String amount, double availableWidth) {
     final formattedAmount = formatCurrency(double.tryParse(amount) ?? 0);
-    
+
     // Detect decimal separator (could be '.' or ',' depending on locale)
     String integerPart;
     String decimalPart = '';
-    
-    if (formattedAmount.contains(',') && formattedAmount.lastIndexOf(',') > formattedAmount.lastIndexOf('.')) {
+
+    if (formattedAmount.contains(',') &&
+        formattedAmount.lastIndexOf(',') > formattedAmount.lastIndexOf('.')) {
       // BRL format: "R$ 1.234,56" - comma is decimal separator
       final parts = formattedAmount.split(',');
       integerPart = parts[0];
@@ -148,26 +153,29 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
         decimalPart = '.${amount.split('.')[1]}';
       }
     }
-    
+
     // Try different font sizes starting from largest
     final fontSizes = [48.0, 40.0, 32.0, 24.0, 20.0, 16.0, 14.0, 12.0];
-    
+
     for (final fontSize in fontSizes) {
-      final decimalFontSize = fontSize * 0.75; // Decimal part is 75% of main font size
-      
+      final decimalFontSize =
+          fontSize * 0.75; // Decimal part is 75% of main font size
+
       // Calculate combined width of integer and decimal parts
       final integerWidth = _calculateTextWidth(
         integerPart,
         _getTextStyle(theme, fontSize, FontWeight.w700),
       );
-      
-      final decimalWidth = decimalPart.isNotEmpty ? _calculateTextWidth(
-        decimalPart,
-        _getTextStyle(theme, decimalFontSize, FontWeight.w500),
-      ) : 0.0;
-      
+
+      final decimalWidth = decimalPart.isNotEmpty
+          ? _calculateTextWidth(
+              decimalPart,
+              _getTextStyle(theme, decimalFontSize, FontWeight.w500),
+            )
+          : 0.0;
+
       final totalWidth = integerWidth + decimalWidth;
-      
+
       if (totalWidth <= availableWidth) {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -181,7 +189,8 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
             if (decimalPart.isNotEmpty)
               Text(
                 decimalPart,
-                style: _getTextStyle(theme, decimalFontSize, FontWeight.w500).copyWith(
+                style: _getTextStyle(theme, decimalFontSize, FontWeight.w500)
+                    .copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -189,7 +198,7 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
         );
       }
     }
-    
+
     // Fallback to smallest size if nothing fits
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -220,7 +229,8 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
     return textPainter.width;
   }
 
-  TextStyle _getTextStyle(ThemeData theme, double fontSize, FontWeight fontWeight) {
+  TextStyle _getTextStyle(
+      ThemeData theme, double fontSize, FontWeight fontWeight) {
     return TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
@@ -238,8 +248,6 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       selector: (_, controller) => controller.amount,
       shouldRebuild: (prev, next) => prev != next,
       builder: (context, amount, child) {
-        final controller = Provider.of<ExpenseFormController>(context, listen: false);
-        
         // Update account picker visibility when amount changes
         final shouldShow = amount != '0' && amount.isNotEmpty;
         if (shouldShow != _isAccountPickerVisible) {
@@ -256,162 +264,181 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
           builder: (context, selectedDate, child) {
             return Selector<ExpenseFormController, Account?>(
               selector: (_, controller) => controller.selectedAccount,
-              shouldRebuild: (Account? prev, Account? next) => prev?.id != next?.id,
+              shouldRebuild: (Account? prev, Account? next) =>
+                  prev?.id != next?.id,
               builder: (context, selectedAccount, child) {
-                final controller = Provider.of<ExpenseFormController>(context, listen: false);
+                final controller =
+                    Provider.of<ExpenseFormController>(context, listen: false);
                 final canProceed = controller.canProceedFromStep(0);
-                
+
                 return Column(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Date and Amount section moved to top left
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Date display
-                        GestureDetector(
-                          onTap: () => _selectDate(context, controller),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Date and Amount section moved to top left
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  dateFormat.format(selectedDate),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                // Date display
+                                GestureDetector(
+                                  onTap: () => _selectDate(context, controller),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surfaceContainer,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          dateFormat.format(selectedDate),
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                            color: theme
+                                                .colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 16,
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 16,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                const SizedBox(height: 24),
+                                // Amount display
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return SizedBox(
+                                      width: double.infinity,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.baseline,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Expanded(
+                                            child: _buildDynamicAmountDisplay(
+                                              theme,
+                                              amount,
+                                              constraints.maxWidth -
+                                                  48, // Account for padding + buffer
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        // Amount display
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SizedBox(
-                              width: double.infinity,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Expanded(
-                                    child: _buildDynamicAmountDisplay(
-                                      theme, 
-                                      amount, 
-                                      constraints.maxWidth - 48, // Account for padding + buffer
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                          const Spacer(),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-            ),
-            // Animated Account picker (positioned above the NumberPad)
-            AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, _slideAnimation.value),
-                  child: Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                      child: _isAccountPickerVisible && selectedAccount != null
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Payment method label
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 4, bottom: 8),
-                                  child: Text(
-                                    'Payment method',
-                                    style: theme.textTheme.labelMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                                // Account picker button
-                                PickerButton(
-                                  label: selectedAccount!.name,
-                                  icon: selectedAccount!.icon,
-                                  iconColor: selectedAccount!.color,
-                                  onTap: () => _showAccountPicker(context, controller),
-                                ),
-                              ],
-                            )
-                          : const SizedBox.shrink(),
+                    // Animated Account picker (positioned above the NumberPad)
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, _slideAnimation.value),
+                          child: Opacity(
+                            opacity: _fadeAnimation.value,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 16),
+                              child: _isAccountPickerVisible &&
+                                      selectedAccount != null
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Payment method label
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 4, bottom: 8),
+                                          child: Text(
+                                            'Payment method',
+                                            style: theme.textTheme.labelMedium
+                                                ?.copyWith(
+                                              color: theme
+                                                  .colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                        // Account picker button
+                                        PickerButton(
+                                          label: selectedAccount.name,
+                                          icon: selectedAccount.icon,
+                                          iconColor: selectedAccount.color,
+                                          onTap: () => _showAccountPicker(
+                                              context, controller),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
+                    // Number pad
+                    Container(
+                      color: theme.colorScheme.surface,
+                      child: NumberPad(
+                        onDigitPressed: (digit) {
+                          String newAmount = amount;
+                          if (amount == '0') {
+                            newAmount = digit;
+                          } else {
+                            if (amount.contains('.')) {
+                              final parts = amount.split('.');
+                              if (parts.length > 1 && parts[1].length >= 2) {
+                                return;
+                              }
+                            }
+                            newAmount = amount + digit;
+                          }
+                          controller.setAmount(newAmount);
+                        },
+                        onDecimalPointPressed: () {
+                          if (!amount.contains('.')) {
+                            controller.setAmount(amount + '.');
+                          }
+                        },
+                        onDoubleZeroPressed: () {
+                          if (amount != '0') {
+                            controller.setAmount(amount + '00');
+                          }
+                        },
+                        onBackspacePressed: () {
+                          if (amount.isNotEmpty) {
+                            final newAmount =
+                                amount.substring(0, amount.length - 1);
+                            controller
+                                .setAmount(newAmount.isEmpty ? '0' : newAmount);
+                          }
+                        },
+                        onDatePressed: () => _selectDate(context, controller),
+                        onSubmitPressed: canProceed && widget.onNext != null
+                            ? widget.onNext!
+                            : () {},
+                        submitButtonText: 'Next',
+                      ),
+                    ),
+                  ],
                 );
-              },
-            ),
-            // Number pad
-            Container(
-              color: theme.colorScheme.surface,
-              child: NumberPad(
-                onDigitPressed: (digit) {
-                  String newAmount = amount;
-                  if (amount == '0') {
-                    newAmount = digit;
-                  } else {
-                    if (amount.contains('.')) {
-                      final parts = amount.split('.');
-                      if (parts.length > 1 && parts[1].length >= 2) {
-                        return;
-                      }
-                    }
-                    newAmount = amount + digit;
-                  }
-                  controller.setAmount(newAmount);
-                },
-                onDecimalPointPressed: () {
-                  if (!amount.contains('.')) {
-                    controller.setAmount(amount + '.');
-                  }
-                },
-                onDoubleZeroPressed: () {
-                  if (amount != '0') {
-                    controller.setAmount(amount + '00');
-                  }
-                },
-                onBackspacePressed: () {
-                  if (amount.isNotEmpty) {
-                    final newAmount = amount.substring(0, amount.length - 1);
-                    controller.setAmount(newAmount.isEmpty ? '0' : newAmount);
-                  }
-                },
-                onDatePressed: () => _selectDate(context, controller),
-                onSubmitPressed: canProceed && widget.onNext != null ? widget.onNext! : () {},
-                submitButtonText: 'Next',
-              ),
-            ),
-          ],
-        );
               },
             );
           },
@@ -419,4 +446,4 @@ class _AmountStepWidgetState extends State<AmountStepWidget>
       },
     );
   }
-} 
+}
