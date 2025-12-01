@@ -93,23 +93,24 @@ class AppTheme {
     primary: Color(0xFF7FA41C),
     onPrimary: Color(0xFFFFFFFF),
     // Used for secondary text and icons
-    secondary: Color(0xFF49454F),
+    secondary: Color(0xFF6B6B6B),
     onSecondary: Color(0xFFFFFFFF),
     // Error states and delete actions
     error: Color(0xFFBA1A1A),
     onError: Color(0xFFFFFFFF),
     // Main screen background
-    surface: Color(0xFFFFFBFE),
-    onSurface: Color(0xFF1C1B1F),
-    onSurfaceVariant: Color(0xFF49454F),
+    surface: Color(0xFFF0F0F0),
+    onSurface: Color(0xFF2A2A2A),
+    onSurfaceVariant: Color(0xFF6B6B6B),
+    surfaceDim: Color(0xFFEBEBEB),
     // Used for the bottom sheet, nav bar, and subtle backgrounds
-    surfaceContainer: Color(0xFFF3F3F3),
-    surfaceContainerHighest: Color(0xFFF3F3F3),
-    surfaceContainerLow: Color(0xFFF3F3F3),
-    surfaceContainerLowest: Color(0xFFF3F3F3),
+    surfaceContainer: Color(0xFFFAFAFA),
+    surfaceContainerHighest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFF8F8F8),
+    surfaceContainerLowest: Color(0xFFF5F5F5),
     // Used for borders and dividers
-    outline: Color(0xFFE3E3E3),
-    outlineVariant: Color(0xFFE3E3E3),
+    outline: Color(0xFFD0D0D0),
+    outlineVariant: Color(0xFFE8E8E8),
   );
 
   static const ColorScheme darkColorScheme = ColorScheme(

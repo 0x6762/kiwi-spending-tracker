@@ -223,7 +223,7 @@ class _MonthlyExpenseChartState extends State<MonthlyExpenseChart> {
                             width: barWidth,
                             color: total > 0
                                 ? (isSelectedMonth
-                                    ? theme.colorScheme.onSurface
+                                    ? theme.colorScheme.primary
                                     : theme.colorScheme.onSurface
                                         .withOpacity(0.2))
                                 : theme.colorScheme.onSurface.withOpacity(0.07),
