@@ -11,6 +11,7 @@ import '../widgets/common/app_bar.dart';
 import '../utils/formatters.dart';
 import '../utils/scroll_aware_button_controller.dart';
 import '../providers/expense_state_manager.dart';
+import '../services/upcoming_expense_service.dart';
 import 'expense_detail_screen.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
@@ -41,6 +42,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   late ScrollAwareButtonController _buttonController;
   Map<DateTime, List<Expense>>? _cachedGroupedExpenses;
   List<Expense>? _lastExpensesForGrouping;
+  List<Expense>? _lastUpcomingExpensesForGrouping;
+  List<Expense> _upcomingExpenses = [];
 
   static const Duration _animationDuration = Duration(milliseconds: 250);
 
@@ -91,6 +94,33 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
     _provider = ExpenseListProvider(widget.repository);
     _provider.loadExpenses();
+    _loadUpcomingExpenses();
+  }
+
+  Future<void> _loadUpcomingExpenses() async {
+    try {
+      final upcomingService = Provider.of<UpcomingExpenseService>(context, listen: false);
+      final upcomingItems = await upcomingService.getUpcomingExpenses(
+        daysAhead: 90, // Show upcoming expenses for next 90 days
+        includeRecurringTemplates: true,
+        includeManualExpenses: true,
+        includeGeneratedInstances: true,
+      );
+      // Convert UpcomingExpenseItem to Expense, using effectiveDate
+      if (mounted) {
+        setState(() {
+          _upcomingExpenses = upcomingItems.map((item) {
+            // For recurring templates, create a temporary expense with the next occurrence date
+            if (item.isRecurringTemplate && item.nextOccurrenceDate != null) {
+              return item.expense.copyWith(date: item.nextOccurrenceDate!);
+            }
+            return item.expense;
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading upcoming expenses: $e');
+    }
   }
 
   @override
@@ -129,6 +159,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
               await expenseStateManager.updateExpense(updatedExpense);
               // Update local provider list
               _provider.updateExpenseInList(updatedExpense);
+              // Reload upcoming expenses
+              _loadUpcomingExpenses();
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -148,6 +180,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
         await expenseStateManager.deleteExpense(expense.id);
         // Update local provider list without saving again
         _provider.removeExpenseFromList(expense.id);
+        // Reload upcoming expenses
+        _loadUpcomingExpenses();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -165,6 +199,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
       await expenseStateManager.deleteExpense(expense.id);
       // Update local provider list without saving again
       _provider.removeExpenseFromList(expense.id);
+      // Reload upcoming expenses
+      _loadUpcomingExpenses();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -175,13 +211,41 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   }
 
   Map<DateTime, List<Expense>> _groupExpensesByDate(List<Expense> expenses) {
+    // Merge with upcoming expenses, avoiding duplicates
+    final allExpenses = <Expense>[];
+    final existingIds = expenses.map((e) => e.id).toSet();
+    
+    // Add regular expenses
+    allExpenses.addAll(expenses);
+    
+    // Add upcoming expenses that aren't already in the list
+    // Note: Recurring templates might have the same ID as the template in regular expenses,
+    // but we want to show them in upcoming with their nextBillingDate
+    for (var upcoming in _upcomingExpenses) {
+      // Check if this is a recurring template (has isRecurring flag)
+      // If it is, we should add it even if ID matches, because it represents the future occurrence
+      final isRecurringTemplate = upcoming.isRecurring == true && 
+                                   upcoming.type == ExpenseType.subscription;
+      
+      if (!existingIds.contains(upcoming.id) || isRecurringTemplate) {
+        // For recurring templates, we want to show them in upcoming even if template exists
+        // Remove the template from regular expenses if it's a recurring template
+        if (isRecurringTemplate && existingIds.contains(upcoming.id)) {
+          allExpenses.removeWhere((e) => e.id == upcoming.id && e.isRecurring == true);
+        }
+        allExpenses.add(upcoming);
+      }
+    }
+
     // Use cache if expenses haven't changed
-    if (_cachedGroupedExpenses != null && _lastExpensesForGrouping == expenses) {
+    if (_cachedGroupedExpenses != null && 
+        _lastExpensesForGrouping == expenses && 
+        _lastUpcomingExpensesForGrouping == _upcomingExpenses) {
       return _cachedGroupedExpenses!;
     }
 
     final groupedExpenses = <DateTime, List<Expense>>{};
-    final sortedExpenses = List<Expense>.from(expenses)
+    final sortedExpenses = List<Expense>.from(allExpenses)
       ..sort((a, b) => b.date.compareTo(a.date));
 
     // Special key for upcoming expenses
@@ -207,6 +271,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
     _cachedGroupedExpenses = groupedExpenses;
     _lastExpensesForGrouping = expenses;
+    _lastUpcomingExpensesForGrouping = List.from(_upcomingExpenses);
     return groupedExpenses;
   }
 
@@ -250,6 +315,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
             await expenseStateManager.addExpense(expense);
             // Update local provider list without saving again
             _provider.addExpenseToList(expense);
+            // Reload upcoming expenses
+            _loadUpcomingExpenses();
           } catch (e) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

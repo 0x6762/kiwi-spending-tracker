@@ -5,6 +5,7 @@ import 'screens/main_screen.dart';
 import 'repositories/repository_provider.dart';
 import 'services/expense_analytics_service.dart';
 import 'services/recurring_expense_service.dart';
+import 'services/upcoming_expense_service.dart';
 import 'services/navigation_service.dart';
 
 import 'theme/theme.dart';
@@ -36,6 +37,12 @@ void main() async {
     expenseStateManager,
   );
 
+  final upcomingExpenseService = UpcomingExpenseService(
+    repositoryProvider.expenseRepository,
+    recurringExpenseService,
+    expenseStateManager,
+  );
+
   final navigationService = NavigationService();
 
   SystemChrome.setSystemUIOverlayStyle(
@@ -56,6 +63,7 @@ void main() async {
     repositoryProvider: repositoryProvider,
     analyticsService: analyticsService,
     recurringExpenseService: recurringExpenseService,
+    upcomingExpenseService: upcomingExpenseService,
     navigationService: navigationService,
     expenseStateManager: expenseStateManager,
   ));
@@ -103,6 +111,7 @@ class MyApp extends StatelessWidget {
   final RepositoryProvider repositoryProvider;
   final ExpenseAnalyticsService analyticsService;
   final RecurringExpenseService recurringExpenseService;
+  final UpcomingExpenseService upcomingExpenseService;
   final NavigationService navigationService;
   final ExpenseStateManager expenseStateManager;
 
@@ -111,6 +120,7 @@ class MyApp extends StatelessWidget {
     required this.repositoryProvider,
     required this.analyticsService,
     required this.recurringExpenseService,
+    required this.upcomingExpenseService,
     required this.navigationService,
     required this.expenseStateManager,
   });
@@ -124,6 +134,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: navigationService),
         ChangeNotifierProvider.value(value: expenseStateManager),
         Provider.value(value: recurringExpenseService),
+        Provider.value(value: upcomingExpenseService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) =>

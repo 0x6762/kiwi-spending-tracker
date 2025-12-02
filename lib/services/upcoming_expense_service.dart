@@ -283,7 +283,7 @@ class UpcomingExpenseService {
       // Only include non-recurring expenses with future dates
       if (!expense.isRecurring && 
           expense.date.isAfter(fromDate) && 
-          expense.date.isBefore(toDate)) {
+          !expense.date.isAfter(toDate)) {
         manualUpcoming.add(UpcomingExpenseItem(
           expense: expense,
           isRecurringTemplate: false,
@@ -313,18 +313,26 @@ class UpcomingExpenseService {
     }
     
     final templateUpcoming = <UpcomingExpenseItem>[];
+    // Normalize fromDate to start of day for comparison
+    final fromDateNormalized = DateTime(fromDate.year, fromDate.month, fromDate.day);
 
     for (final template in templates) {
       final nextDate = template.nextBillingDate;
-      if (nextDate != null && 
-          nextDate.isAfter(fromDate) && 
-          nextDate.isBefore(toDate)) {
-        templateUpcoming.add(UpcomingExpenseItem(
-          expense: template,
-          isRecurringTemplate: true,
-          nextOccurrenceDate: nextDate,
-          recurringTemplateId: template.id,
-        ));
+      if (nextDate != null) {
+        // Normalize nextDate to start of day for comparison
+        final nextDateNormalized = DateTime(nextDate.year, nextDate.month, nextDate.day);
+        // Show all future recurring expenses, regardless of how far in the future
+        // The date limit applies to manual expenses, but recurring subscriptions
+        // should always be visible if they have a future nextBillingDate
+        // Only include dates after fromDate (not including today)
+        if (nextDateNormalized.isAfter(fromDateNormalized)) {
+          templateUpcoming.add(UpcomingExpenseItem(
+            expense: template,
+            isRecurringTemplate: true,
+            nextOccurrenceDate: nextDate,
+            recurringTemplateId: template.id,
+          ));
+        }
       }
     }
 
@@ -344,7 +352,7 @@ class UpcomingExpenseService {
       // We can identify these by checking if they have a recurring template ID or other indicators
       if (!expense.isRecurring && 
           expense.date.isAfter(fromDate) && 
-          expense.date.isBefore(toDate) &&
+          !expense.date.isAfter(toDate) &&
           _isGeneratedInstance(expense)) {
         generatedUpcoming.add(UpcomingExpenseItem(
           expense: expense,
