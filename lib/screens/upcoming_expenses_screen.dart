@@ -40,7 +40,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
   @override
   void initState() {
     super.initState();
-    final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+    final expenseStateManager =
+        Provider.of<ExpenseStateManager>(context, listen: false);
     final recurringService = RecurringExpenseService(
       widget.repository,
       expenseStateManager,
@@ -97,7 +98,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     }
   }
 
-  Future<void> _deleteExpense(Expense expense, ExpenseStateManager expenseStateManager) async {
+  Future<void> _deleteExpense(
+      Expense expense, ExpenseStateManager expenseStateManager) async {
     try {
       await expenseStateManager.deleteExpense(expense.id);
       _loadUpcomingExpenses();
@@ -110,7 +112,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     }
   }
 
-  void _viewExpenseDetails(Expense expense, ExpenseStateManager expenseStateManager) async {
+  void _viewExpenseDetails(
+      Expense expense, ExpenseStateManager expenseStateManager) async {
     final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
@@ -125,7 +128,9 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update expense: ${e.toString()}')),
+                  SnackBar(
+                      content:
+                          Text('Failed to update expense: ${e.toString()}')),
                 );
               }
             }
@@ -149,7 +154,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     final theme = Theme.of(context);
     final expense = item.expense;
     final displayDate = item.effectiveDate;
-    
+
     return Dismissible(
       key: Key(expense.id),
       direction: DismissDirection.endToStart,
@@ -164,10 +169,11 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
       ),
       confirmDismiss: (direction) async {
         return await DeleteConfirmationDialog.show(
-          context,
-          title: 'Delete Expense',
-          message: 'Are you sure you want to delete this expense?',
-        ) ?? false;
+              context,
+              title: 'Delete Expense',
+              message: 'Are you sure you want to delete this expense?',
+            ) ??
+            false;
       },
       onDismissed: (_) => _deleteExpense(expense, expenseStateManager),
       child: ListTile(
@@ -195,32 +201,16 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
             ),
           ],
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.isRecurringTemplate
-                        ? 'Next payment: ${_formatDate(displayDate)}'
-                        : 'Due: ${_formatDate(displayDate)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                if (item.isRecurringTemplate)
-                  Text(
-                    item.typeDescription,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            item.isRecurringTemplate
+                ? 'Next payment: ${_formatDate(displayDate)}'
+                : 'Due: ${_formatDate(displayDate)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-          ],
+          ),
         ),
         trailing: Text(
           formatCurrency(expense.amount),
@@ -235,7 +225,7 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
 
   Widget _buildUpcomingExpensesSummary(UpcomingExpensesSummary summary) {
     final theme = Theme.of(context);
-    
+
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 16, 8, 16),
       color: theme.colorScheme.surfaceContainerLowest,
@@ -279,24 +269,25 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
   Future<Map<String, ExpenseCategory?>> _loadCategoriesBatch(
       List<UpcomingExpenseItem> items) async {
     final Map<String, ExpenseCategory?> categoriesMap = {};
-    
+
     // Get unique category IDs
     final categoryIds = items
-        .map((item) => item.expense.categoryId ?? CategoryRepository.uncategorizedId)
+        .map((item) =>
+            item.expense.categoryId ?? CategoryRepository.uncategorizedId)
         .toSet()
         .toList();
-    
+
     // Load all categories in parallel
     final futures = categoryIds.map((id) async {
       final category = await widget.categoryRepo.findCategoryById(id);
       return MapEntry(id, category);
     });
-    
+
     final results = await Future.wait(futures);
     for (final entry in results) {
       categoriesMap[entry.key] = entry.value;
     }
-    
+
     return categoriesMap;
   }
 
@@ -345,7 +336,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (_summary != null) _buildUpcomingExpensesSummary(_summary!),
+                            if (_summary != null)
+                              _buildUpcomingExpensesSummary(_summary!),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                               child: Column(
@@ -371,7 +363,8 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
                               child: ListView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: _upcomingExpenses.length,
                                 itemBuilder: (context, index) {
                                   final item = _upcomingExpenses[index];
@@ -398,4 +391,3 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     );
   }
 }
-
