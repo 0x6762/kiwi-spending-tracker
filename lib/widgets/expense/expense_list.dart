@@ -13,6 +13,7 @@ class ExpenseList extends StatefulWidget {
   final void Function(Expense expense)? onDelete;
   final ScrollController? scrollController;
   final bool shrinkWrap;
+  final bool sortAscending;
 
   const ExpenseList({
     super.key,
@@ -22,6 +23,7 @@ class ExpenseList extends StatefulWidget {
     this.onDelete,
     this.scrollController,
     this.shrinkWrap = false,
+    this.sortAscending = false,
   });
 
   @override
@@ -95,12 +97,16 @@ class _ExpenseListState extends State<ExpenseList> {
     
     final sorted = [...widget.expenses]..sort((a, b) {
         // First compare by date
-        final dateComparison = b.date.compareTo(a.date);
+        final dateComparison = widget.sortAscending 
+            ? a.date.compareTo(b.date)  // Ascending (earliest first)
+            : b.date.compareTo(a.date); // Descending (newest first)
         if (dateComparison != 0) {
           return dateComparison;
         }
         // If same date, compare by creation time
-        return b.createdAt.compareTo(a.createdAt);
+        return widget.sortAscending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt);
       });
     
     _cachedSortedExpenses = sorted;

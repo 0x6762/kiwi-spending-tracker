@@ -211,13 +211,28 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   }
 
   Map<DateTime, List<Expense>> _groupExpensesByDate(List<Expense> expenses) {
-    // Merge with upcoming expenses, avoiding duplicates
-    final allExpenses = <Expense>[];
-    final existingIds = expenses.map((e) => e.id).toSet();
+    // Separate upcoming expenses from regular expenses
     
-    // Add regular expenses
-    allExpenses.addAll(expenses);
-    
+    // Separate upcoming expenses from regular expenses
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcomingExpensesList = <Expense>[];
+    final regularExpensesList = <Expense>[];
+
+    // Add regular expenses (past and today)
+    for (var expense in expenses) {
+      final date = DateTime(
+        expense.date.year,
+        expense.date.month,
+        expense.date.day,
+      );
+      if (date.isAfter(today)) {
+        upcomingExpensesList.add(expense);
+      } else {
+        regularExpensesList.add(expense);
+      }
+    }
+
     // Add upcoming expenses that aren't already in the list
     // Note: Recurring templates might have the same ID as the template in regular expenses,
     // but we want to show them in upcoming with their nextBillingDate
@@ -227,13 +242,24 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
       final isRecurringTemplate = upcoming.isRecurring == true && 
                                    upcoming.type == ExpenseType.subscription;
       
-      if (!existingIds.contains(upcoming.id) || isRecurringTemplate) {
-        // For recurring templates, we want to show them in upcoming even if template exists
-        // Remove the template from regular expenses if it's a recurring template
-        if (isRecurringTemplate && existingIds.contains(upcoming.id)) {
-          allExpenses.removeWhere((e) => e.id == upcoming.id && e.isRecurring == true);
+      final upcomingDate = DateTime(
+        upcoming.date.year,
+        upcoming.date.month,
+        upcoming.date.day,
+      );
+
+      // Only add if it's actually in the future
+      if (upcomingDate.isAfter(today)) {
+        // Check if already in upcoming list (by ID)
+        final alreadyInUpcoming = upcomingExpensesList.any((e) => e.id == upcoming.id);
+        
+        if (!alreadyInUpcoming || isRecurringTemplate) {
+          // For recurring templates, remove the template from upcoming if it exists
+          if (isRecurringTemplate && alreadyInUpcoming) {
+            upcomingExpensesList.removeWhere((e) => e.id == upcoming.id && e.isRecurring == true);
+          }
+          upcomingExpensesList.add(upcoming);
         }
-        allExpenses.add(upcoming);
       }
     }
 
@@ -245,28 +271,26 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
     }
 
     final groupedExpenses = <DateTime, List<Expense>>{};
-    final sortedExpenses = List<Expense>.from(allExpenses)
-      ..sort((a, b) => b.date.compareTo(a.date));
-
+    
     // Special key for upcoming expenses
     final upcomingKey = DateTime(9999, 12, 31);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
-    for (var expense in sortedExpenses) {
+    // Sort upcoming expenses by date (earliest first) - all types together
+    upcomingExpensesList.sort((a, b) => a.date.compareTo(b.date));
+    if (upcomingExpensesList.isNotEmpty) {
+      groupedExpenses[upcomingKey] = upcomingExpensesList;
+    }
+
+    // Sort regular expenses by date (newest first)
+    regularExpensesList.sort((a, b) => b.date.compareTo(a.date));
+    for (var expense in regularExpensesList) {
       final date = DateTime(
         expense.date.year,
         expense.date.month,
         expense.date.day,
       );
-
-      if (date.isAfter(today)) {
-        groupedExpenses[upcomingKey] ??= [];
-        groupedExpenses[upcomingKey]!.add(expense);
-      } else {
-        groupedExpenses[date] ??= [];
-        groupedExpenses[date]!.add(expense);
-      }
+      groupedExpenses[date] ??= [];
+      groupedExpenses[date]!.add(expense);
     }
 
     _cachedGroupedExpenses = groupedExpenses;
@@ -439,6 +463,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                             categoryRepo: widget.categoryRepo,
                             onTap: _viewExpenseDetails,
                             onDelete: _handleDelete,
+                            sortAscending: entry.key == DateTime(9999, 12, 31), // Sort upcoming ascending
                           ),
                           const SizedBox(height: 8),
                         ],
