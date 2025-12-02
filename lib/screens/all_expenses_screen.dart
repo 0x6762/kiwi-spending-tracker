@@ -12,7 +12,9 @@ import '../utils/formatters.dart';
 import '../utils/scroll_aware_button_controller.dart';
 import '../providers/expense_state_manager.dart';
 import '../services/upcoming_expense_service.dart';
+import '../widgets/expense/upcoming_expenses_card.dart';
 import 'expense_detail_screen.dart';
+import 'upcoming_expenses_screen.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
 
 class AllExpensesScreen extends StatefulWidget {
@@ -44,6 +46,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
   List<Expense>? _lastExpensesForGrouping;
   List<Expense>? _lastUpcomingExpensesForGrouping;
   List<Expense> _upcomingExpenses = [];
+  UpcomingExpensesSummary? _upcomingSummary;
 
   static const Duration _animationDuration = Duration(milliseconds: 250);
 
@@ -106,6 +109,11 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
         includeManualExpenses: true,
         includeGeneratedInstances: true,
       );
+      // Get summary for the card
+      final summary = await upcomingService.getUpcomingExpensesSummary(
+        daysAhead: 90,
+      );
+      
       // Convert UpcomingExpenseItem to Expense, using effectiveDate
       if (mounted) {
         setState(() {
@@ -116,6 +124,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
             }
             return item.expense;
           }).toList();
+          _upcomingSummary = summary;
         });
       }
     } catch (e) {
@@ -406,22 +415,55 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                 }
 
                 final groupedExpenses = _groupExpensesByDate(provider.expenses);
+                final upcomingKey = DateTime(9999, 12, 31);
+                final hasUpcoming = groupedExpenses.containsKey(upcomingKey);
 
                 // Sort the entries to ensure upcoming is first, then by date descending
                 final sortedEntries = groupedExpenses.entries.toList()
                   ..sort((a, b) {
-                    if (a.key == DateTime(9999, 12, 31)) return -1;
-                    if (b.key == DateTime(9999, 12, 31)) return 1;
+                    if (a.key == upcomingKey) return -1;
+                    if (b.key == upcomingKey) return 1;
                     return b.key.compareTo(a.key);
                   });
+
+                // Calculate item count: upcoming card (if exists) + regular entries + load more
+                final regularEntriesCount = sortedEntries.where((e) => e.key != upcomingKey).length;
+                final itemCount = (hasUpcoming && _upcomingSummary != null ? 1 : 0) + 
+                                 regularEntriesCount + 
+                                 (provider.hasMore ? 1 : 0);
 
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(8),
-                  itemCount: sortedEntries.length + (provider.hasMore ? 1 : 0),
+                  itemCount: itemCount,
                   itemBuilder: (context, index) {
+                    // Show upcoming card first if available
+                    if (hasUpcoming && _upcomingSummary != null && index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 16),
+                        child: UpcomingExpensesCard(
+                          summary: _upcomingSummary!,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UpcomingExpensesScreen(
+                                  repository: widget.repository,
+                                  categoryRepo: widget.categoryRepo,
+                                  accountRepo: widget.accountRepo,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+
+                    // Adjust index if we showed the upcoming card
+                    final adjustedIndex = (hasUpcoming && _upcomingSummary != null) ? index - 1 : index;
+
                     // Load more indicator
-                    if (index == sortedEntries.length) {
+                    if (adjustedIndex >= regularEntriesCount) {
                       return Padding(
                         padding: const EdgeInsets.all(16),
                         child: provider.isLoadingMore
@@ -430,7 +472,10 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                       );
                     }
 
-                    final entry = sortedEntries[index];
+                    // Get regular entries (excluding upcoming)
+                    final regularEntries = sortedEntries.where((e) => e.key != upcomingKey).toList();
+                    final entry = regularEntries[adjustedIndex];
+
                     final dayTotal = entry.value.fold<double>(
                         0, (sum, expense) => sum + expense.amount);
 
@@ -463,7 +508,6 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                             categoryRepo: widget.categoryRepo,
                             onTap: _viewExpenseDetails,
                             onDelete: _handleDelete,
-                            sortAscending: entry.key == DateTime(9999, 12, 31), // Sort upcoming ascending
                           ),
                           const SizedBox(height: 8),
                         ],
