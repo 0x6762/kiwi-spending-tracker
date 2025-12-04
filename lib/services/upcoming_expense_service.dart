@@ -316,16 +316,18 @@ class UpcomingExpenseService {
     // Normalize fromDate to start of day for comparison
     final fromDateNormalized = DateTime(fromDate.year, fromDate.month, fromDate.day);
 
+    // Normalize toDate to start of day for comparison
+    final toDateNormalized = DateTime(toDate.year, toDate.month, toDate.day);
+
     for (final template in templates) {
       final nextDate = template.nextBillingDate;
       if (nextDate != null) {
         // Normalize nextDate to start of day for comparison
         final nextDateNormalized = DateTime(nextDate.year, nextDate.month, nextDate.day);
-        // Show all future recurring expenses, regardless of how far in the future
-        // The date limit applies to manual expenses, but recurring subscriptions
-        // should always be visible if they have a future nextBillingDate
-        // Only include dates after fromDate (not including today)
-        if (nextDateNormalized.isAfter(fromDateNormalized)) {
+        // Include recurring expenses that fall within the date range
+        // Only include dates after fromDate and before or equal to toDate
+        if (nextDateNormalized.isAfter(fromDateNormalized) &&
+            !nextDateNormalized.isAfter(toDateNormalized)) {
           templateUpcoming.add(UpcomingExpenseItem(
             expense: template,
             isRecurringTemplate: true,

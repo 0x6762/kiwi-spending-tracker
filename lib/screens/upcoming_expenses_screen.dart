@@ -58,13 +58,13 @@ class _UpcomingExpensesScreenState extends State<UpcomingExpensesScreen> {
     setState(() => _isLoading = true);
     try {
       final items = await _upcomingExpenseService.getUpcomingExpenses(
-        daysAhead: 90,
+        daysAhead: 30,
         includeRecurringTemplates: true,
         includeManualExpenses: true,
         includeGeneratedInstances: true,
       );
       final summary = await _upcomingExpenseService.getUpcomingExpensesSummary(
-        daysAhead: 90,
+        daysAhead: 30,
       );
       if (mounted) {
         setState(() {

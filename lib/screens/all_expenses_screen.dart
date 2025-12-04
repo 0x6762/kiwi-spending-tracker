@@ -104,14 +104,14 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
     try {
       final upcomingService = Provider.of<UpcomingExpenseService>(context, listen: false);
       final upcomingItems = await upcomingService.getUpcomingExpenses(
-        daysAhead: 90, // Show upcoming expenses for next 90 days
+        daysAhead: 30, // Show upcoming expenses for next 30 days
         includeRecurringTemplates: true,
         includeManualExpenses: true,
         includeGeneratedInstances: true,
       );
       // Get summary for the card
       final summary = await upcomingService.getUpcomingExpensesSummary(
-        daysAhead: 90,
+        daysAhead: 30,
       );
       
       // Convert UpcomingExpenseItem to Expense, using effectiveDate
