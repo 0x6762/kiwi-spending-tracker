@@ -324,9 +324,6 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS expenses_category_idx ON expenses_table (category_id)',
         );
-        await customStatement(
-          'CREATE INDEX IF NOT EXISTS expenses_type_idx ON expenses_table (type)',
-        );
 
         // Accounts index
         await customStatement(
@@ -642,5 +639,34 @@ class AppDatabase extends _$AppDatabase {
 
     final result = await query.getSingle();
     return result.read(expensesTable.id.count()) ?? 0;
+  }
+
+  /// Resets the database by deleting the database file
+  /// WARNING: This will delete all data! Use with caution.
+  /// The database will be recreated on next access.
+  Future<void> resetDatabase() async {
+    try {
+      // Close the database connection first
+      await close();
+
+      // Get the database file path
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbFile = File(p.join(dbFolder.path, 'spending_tracker.db'));
+
+      // Delete the database file if it exists
+      if (await dbFile.exists()) {
+        await dbFile.delete();
+        debugPrint('Database file deleted successfully');
+      }
+
+      // Reset the singleton instance so a new database will be created
+      _instance = null;
+
+      debugPrint(
+          'Database reset complete. A new database will be created on next access.');
+    } catch (e) {
+      debugPrint('Error resetting database: $e');
+      rethrow;
+    }
   }
 }
