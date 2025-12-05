@@ -20,7 +20,7 @@ class ExpenseFormController extends ChangeNotifier {
   String _selectedAccountId = DefaultAccounts.checking.id;
   bool _isRecurring = false;
   ExpenseFrequency _frequency = ExpenseFrequency.oneTime;
-  ExpenseNecessity _necessity = ExpenseNecessity.extra;
+  ExpenseNecessity _necessity = ExpenseNecessity.essential;
 
   // Getters
   String get amount => _amount;

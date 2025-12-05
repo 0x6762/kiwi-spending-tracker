@@ -51,7 +51,7 @@ class Expense {
     required this.accountId,
     this.nextBillingDate,
     this.dueDate,
-    this.necessity = ExpenseNecessity.extra,
+    this.necessity = ExpenseNecessity.essential,
     this.isRecurring = false,
     this.frequency = ExpenseFrequency.oneTime,
     this.status = ExpenseStatus.paid,
@@ -142,7 +142,7 @@ class Expense {
       dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
       necessity: json['necessity'] != null
           ? ExpenseNecessity.values[json['necessity'] as int]
-          : ExpenseNecessity.extra,
+          : ExpenseNecessity.essential,
       isRecurring: json['isRecurring'] ?? false,
       frequency: json['frequency'] != null
           ? ExpenseFrequency.values[json['frequency'] as int]
