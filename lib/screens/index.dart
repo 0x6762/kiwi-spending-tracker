@@ -6,5 +6,5 @@ export 'expense_detail_screen.dart';
 export 'insights_screen.dart';
 export 'main_screen.dart';
 export 'settings_screen.dart';
-export 'subscriptions_screen.dart';
-export 'multi_step_expense/multi_step_expense_screen.dart'; 
+export 'recurring_expenses_screen.dart';
+export 'multi_step_expense/multi_step_expense_screen.dart';

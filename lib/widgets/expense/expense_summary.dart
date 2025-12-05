@@ -6,11 +6,11 @@ import '../../services/expense_analytics_service.dart';
 import '../../services/recurring_expense_service.dart';
 import '../../repositories/expense_repository.dart';
 import '../../repositories/account_repository.dart';
-import '../../screens/subscriptions_screen.dart';
+import '../../screens/recurring_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import '../common/icon_container.dart';
 import '../../utils/icons.dart';
-import 'subscription_plans_card.dart';
+import 'recurring_expenses_card.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
@@ -180,14 +180,14 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
             ),
           ),
           const SizedBox(height: 8),
-          // Subscription Plans Card
+          // Recurring Expenses Card
           if (widget.repository != null && widget.categoryRepo != null)
             FutureBuilder<SubscriptionSummary>(
               future: _recurringExpenseService
                   .getSubscriptionSummaryForMonth(widget.selectedMonth),
-              builder: (context, subscriptionSnapshot) {
-                final subscriptionSummary = subscriptionSnapshot.hasData
-                    ? subscriptionSnapshot.data!
+              builder: (context, recurringSnapshot) {
+                final recurringSummary = recurringSnapshot.hasData
+                    ? recurringSnapshot.data!
                     : SubscriptionSummary(
                         totalMonthlyAmount: 0,
                         monthlyBillingAmount: 0,
@@ -199,7 +199,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                       );
 
                 return RecurringExpensesCard(
-                  summary: subscriptionSummary,
+                  summary: recurringSummary,
                   onTap: widget.repository != null &&
                           widget.categoryRepo != null &&
                           widget.accountRepo != null
