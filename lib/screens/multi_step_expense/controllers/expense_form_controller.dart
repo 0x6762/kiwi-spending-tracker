@@ -20,6 +20,7 @@ class ExpenseFormController extends ChangeNotifier {
   String _selectedAccountId = DefaultAccounts.checking.id;
   bool _isRecurring = false;
   ExpenseFrequency _frequency = ExpenseFrequency.oneTime;
+  ExpenseNecessity _necessity = ExpenseNecessity.extra;
 
   // Getters
   String get amount => _amount;
@@ -30,6 +31,7 @@ class ExpenseFormController extends ChangeNotifier {
   String get selectedAccountId => _selectedAccountId;
   bool get isRecurring => _isRecurring;
   ExpenseFrequency get frequency => _frequency;
+  ExpenseNecessity get necessity => _necessity;
   bool get isEditMode => initialExpense != null;
 
   ExpenseFormController({
@@ -56,6 +58,7 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedDate = expense.date;
     _isRecurring = expense.isRecurring;
     _frequency = expense.frequency;
+    _necessity = expense.necessity;
 
     await _loadCategory(expense.categoryId);
     await _loadAccount(expense.accountId);
@@ -116,6 +119,11 @@ class ExpenseFormController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setNecessity(ExpenseNecessity necessity) {
+    _necessity = necessity;
+    notifyListeners();
+  }
+
   // Validation
   bool canProceedFromStep(int step) {
     switch (step) {
@@ -137,9 +145,6 @@ class ExpenseFormController extends ChangeNotifier {
     }
 
     final amount = double.parse(_amount);
-
-    // Determine necessity based on category
-    final necessity = _determineNecessity();
 
     // Calculate next billing date for recurring expenses
     DateTime? nextBillingDate;
@@ -182,7 +187,7 @@ class ExpenseFormController extends ChangeNotifier {
       accountId: _selectedAccountId,
       nextBillingDate: nextBillingDate,
       dueDate: null,
-      necessity: necessity,
+      necessity: _necessity,
       isRecurring: _isRecurring,
       frequency: _frequency,
       status: ExpenseStatus.paid,
@@ -191,22 +196,5 @@ class ExpenseFormController extends ChangeNotifier {
       paymentMethod: null,
       tags: null,
     );
-  }
-
-  ExpenseNecessity _determineNecessity() {
-    if (_selectedCategory == null) return ExpenseNecessity.discretionary;
-
-    final categoryName = _selectedCategory!.name.toLowerCase();
-    if (categoryName.contains('groceries') ||
-        categoryName.contains('utilities') ||
-        categoryName.contains('rent') ||
-        categoryName.contains('mortgage')) {
-      return ExpenseNecessity.essential;
-    } else if (categoryName.contains('savings') ||
-        categoryName.contains('investment')) {
-      return ExpenseNecessity.savings;
-    } else {
-      return ExpenseNecessity.discretionary;
-    }
   }
 }

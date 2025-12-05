@@ -13,7 +13,7 @@ enum ExpenseStatus { pending, paid, overdue, cancelled }
 
 enum ExpenseNecessity {
   essential, // Needs (food, housing, utilities)
-  discretionary, // Wants (entertainment, dining out)
+  extra, // Wants (entertainment, dining out)
   savings // Future needs/wants
 }
 
@@ -51,7 +51,7 @@ class Expense {
     required this.accountId,
     this.nextBillingDate,
     this.dueDate,
-    this.necessity = ExpenseNecessity.discretionary,
+    this.necessity = ExpenseNecessity.extra,
     this.isRecurring = false,
     this.frequency = ExpenseFrequency.oneTime,
     this.status = ExpenseStatus.paid,
@@ -142,7 +142,7 @@ class Expense {
       dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
       necessity: json['necessity'] != null
           ? ExpenseNecessity.values[json['necessity'] as int]
-          : ExpenseNecessity.discretionary,
+          : ExpenseNecessity.extra,
       isRecurring: json['isRecurring'] ?? false,
       frequency: json['frequency'] != null
           ? ExpenseFrequency.values[json['frequency'] as int]

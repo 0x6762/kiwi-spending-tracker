@@ -317,7 +317,7 @@ class RecurringExpenseService {
       frequency: frequency,
       nextBillingDate: nextBillingDate,
       endDate: endDate,
-      necessity: ExpenseNecessity.discretionary, // Default, can be updated
+      necessity: ExpenseNecessity.extra, // Default, can be updated
       status: ExpenseStatus.paid,
     );
 

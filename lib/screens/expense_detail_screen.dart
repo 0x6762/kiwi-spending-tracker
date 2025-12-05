@@ -134,8 +134,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     switch (necessity) {
       case ExpenseNecessity.essential:
         return 'Essential (Need)';
-      case ExpenseNecessity.discretionary:
-        return 'Discretionary (Want)';
+      case ExpenseNecessity.extra:
+        return 'Extra (Want)';
       case ExpenseNecessity.savings:
         return 'Savings/Investment';
     }
@@ -145,7 +145,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     switch (necessity) {
       case ExpenseNecessity.essential:
         return Icons.home_outlined;
-      case ExpenseNecessity.discretionary:
+      case ExpenseNecessity.extra:
         return Icons.shopping_bag_outlined;
       case ExpenseNecessity.savings:
         return Icons.savings_outlined;
