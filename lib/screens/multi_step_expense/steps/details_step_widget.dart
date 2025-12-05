@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:spending_tracker/theme/theme.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../models/expense.dart';
 import '../../../widgets/forms/picker_button.dart';
@@ -61,8 +62,31 @@ class DetailsStepWidget extends StatelessWidget {
     }
   }
 
+  IconData _getNecessityIcon(ExpenseNecessity necessity) {
+    switch (necessity) {
+      case ExpenseNecessity.essential:
+        return Icons.favorite_outline_rounded;
+      case ExpenseNecessity.extra:
+        return Icons.mood_rounded;
+      case ExpenseNecessity.savings:
+        return Icons.savings_outlined;
+    }
+  }
+
+  Color _getNecessityIconColor(ExpenseNecessity necessity, ThemeData theme) {
+    switch (necessity) {
+      case ExpenseNecessity.essential:
+        return theme.colorScheme.error;
+      case ExpenseNecessity.extra:
+        return theme.colorScheme.recurringExpenseColor;
+      case ExpenseNecessity.savings:
+        return theme.colorScheme.tertiary;
+    }
+  }
+
   void _showNecessityPicker(
       BuildContext context, ExpenseFormController controller) {
+    final theme = Theme.of(context);
     final necessityOptions = [
       {'label': 'Essential', 'value': ExpenseNecessity.essential},
       {'label': 'Extra', 'value': ExpenseNecessity.extra},
@@ -71,18 +95,33 @@ class DetailsStepWidget extends StatelessWidget {
     PickerSheet.show(
       context: context,
       title: 'Necessity',
-      children: necessityOptions
-          .map(
-            (option) => ListTile(
-              title: Text(option['label'] as String),
-              selected: controller.necessity == option['value'],
-              onTap: () {
-                controller.setNecessity(option['value'] as ExpenseNecessity);
-                Navigator.pop(context);
-              },
+      children: necessityOptions.map(
+        (option) {
+          final necessity = option['value'] as ExpenseNecessity;
+          final icon = _getNecessityIcon(necessity);
+          final iconColor = _getNecessityIconColor(necessity, theme);
+
+          return ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+              ),
             ),
-          )
-          .toList(),
+            title: Text(option['label'] as String),
+            selected: controller.necessity == necessity,
+            onTap: () {
+              controller.setNecessity(necessity);
+              Navigator.pop(context);
+            },
+          );
+        },
+      ).toList(),
     );
   }
 
@@ -167,7 +206,9 @@ class DetailsStepWidget extends StatelessWidget {
                                     // Necessity picker
                                     PickerButton(
                                       label: _getNecessityLabel(necessity),
-                                      icon: Icons.checklist_rounded,
+                                      icon: _getNecessityIcon(necessity),
+                                      iconColor: _getNecessityIconColor(
+                                          necessity, theme),
                                       onTap: () => _showNecessityPicker(
                                           context, controller),
                                     ),
