@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/recurring_expense_service.dart';
 import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
@@ -38,7 +37,7 @@ class RecurringExpensesCard extends StatelessWidget {
                   label: 'Recurring Expenses',
                   amount: summary.totalMonthlyAmount,
                   context: context,
-                  iconAsset: 'assets/icons/subscription.svg',
+                  icon: Icons.event_repeat_rounded,
                   iconColor: theme.colorScheme.subscriptionColor,
                   onTap: onTap,
                 ),
@@ -55,7 +54,7 @@ class _RecurringExpenseRow extends StatelessWidget {
   final String label;
   final double amount;
   final BuildContext context;
-  final String iconAsset;
+  final IconData icon;
   final Color iconColor;
   final VoidCallback? onTap;
 
@@ -63,7 +62,7 @@ class _RecurringExpenseRow extends StatelessWidget {
     required this.label,
     required this.amount,
     required this.context,
-    required this.iconAsset,
+    required this.icon,
     required this.iconColor,
     this.onTap,
   });
@@ -74,14 +73,10 @@ class _RecurringExpenseRow extends StatelessWidget {
 
     return Row(
       children: [
-        SvgPicture.asset(
-          iconAsset,
-          width: 24,
-          height: 24,
-          colorFilter: ColorFilter.mode(
-            iconColor,
-            BlendMode.srcIn,
-          ),
+        Icon(
+          icon,
+          size: 24,
+          color: iconColor,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -98,14 +93,6 @@ class _RecurringExpenseRow extends StatelessWidget {
             color: theme.colorScheme.onSurface,
           ),
         ),
-        if (onTap != null) ...[
-          const SizedBox(width: 8),
-          Icon(
-            Icons.chevron_right,
-            size: 20,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ],
       ],
     );
   }
