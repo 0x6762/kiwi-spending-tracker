@@ -140,7 +140,7 @@ class AppTheme {
   );
 
   // Expense type colors
-  static const Color subscriptionColor = Color(0xFF2196F3); // Blue
+  static const Color recurringExpenseColor = Color(0xFF2196F3); // Blue
   static const Color fixedExpenseColor = Color(0xFFCF5825); // Orange
   static const Color variableExpenseColor = Color(0xFF8056E4); // Purple
   static const Color upcomingExpenseColor = Color(0xFF4CAF50); // Green
@@ -202,7 +202,7 @@ class AppTheme {
 
 // Extension to add expense type colors to ColorScheme
 extension ExpenseTypeColors on ColorScheme {
-  Color get subscriptionColor => AppTheme.subscriptionColor;
+  Color get recurringExpenseColor => AppTheme.recurringExpenseColor;
   Color get fixedExpenseColor => AppTheme.fixedExpenseColor;
   Color get variableExpenseColor => AppTheme.variableExpenseColor;
   Color get upcomingExpenseColor => AppTheme.upcomingExpenseColor;
@@ -211,7 +211,8 @@ extension ExpenseTypeColors on ColorScheme {
   Color getExpenseTypeColor(String expenseType) {
     switch (expenseType.toLowerCase()) {
       case 'subscription':
-        return subscriptionColor;
+      case 'recurring':
+        return recurringExpenseColor;
       case 'fixed':
         return fixedExpenseColor;
       case 'variable':

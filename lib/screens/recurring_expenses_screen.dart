@@ -249,7 +249,7 @@ class _RecurringExpensesScreenState extends State<RecurringExpensesScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${summary.totalSubscriptions} active recurring expenses',
+              '${summary.totalRecurringExpenses} active recurring expenses',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

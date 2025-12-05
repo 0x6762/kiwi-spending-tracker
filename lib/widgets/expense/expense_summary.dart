@@ -192,10 +192,10 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                         totalMonthlyAmount: 0,
                         monthlyBillingAmount: 0,
                         yearlyBillingMonthlyEquivalent: 0,
-                        totalSubscriptions: 0,
-                        activeSubscriptions: 0,
-                        dueSoonSubscriptions: 0,
-                        overdueSubscriptions: 0,
+                        totalRecurringExpenses: 0,
+                        activeRecurringExpenses: 0,
+                        dueSoonRecurringExpenses: 0,
+                        overdueRecurringExpenses: 0,
                       );
 
                 return RecurringExpensesCard(

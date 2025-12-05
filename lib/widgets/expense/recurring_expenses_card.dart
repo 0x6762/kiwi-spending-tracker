@@ -38,7 +38,7 @@ class RecurringExpensesCard extends StatelessWidget {
                   amount: summary.totalMonthlyAmount,
                   context: context,
                   icon: Icons.event_repeat_rounded,
-                  iconColor: theme.colorScheme.subscriptionColor,
+                  iconColor: theme.colorScheme.recurringExpenseColor,
                   onTap: onTap,
                 ),
               ),

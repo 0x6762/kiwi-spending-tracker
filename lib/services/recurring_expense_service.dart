@@ -38,19 +38,19 @@ class RecurringExpenseSummary {
   final double totalMonthlyAmount;
   final double monthlyBillingAmount;
   final double yearlyBillingMonthlyEquivalent;
-  final int totalSubscriptions;
-  final int activeSubscriptions;
-  final int dueSoonSubscriptions;
-  final int overdueSubscriptions;
+  final int totalRecurringExpenses;
+  final int activeRecurringExpenses;
+  final int dueSoonRecurringExpenses;
+  final int overdueRecurringExpenses;
 
   RecurringExpenseSummary({
     required this.totalMonthlyAmount,
     required this.monthlyBillingAmount,
     required this.yearlyBillingMonthlyEquivalent,
-    required this.totalSubscriptions,
-    required this.activeSubscriptions,
-    required this.dueSoonSubscriptions,
-    required this.overdueSubscriptions,
+    required this.totalRecurringExpenses,
+    required this.activeRecurringExpenses,
+    required this.dueSoonRecurringExpenses,
+    required this.overdueRecurringExpenses,
   });
 }
 
@@ -420,10 +420,10 @@ class RecurringExpenseService {
       totalMonthlyAmount: totalMonthlyAmount,
       monthlyBillingAmount: monthlyBillingAmount,
       yearlyBillingMonthlyEquivalent: yearlyBillingMonthlyEquivalent,
-      totalSubscriptions: recurringExpenses.length,
-      activeSubscriptions: activeCount,
-      dueSoonSubscriptions: dueSoonCount,
-      overdueSubscriptions: overdueCount,
+      totalRecurringExpenses: recurringExpenses.length,
+      activeRecurringExpenses: activeCount,
+      dueSoonRecurringExpenses: dueSoonCount,
+      overdueRecurringExpenses: overdueCount,
     );
   }
 
@@ -486,10 +486,10 @@ class RecurringExpenseService {
       totalMonthlyAmount: totalMonthlyAmount,
       monthlyBillingAmount: monthlyBillingAmount,
       yearlyBillingMonthlyEquivalent: yearlyBillingMonthlyEquivalent,
-      totalSubscriptions: recurringExpenses.length,
-      activeSubscriptions: activeCount,
-      dueSoonSubscriptions: dueSoonCount,
-      overdueSubscriptions: overdueCount,
+      totalRecurringExpenses: recurringExpenses.length,
+      activeRecurringExpenses: activeCount,
+      dueSoonRecurringExpenses: dueSoonCount,
+      overdueRecurringExpenses: overdueCount,
     );
   }
 
