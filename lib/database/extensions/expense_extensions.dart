@@ -20,7 +20,6 @@ extension ExpenseConversions on ExpenseTableData {
       isRecurring: isRecurring,
       frequency: domain.ExpenseFrequency.values[frequency.index],
       status: domain.ExpenseStatus.values[status.index],
-      variableAmount: variableAmount,
       endDate: endDate,
       budgetId: budgetId,
       paymentMethod: paymentMethod,
@@ -47,11 +46,10 @@ extension ExpenseTableConversion on domain.Expense {
       isRecurring: Value(isRecurring),
       frequency: Value(frequency),
       status: Value(status),
-      variableAmount: Value(variableAmount),
       endDate: Value(endDate),
       budgetId: Value(budgetId),
       paymentMethod: Value(paymentMethod),
       tags: Value(tags),
     );
   }
-} 
+}

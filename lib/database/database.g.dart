@@ -114,12 +114,6 @@ class $ExpensesTableTable extends ExpensesTable
               requiredDuringInsert: false,
               defaultValue: const Constant(1))
           .withConverter<ExpenseStatus>($ExpensesTableTable.$converterstatus);
-  static const VerificationMeta _variableAmountMeta =
-      const VerificationMeta('variableAmount');
-  @override
-  late final GeneratedColumn<double> variableAmount = GeneratedColumn<double>(
-      'variable_amount', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _endDateMeta =
       const VerificationMeta('endDate');
   @override
@@ -162,7 +156,6 @@ class $ExpensesTableTable extends ExpensesTable
         isRecurring,
         frequency,
         status,
-        variableAmount,
         endDate,
         budgetId,
         paymentMethod,
@@ -249,12 +242,6 @@ class $ExpensesTableTable extends ExpensesTable
     }
     context.handle(_frequencyMeta, const VerificationResult.success());
     context.handle(_statusMeta, const VerificationResult.success());
-    if (data.containsKey('variable_amount')) {
-      context.handle(
-          _variableAmountMeta,
-          variableAmount.isAcceptableOrUnknown(
-              data['variable_amount']!, _variableAmountMeta));
-    }
     if (data.containsKey('end_date')) {
       context.handle(_endDateMeta,
           endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
@@ -315,8 +302,6 @@ class $ExpensesTableTable extends ExpensesTable
       status: $ExpensesTableTable.$converterstatus.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
-      variableAmount: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}variable_amount']),
       endDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date']),
       budgetId: attachedDatabase.typeMapping
@@ -364,7 +349,6 @@ class ExpenseTableData extends DataClass
   final bool isRecurring;
   final ExpenseFrequency frequency;
   final ExpenseStatus status;
-  final double? variableAmount;
   final DateTime? endDate;
   final String? budgetId;
   final String? paymentMethod;
@@ -386,7 +370,6 @@ class ExpenseTableData extends DataClass
       required this.isRecurring,
       required this.frequency,
       required this.status,
-      this.variableAmount,
       this.endDate,
       this.budgetId,
       this.paymentMethod,
@@ -432,9 +415,6 @@ class ExpenseTableData extends DataClass
       map['status'] =
           Variable<int>($ExpensesTableTable.$converterstatus.toSql(status));
     }
-    if (!nullToAbsent || variableAmount != null) {
-      map['variable_amount'] = Variable<double>(variableAmount);
-    }
     if (!nullToAbsent || endDate != null) {
       map['end_date'] = Variable<DateTime>(endDate);
     }
@@ -478,9 +458,6 @@ class ExpenseTableData extends DataClass
       isRecurring: Value(isRecurring),
       frequency: Value(frequency),
       status: Value(status),
-      variableAmount: variableAmount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(variableAmount),
       endDate: endDate == null && nullToAbsent
           ? const Value.absent()
           : Value(endDate),
@@ -518,7 +495,6 @@ class ExpenseTableData extends DataClass
           .fromJson(serializer.fromJson<int>(json['frequency'])),
       status: $ExpensesTableTable.$converterstatus
           .fromJson(serializer.fromJson<int>(json['status'])),
-      variableAmount: serializer.fromJson<double?>(json['variableAmount']),
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
       budgetId: serializer.fromJson<String?>(json['budgetId']),
       paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
@@ -549,7 +525,6 @@ class ExpenseTableData extends DataClass
           $ExpensesTableTable.$converterfrequency.toJson(frequency)),
       'status': serializer
           .toJson<int>($ExpensesTableTable.$converterstatus.toJson(status)),
-      'variableAmount': serializer.toJson<double?>(variableAmount),
       'endDate': serializer.toJson<DateTime?>(endDate),
       'budgetId': serializer.toJson<String?>(budgetId),
       'paymentMethod': serializer.toJson<String?>(paymentMethod),
@@ -574,7 +549,6 @@ class ExpenseTableData extends DataClass
           bool? isRecurring,
           ExpenseFrequency? frequency,
           ExpenseStatus? status,
-          Value<double?> variableAmount = const Value.absent(),
           Value<DateTime?> endDate = const Value.absent(),
           Value<String?> budgetId = const Value.absent(),
           Value<String?> paymentMethod = const Value.absent(),
@@ -598,8 +572,6 @@ class ExpenseTableData extends DataClass
         isRecurring: isRecurring ?? this.isRecurring,
         frequency: frequency ?? this.frequency,
         status: status ?? this.status,
-        variableAmount:
-            variableAmount.present ? variableAmount.value : this.variableAmount,
         endDate: endDate.present ? endDate.value : this.endDate,
         budgetId: budgetId.present ? budgetId.value : this.budgetId,
         paymentMethod:
@@ -629,9 +601,6 @@ class ExpenseTableData extends DataClass
           data.isRecurring.present ? data.isRecurring.value : this.isRecurring,
       frequency: data.frequency.present ? data.frequency.value : this.frequency,
       status: data.status.present ? data.status.value : this.status,
-      variableAmount: data.variableAmount.present
-          ? data.variableAmount.value
-          : this.variableAmount,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       budgetId: data.budgetId.present ? data.budgetId.value : this.budgetId,
       paymentMethod: data.paymentMethod.present
@@ -660,7 +629,6 @@ class ExpenseTableData extends DataClass
           ..write('isRecurring: $isRecurring, ')
           ..write('frequency: $frequency, ')
           ..write('status: $status, ')
-          ..write('variableAmount: $variableAmount, ')
           ..write('endDate: $endDate, ')
           ..write('budgetId: $budgetId, ')
           ..write('paymentMethod: $paymentMethod, ')
@@ -670,29 +638,27 @@ class ExpenseTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        id,
-        title,
-        description,
-        amount,
-        date,
-        createdAt,
-        categoryId,
-        notes,
-        type,
-        accountId,
-        nextBillingDate,
-        dueDate,
-        necessity,
-        isRecurring,
-        frequency,
-        status,
-        variableAmount,
-        endDate,
-        budgetId,
-        paymentMethod,
-        tags
-      ]);
+  int get hashCode => Object.hash(
+      id,
+      title,
+      description,
+      amount,
+      date,
+      createdAt,
+      categoryId,
+      notes,
+      type,
+      accountId,
+      nextBillingDate,
+      dueDate,
+      necessity,
+      isRecurring,
+      frequency,
+      status,
+      endDate,
+      budgetId,
+      paymentMethod,
+      tags);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -713,7 +679,6 @@ class ExpenseTableData extends DataClass
           other.isRecurring == this.isRecurring &&
           other.frequency == this.frequency &&
           other.status == this.status &&
-          other.variableAmount == this.variableAmount &&
           other.endDate == this.endDate &&
           other.budgetId == this.budgetId &&
           other.paymentMethod == this.paymentMethod &&
@@ -737,7 +702,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   final Value<bool> isRecurring;
   final Value<ExpenseFrequency> frequency;
   final Value<ExpenseStatus> status;
-  final Value<double?> variableAmount;
   final Value<DateTime?> endDate;
   final Value<String?> budgetId;
   final Value<String?> paymentMethod;
@@ -760,7 +724,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     this.isRecurring = const Value.absent(),
     this.frequency = const Value.absent(),
     this.status = const Value.absent(),
-    this.variableAmount = const Value.absent(),
     this.endDate = const Value.absent(),
     this.budgetId = const Value.absent(),
     this.paymentMethod = const Value.absent(),
@@ -784,7 +747,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     this.isRecurring = const Value.absent(),
     this.frequency = const Value.absent(),
     this.status = const Value.absent(),
-    this.variableAmount = const Value.absent(),
     this.endDate = const Value.absent(),
     this.budgetId = const Value.absent(),
     this.paymentMethod = const Value.absent(),
@@ -814,7 +776,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     Expression<bool>? isRecurring,
     Expression<int>? frequency,
     Expression<int>? status,
-    Expression<double>? variableAmount,
     Expression<DateTime>? endDate,
     Expression<String>? budgetId,
     Expression<String>? paymentMethod,
@@ -838,7 +799,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       if (isRecurring != null) 'is_recurring': isRecurring,
       if (frequency != null) 'frequency': frequency,
       if (status != null) 'status': status,
-      if (variableAmount != null) 'variable_amount': variableAmount,
       if (endDate != null) 'end_date': endDate,
       if (budgetId != null) 'budget_id': budgetId,
       if (paymentMethod != null) 'payment_method': paymentMethod,
@@ -864,7 +824,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       Value<bool>? isRecurring,
       Value<ExpenseFrequency>? frequency,
       Value<ExpenseStatus>? status,
-      Value<double?>? variableAmount,
       Value<DateTime?>? endDate,
       Value<String?>? budgetId,
       Value<String?>? paymentMethod,
@@ -887,7 +846,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       isRecurring: isRecurring ?? this.isRecurring,
       frequency: frequency ?? this.frequency,
       status: status ?? this.status,
-      variableAmount: variableAmount ?? this.variableAmount,
       endDate: endDate ?? this.endDate,
       budgetId: budgetId ?? this.budgetId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
@@ -951,9 +909,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       map['status'] = Variable<int>(
           $ExpensesTableTable.$converterstatus.toSql(status.value));
     }
-    if (variableAmount.present) {
-      map['variable_amount'] = Variable<double>(variableAmount.value);
-    }
     if (endDate.present) {
       map['end_date'] = Variable<DateTime>(endDate.value);
     }
@@ -992,7 +947,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
           ..write('isRecurring: $isRecurring, ')
           ..write('frequency: $frequency, ')
           ..write('status: $status, ')
-          ..write('variableAmount: $variableAmount, ')
           ..write('endDate: $endDate, ')
           ..write('budgetId: $budgetId, ')
           ..write('paymentMethod: $paymentMethod, ')
@@ -1997,7 +1951,6 @@ typedef $$ExpensesTableTableCreateCompanionBuilder = ExpensesTableCompanion
   Value<bool> isRecurring,
   Value<ExpenseFrequency> frequency,
   Value<ExpenseStatus> status,
-  Value<double?> variableAmount,
   Value<DateTime?> endDate,
   Value<String?> budgetId,
   Value<String?> paymentMethod,
@@ -2022,7 +1975,6 @@ typedef $$ExpensesTableTableUpdateCompanionBuilder = ExpensesTableCompanion
   Value<bool> isRecurring,
   Value<ExpenseFrequency> frequency,
   Value<ExpenseStatus> status,
-  Value<double?> variableAmount,
   Value<DateTime?> endDate,
   Value<String?> budgetId,
   Value<String?> paymentMethod,
@@ -2095,10 +2047,6 @@ class $$ExpensesTableTableFilterComposer
       get status => $composableBuilder(
           column: $table.status,
           builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<double> get variableAmount => $composableBuilder(
-      column: $table.variableAmount,
-      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnFilters(column));
@@ -2173,10 +2121,6 @@ class $$ExpensesTableTableOrderingComposer
   ColumnOrderings<int> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get variableAmount => $composableBuilder(
-      column: $table.variableAmount,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<DateTime> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnOrderings(column));
 
@@ -2248,9 +2192,6 @@ class $$ExpensesTableTableAnnotationComposer
   GeneratedColumnWithTypeConverter<ExpenseStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
-  GeneratedColumn<double> get variableAmount => $composableBuilder(
-      column: $table.variableAmount, builder: (column) => column);
-
   GeneratedColumn<DateTime> get endDate =>
       $composableBuilder(column: $table.endDate, builder: (column) => column);
 
@@ -2306,7 +2247,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             Value<bool> isRecurring = const Value.absent(),
             Value<ExpenseFrequency> frequency = const Value.absent(),
             Value<ExpenseStatus> status = const Value.absent(),
-            Value<double?> variableAmount = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
             Value<String?> budgetId = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
@@ -2330,7 +2270,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             isRecurring: isRecurring,
             frequency: frequency,
             status: status,
-            variableAmount: variableAmount,
             endDate: endDate,
             budgetId: budgetId,
             paymentMethod: paymentMethod,
@@ -2354,7 +2293,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             Value<bool> isRecurring = const Value.absent(),
             Value<ExpenseFrequency> frequency = const Value.absent(),
             Value<ExpenseStatus> status = const Value.absent(),
-            Value<double?> variableAmount = const Value.absent(),
             Value<DateTime?> endDate = const Value.absent(),
             Value<String?> budgetId = const Value.absent(),
             Value<String?> paymentMethod = const Value.absent(),
@@ -2378,7 +2316,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             isRecurring: isRecurring,
             frequency: frequency,
             status: status,
-            variableAmount: variableAmount,
             endDate: endDate,
             budgetId: budgetId,
             paymentMethod: paymentMethod,

@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -192,6 +192,59 @@ class AppDatabase extends _$AppDatabase {
             ''');
             // Note: type = 1 is fixed, type = 2 is variable, type = 0 is subscription
             // frequency = 0 is oneTime
+          }
+
+          if (from < 8) {
+            // Remove unused variable_amount column
+            await customStatement('''
+              ALTER TABLE expenses_table RENAME TO expenses_table_old;
+            ''');
+
+            await customStatement('''
+              CREATE TABLE expenses_table (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT,
+                amount REAL NOT NULL,
+                date INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                category_id TEXT,
+                notes TEXT,
+                type INTEGER NOT NULL,
+                account_id TEXT NOT NULL,
+                next_billing_date INTEGER,
+                due_date INTEGER,
+                necessity INTEGER NOT NULL DEFAULT 1,
+                is_recurring INTEGER NOT NULL DEFAULT 0,
+                frequency INTEGER NOT NULL DEFAULT 0,
+                status INTEGER NOT NULL DEFAULT 1,
+                end_date INTEGER,
+                budget_id TEXT,
+                payment_method TEXT,
+                tags TEXT
+              );
+            ''');
+
+            await customStatement('''
+              INSERT INTO expenses_table (
+                id, title, description, amount, date, created_at, 
+                category_id, notes, type, account_id, 
+                next_billing_date, due_date, necessity, is_recurring, 
+                frequency, status, end_date, budget_id, 
+                payment_method, tags
+              )
+              SELECT 
+                id, title, description, amount, date, created_at, 
+                category_id, notes, type, account_id, 
+                next_billing_date, due_date, necessity, is_recurring, 
+                frequency, status, end_date, budget_id, 
+                payment_method, tags
+              FROM expenses_table_old;
+            ''');
+
+            await customStatement('''
+              DROP TABLE expenses_table_old;
+            ''');
           }
         },
         beforeOpen: (details) async {
@@ -481,10 +534,8 @@ class AppDatabase extends _$AppDatabase {
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       final searchLower = '%${searchQuery.toLowerCase()}%';
-      conditions.add(
-        expensesTable.title.lower().like(searchLower) |
-        expensesTable.notes.lower().like(searchLower)
-      );
+      conditions.add(expensesTable.title.lower().like(searchLower) |
+          expensesTable.notes.lower().like(searchLower));
     }
 
     // Apply all conditions
@@ -514,7 +565,8 @@ class AppDatabase extends _$AppDatabase {
     List<String>? accountIds,
     String? searchQuery,
   }) async {
-    final query = selectOnly(expensesTable)..addColumns([expensesTable.id.count()]);
+    final query = selectOnly(expensesTable)
+      ..addColumns([expensesTable.id.count()]);
 
     // Build where conditions
     final conditions = <Expression<bool>>[];
@@ -541,10 +593,8 @@ class AppDatabase extends _$AppDatabase {
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       final searchLower = '%${searchQuery.toLowerCase()}%';
-      conditions.add(
-        expensesTable.title.lower().like(searchLower) |
-        expensesTable.notes.lower().like(searchLower)
-      );
+      conditions.add(expensesTable.title.lower().like(searchLower) |
+          expensesTable.notes.lower().like(searchLower));
     }
 
     // Apply all conditions

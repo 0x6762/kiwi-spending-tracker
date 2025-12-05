@@ -42,7 +42,6 @@ class Expense {
   final DateTime? nextBillingDate;
   final DateTime? dueDate;
 
-  final double? variableAmount;
   final DateTime? endDate;
   final String? budgetId;
   final String? paymentMethod;
@@ -64,7 +63,6 @@ class Expense {
     this.isRecurring = false,
     this.frequency = ExpenseFrequency.oneTime,
     this.status = ExpenseStatus.paid,
-    this.variableAmount,
     this.endDate,
     this.budgetId,
     this.paymentMethod,
@@ -87,7 +85,6 @@ class Expense {
     bool? isRecurring,
     ExpenseFrequency? frequency,
     ExpenseStatus? status,
-    double? variableAmount,
     DateTime? endDate,
     String? budgetId,
     String? paymentMethod,
@@ -109,7 +106,6 @@ class Expense {
       isRecurring: isRecurring ?? this.isRecurring,
       frequency: frequency ?? this.frequency,
       status: status ?? this.status,
-      variableAmount: variableAmount ?? this.variableAmount,
       endDate: endDate ?? this.endDate,
       budgetId: budgetId ?? this.budgetId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
@@ -134,7 +130,6 @@ class Expense {
       'isRecurring': isRecurring,
       'frequency': frequency.index,
       'status': status.index,
-      'variableAmount': variableAmount,
       'endDate': endDate?.toIso8601String(),
       'budgetId': budgetId,
       'paymentMethod': paymentMethod,
@@ -169,7 +164,6 @@ class Expense {
       status: json['status'] != null
           ? ExpenseStatus.values[json['status'] as int]
           : ExpenseStatus.paid,
-      variableAmount: json['variableAmount'],
       endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       budgetId: json['budgetId'],
       paymentMethod: json['paymentMethod'],

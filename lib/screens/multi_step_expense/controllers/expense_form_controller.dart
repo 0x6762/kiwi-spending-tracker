@@ -50,7 +50,7 @@ class ExpenseFormController extends ChangeNotifier {
     _loadAccount(_selectedAccountId);
     _selectedExpenseType = initialType;
     _isFixedExpense = initialType == ExpenseType.fixed;
-    
+
     if (initialExpense != null) {
       _initializeFromExpense();
     }
@@ -64,7 +64,7 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedDate = expense.date;
     _selectedExpenseType = expense.type;
     _isFixedExpense = expense.type == ExpenseType.fixed;
-    
+
     // Only subscriptions can be recurring
     if (expense.type == ExpenseType.subscription) {
       _isRecurring = expense.isRecurring;
@@ -73,7 +73,7 @@ class ExpenseFormController extends ChangeNotifier {
       _isRecurring = false;
       _frequency = ExpenseFrequency.oneTime;
     }
-    
+
     await _loadCategory(expense.categoryId);
     await _loadAccount(expense.accountId);
     notifyListeners();
@@ -130,17 +130,18 @@ class ExpenseFormController extends ChangeNotifier {
   void setExpenseType(ExpenseType type) {
     _selectedExpenseType = type;
     _isFixedExpense = type == ExpenseType.fixed;
-    
+
     // Only subscriptions can have frequency/recurring
     if (type == ExpenseType.subscription) {
       _isRecurring = true;
-      _frequency = ExpenseFrequency.monthly; // Default to monthly for subscriptions
+      _frequency =
+          ExpenseFrequency.monthly; // Default to monthly for subscriptions
     } else {
       // Fixed and variable expenses are one-time only
       _isRecurring = false;
       _frequency = ExpenseFrequency.oneTime;
     }
-    
+
     notifyListeners();
   }
 
@@ -188,10 +189,10 @@ class ExpenseFormController extends ChangeNotifier {
     }
 
     final amount = double.parse(_amount);
-    
+
     // Use the selected expense type
     final expenseType = _selectedExpenseType;
-    
+
     // Determine necessity based on category
     final necessity = _determineNecessity();
 
@@ -201,15 +202,15 @@ class ExpenseFormController extends ChangeNotifier {
       switch (_frequency) {
         case ExpenseFrequency.monthly:
           nextBillingDate = DateTime(
-            _selectedDate.year, 
-            _selectedDate.month + 1, 
+            _selectedDate.year,
+            _selectedDate.month + 1,
             _selectedDate.day,
           );
           break;
         case ExpenseFrequency.yearly:
           nextBillingDate = DateTime(
-            _selectedDate.year + 1, 
-            _selectedDate.month, 
+            _selectedDate.year + 1,
+            _selectedDate.month,
             _selectedDate.day,
           );
           break;
@@ -220,10 +221,12 @@ class ExpenseFormController extends ChangeNotifier {
       // Ensure non-subscriptions are not recurring
       nextBillingDate = null;
     }
-    
+
     return Expense(
       id: initialExpense?.id ?? const Uuid().v4(),
-      title: _expenseName.trim().isNotEmpty ? _expenseName.trim() : _selectedCategory!.name,
+      title: _expenseName.trim().isNotEmpty
+          ? _expenseName.trim()
+          : _selectedCategory!.name,
       amount: amount,
       date: _selectedDate,
       createdAt: initialExpense?.createdAt ?? DateTime.now(),
@@ -235,9 +238,10 @@ class ExpenseFormController extends ChangeNotifier {
       dueDate: null,
       necessity: necessity,
       isRecurring: expenseType == ExpenseType.subscription && _isRecurring,
-      frequency: expenseType == ExpenseType.subscription ? _frequency : ExpenseFrequency.oneTime,
+      frequency: expenseType == ExpenseType.subscription
+          ? _frequency
+          : ExpenseFrequency.oneTime,
       status: ExpenseStatus.paid,
-      variableAmount: null,
       endDate: null,
       budgetId: null,
       paymentMethod: null,
@@ -247,7 +251,7 @@ class ExpenseFormController extends ChangeNotifier {
 
   ExpenseNecessity _determineNecessity() {
     if (_selectedCategory == null) return ExpenseNecessity.discretionary;
-    
+
     final categoryName = _selectedCategory!.name.toLowerCase();
     if (categoryName.contains('groceries') ||
         categoryName.contains('utilities') ||
@@ -255,10 +259,10 @@ class ExpenseFormController extends ChangeNotifier {
         categoryName.contains('mortgage')) {
       return ExpenseNecessity.essential;
     } else if (categoryName.contains('savings') ||
-               categoryName.contains('investment')) {
+        categoryName.contains('investment')) {
       return ExpenseNecessity.savings;
     } else {
       return ExpenseNecessity.discretionary;
     }
   }
-} 
+}
