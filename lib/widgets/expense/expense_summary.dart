@@ -182,13 +182,13 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
           const SizedBox(height: 8),
           // Recurring Expenses Card
           if (widget.repository != null && widget.categoryRepo != null)
-            FutureBuilder<SubscriptionSummary>(
+            FutureBuilder<RecurringExpenseSummary>(
               future: _recurringExpenseService
-                  .getSubscriptionSummaryForMonth(widget.selectedMonth),
+                  .getRecurringExpenseSummaryForMonth(widget.selectedMonth),
               builder: (context, recurringSnapshot) {
                 final recurringSummary = recurringSnapshot.hasData
                     ? recurringSnapshot.data!
-                    : SubscriptionSummary(
+                    : RecurringExpenseSummary(
                         totalMonthlyAmount: 0,
                         monthlyBillingAmount: 0,
                         yearlyBillingMonthlyEquivalent: 0,

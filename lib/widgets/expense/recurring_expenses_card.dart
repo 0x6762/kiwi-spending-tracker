@@ -4,7 +4,7 @@ import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
 
 class RecurringExpensesCard extends StatelessWidget {
-  final SubscriptionSummary summary;
+  final RecurringExpenseSummary summary;
   final VoidCallback? onTap;
 
   const RecurringExpensesCard({
