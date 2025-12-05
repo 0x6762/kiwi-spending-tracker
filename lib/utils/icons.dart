@@ -32,7 +32,7 @@ class AppIcons {
   static const settings = Icons.settings_rounded;
   static const help = Icons.help_rounded;
   static const info = Icons.info_rounded;
-  
+
   // Settings
   static const theme = Icons.palette_rounded;
   static const accounts = Icons.account_balance_rounded;
@@ -43,7 +43,7 @@ class AppIcons {
   static const security = Icons.security_rounded;
   static const language = Icons.language_rounded;
   static const update = Icons.system_update_rounded;
-  
+
   // Categories - Default
   static const uncategorized = Icons.help_rounded;
   static const category = Icons.category_rounded;
@@ -55,6 +55,7 @@ class AppIcons {
   static const health = Icons.medical_services_rounded;
   static const travel = Icons.flight_rounded;
   static const education = Icons.school_rounded;
+  static const subscription = Icons.event_repeat_rounded;
 
   // Categories - Shopping & Retail
   static const shoppingCart = Icons.shopping_cart_rounded;
@@ -162,4 +163,4 @@ class AppIcons {
   static const veterinary = Icons.healing_rounded;
   static const petFood = Icons.food_bank_rounded;
   static const grooming = Icons.brush_rounded;
-} 
+}
