@@ -52,12 +52,6 @@ class $ExpensesTableTable extends ExpensesTable
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
-  @override
-  late final GeneratedColumnWithTypeConverter<ExpenseType, int> type =
-      GeneratedColumn<int>('type', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ExpenseType>($ExpensesTableTable.$convertertype);
   static const VerificationMeta _accountIdMeta =
       const VerificationMeta('accountId');
   @override
@@ -148,7 +142,6 @@ class $ExpensesTableTable extends ExpensesTable
         createdAt,
         categoryId,
         notes,
-        type,
         accountId,
         nextBillingDate,
         dueDate,
@@ -216,7 +209,6 @@ class $ExpensesTableTable extends ExpensesTable
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
-    context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('account_id')) {
       context.handle(_accountIdMeta,
           accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
@@ -282,9 +274,6 @@ class $ExpensesTableTable extends ExpensesTable
           .read(DriftSqlType.string, data['${effectivePrefix}category_id']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
-      type: $ExpensesTableTable.$convertertype.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
       accountId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}account_id'])!,
       nextBillingDate: attachedDatabase.typeMapping.read(
@@ -319,8 +308,6 @@ class $ExpensesTableTable extends ExpensesTable
     return $ExpensesTableTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<ExpenseType, int, int> $convertertype =
-      const EnumIndexConverter<ExpenseType>(ExpenseType.values);
   static JsonTypeConverter2<ExpenseNecessity, int, int> $converternecessity =
       const EnumIndexConverter<ExpenseNecessity>(ExpenseNecessity.values);
   static JsonTypeConverter2<ExpenseFrequency, int, int> $converterfrequency =
@@ -341,7 +328,6 @@ class ExpenseTableData extends DataClass
   final DateTime createdAt;
   final String? categoryId;
   final String? notes;
-  final ExpenseType type;
   final String accountId;
   final DateTime? nextBillingDate;
   final DateTime? dueDate;
@@ -362,7 +348,6 @@ class ExpenseTableData extends DataClass
       required this.createdAt,
       this.categoryId,
       this.notes,
-      required this.type,
       required this.accountId,
       this.nextBillingDate,
       this.dueDate,
@@ -390,10 +375,6 @@ class ExpenseTableData extends DataClass
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
-    }
-    {
-      map['type'] =
-          Variable<int>($ExpensesTableTable.$convertertype.toSql(type));
     }
     map['account_id'] = Variable<String>(accountId);
     if (!nullToAbsent || nextBillingDate != null) {
@@ -446,7 +427,6 @@ class ExpenseTableData extends DataClass
           : Value(categoryId),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
-      type: Value(type),
       accountId: Value(accountId),
       nextBillingDate: nextBillingDate == null && nullToAbsent
           ? const Value.absent()
@@ -483,8 +463,6 @@ class ExpenseTableData extends DataClass
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       categoryId: serializer.fromJson<String?>(json['categoryId']),
       notes: serializer.fromJson<String?>(json['notes']),
-      type: $ExpensesTableTable.$convertertype
-          .fromJson(serializer.fromJson<int>(json['type'])),
       accountId: serializer.fromJson<String>(json['accountId']),
       nextBillingDate: serializer.fromJson<DateTime?>(json['nextBillingDate']),
       dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
@@ -513,8 +491,6 @@ class ExpenseTableData extends DataClass
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'categoryId': serializer.toJson<String?>(categoryId),
       'notes': serializer.toJson<String?>(notes),
-      'type': serializer
-          .toJson<int>($ExpensesTableTable.$convertertype.toJson(type)),
       'accountId': serializer.toJson<String>(accountId),
       'nextBillingDate': serializer.toJson<DateTime?>(nextBillingDate),
       'dueDate': serializer.toJson<DateTime?>(dueDate),
@@ -541,7 +517,6 @@ class ExpenseTableData extends DataClass
           DateTime? createdAt,
           Value<String?> categoryId = const Value.absent(),
           Value<String?> notes = const Value.absent(),
-          ExpenseType? type,
           String? accountId,
           Value<DateTime?> nextBillingDate = const Value.absent(),
           Value<DateTime?> dueDate = const Value.absent(),
@@ -562,7 +537,6 @@ class ExpenseTableData extends DataClass
         createdAt: createdAt ?? this.createdAt,
         categoryId: categoryId.present ? categoryId.value : this.categoryId,
         notes: notes.present ? notes.value : this.notes,
-        type: type ?? this.type,
         accountId: accountId ?? this.accountId,
         nextBillingDate: nextBillingDate.present
             ? nextBillingDate.value
@@ -590,7 +564,6 @@ class ExpenseTableData extends DataClass
       categoryId:
           data.categoryId.present ? data.categoryId.value : this.categoryId,
       notes: data.notes.present ? data.notes.value : this.notes,
-      type: data.type.present ? data.type.value : this.type,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       nextBillingDate: data.nextBillingDate.present
           ? data.nextBillingDate.value
@@ -621,7 +594,6 @@ class ExpenseTableData extends DataClass
           ..write('createdAt: $createdAt, ')
           ..write('categoryId: $categoryId, ')
           ..write('notes: $notes, ')
-          ..write('type: $type, ')
           ..write('accountId: $accountId, ')
           ..write('nextBillingDate: $nextBillingDate, ')
           ..write('dueDate: $dueDate, ')
@@ -647,7 +619,6 @@ class ExpenseTableData extends DataClass
       createdAt,
       categoryId,
       notes,
-      type,
       accountId,
       nextBillingDate,
       dueDate,
@@ -671,7 +642,6 @@ class ExpenseTableData extends DataClass
           other.createdAt == this.createdAt &&
           other.categoryId == this.categoryId &&
           other.notes == this.notes &&
-          other.type == this.type &&
           other.accountId == this.accountId &&
           other.nextBillingDate == this.nextBillingDate &&
           other.dueDate == this.dueDate &&
@@ -694,7 +664,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
   final Value<DateTime> createdAt;
   final Value<String?> categoryId;
   final Value<String?> notes;
-  final Value<ExpenseType> type;
   final Value<String> accountId;
   final Value<DateTime?> nextBillingDate;
   final Value<DateTime?> dueDate;
@@ -716,7 +685,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     this.createdAt = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.notes = const Value.absent(),
-    this.type = const Value.absent(),
     this.accountId = const Value.absent(),
     this.nextBillingDate = const Value.absent(),
     this.dueDate = const Value.absent(),
@@ -739,7 +707,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     required DateTime createdAt,
     this.categoryId = const Value.absent(),
     this.notes = const Value.absent(),
-    required ExpenseType type,
     required String accountId,
     this.nextBillingDate = const Value.absent(),
     this.dueDate = const Value.absent(),
@@ -757,7 +724,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
         amount = Value(amount),
         date = Value(date),
         createdAt = Value(createdAt),
-        type = Value(type),
         accountId = Value(accountId);
   static Insertable<ExpenseTableData> custom({
     Expression<String>? id,
@@ -768,7 +734,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     Expression<DateTime>? createdAt,
     Expression<String>? categoryId,
     Expression<String>? notes,
-    Expression<int>? type,
     Expression<String>? accountId,
     Expression<DateTime>? nextBillingDate,
     Expression<DateTime>? dueDate,
@@ -791,7 +756,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       if (createdAt != null) 'created_at': createdAt,
       if (categoryId != null) 'category_id': categoryId,
       if (notes != null) 'notes': notes,
-      if (type != null) 'type': type,
       if (accountId != null) 'account_id': accountId,
       if (nextBillingDate != null) 'next_billing_date': nextBillingDate,
       if (dueDate != null) 'due_date': dueDate,
@@ -816,7 +780,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       Value<DateTime>? createdAt,
       Value<String?>? categoryId,
       Value<String?>? notes,
-      Value<ExpenseType>? type,
       Value<String>? accountId,
       Value<DateTime?>? nextBillingDate,
       Value<DateTime?>? dueDate,
@@ -838,7 +801,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
       createdAt: createdAt ?? this.createdAt,
       categoryId: categoryId ?? this.categoryId,
       notes: notes ?? this.notes,
-      type: type ?? this.type,
       accountId: accountId ?? this.accountId,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
@@ -880,10 +842,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
-    }
-    if (type.present) {
-      map['type'] =
-          Variable<int>($ExpensesTableTable.$convertertype.toSql(type.value));
     }
     if (accountId.present) {
       map['account_id'] = Variable<String>(accountId.value);
@@ -939,7 +897,6 @@ class ExpensesTableCompanion extends UpdateCompanion<ExpenseTableData> {
           ..write('createdAt: $createdAt, ')
           ..write('categoryId: $categoryId, ')
           ..write('notes: $notes, ')
-          ..write('type: $type, ')
           ..write('accountId: $accountId, ')
           ..write('nextBillingDate: $nextBillingDate, ')
           ..write('dueDate: $dueDate, ')
@@ -1943,7 +1900,6 @@ typedef $$ExpensesTableTableCreateCompanionBuilder = ExpensesTableCompanion
   required DateTime createdAt,
   Value<String?> categoryId,
   Value<String?> notes,
-  required ExpenseType type,
   required String accountId,
   Value<DateTime?> nextBillingDate,
   Value<DateTime?> dueDate,
@@ -1967,7 +1923,6 @@ typedef $$ExpensesTableTableUpdateCompanionBuilder = ExpensesTableCompanion
   Value<DateTime> createdAt,
   Value<String?> categoryId,
   Value<String?> notes,
-  Value<ExpenseType> type,
   Value<String> accountId,
   Value<DateTime?> nextBillingDate,
   Value<DateTime?> dueDate,
@@ -2014,11 +1969,6 @@ class $$ExpensesTableTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<ExpenseType, ExpenseType, int> get type =>
-      $composableBuilder(
-          column: $table.type,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get accountId => $composableBuilder(
       column: $table.accountId, builder: (column) => ColumnFilters(column));
@@ -2096,9 +2046,6 @@ class $$ExpensesTableTableOrderingComposer
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get accountId => $composableBuilder(
       column: $table.accountId, builder: (column) => ColumnOrderings(column));
 
@@ -2168,9 +2115,6 @@ class $$ExpensesTableTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<ExpenseType, int> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
-
   GeneratedColumn<String> get accountId =>
       $composableBuilder(column: $table.accountId, builder: (column) => column);
 
@@ -2239,7 +2183,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<String?> categoryId = const Value.absent(),
             Value<String?> notes = const Value.absent(),
-            Value<ExpenseType> type = const Value.absent(),
             Value<String> accountId = const Value.absent(),
             Value<DateTime?> nextBillingDate = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
@@ -2262,7 +2205,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             createdAt: createdAt,
             categoryId: categoryId,
             notes: notes,
-            type: type,
             accountId: accountId,
             nextBillingDate: nextBillingDate,
             dueDate: dueDate,
@@ -2285,7 +2227,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             required DateTime createdAt,
             Value<String?> categoryId = const Value.absent(),
             Value<String?> notes = const Value.absent(),
-            required ExpenseType type,
             required String accountId,
             Value<DateTime?> nextBillingDate = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
@@ -2308,7 +2249,6 @@ class $$ExpensesTableTableTableManager extends RootTableManager<
             createdAt: createdAt,
             categoryId: categoryId,
             notes: notes,
-            type: type,
             accountId: accountId,
             nextBillingDate: nextBillingDate,
             dueDate: dueDate,

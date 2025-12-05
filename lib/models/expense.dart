@@ -17,12 +17,6 @@ enum ExpenseNecessity {
   savings // Future needs/wants
 }
 
-enum ExpenseType {
-  subscription, // Auto-recurring with fixed amount (Netflix, Spotify)
-  fixed, // Recurring pattern but variable amount - manually entered (Electricity, Water)
-  variable // One-time expenses (Groceries, Entertainment)
-}
-
 class Expense {
   final String id;
   final String title;
@@ -31,7 +25,6 @@ class Expense {
   final DateTime createdAt;
   final String? categoryId;
   final String? notes;
-  final ExpenseType type;
   final String accountId;
 
   final ExpenseNecessity necessity;
@@ -55,7 +48,6 @@ class Expense {
     required this.createdAt,
     this.categoryId,
     this.notes,
-    this.type = ExpenseType.variable,
     required this.accountId,
     this.nextBillingDate,
     this.dueDate,
@@ -77,7 +69,6 @@ class Expense {
     DateTime? createdAt,
     String? categoryId,
     String? notes,
-    ExpenseType? type,
     String? accountId,
     DateTime? nextBillingDate,
     DateTime? dueDate,
@@ -98,7 +89,6 @@ class Expense {
       createdAt: createdAt ?? this.createdAt,
       categoryId: categoryId ?? this.categoryId,
       notes: notes ?? this.notes,
-      type: type ?? this.type,
       accountId: accountId ?? this.accountId,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
@@ -122,7 +112,6 @@ class Expense {
       'createdAt': createdAt.toIso8601String(),
       'categoryId': categoryId,
       'notes': notes,
-      'type': type.index,
       'accountId': accountId,
       'nextBillingDate': nextBillingDate?.toIso8601String(),
       'dueDate': dueDate?.toIso8601String(),
@@ -146,9 +135,6 @@ class Expense {
       createdAt: DateTime.parse(json['createdAt']),
       categoryId: json['categoryId'],
       notes: json['notes'],
-      type: json['type'] != null
-          ? ExpenseType.values[json['type'] as int]
-          : ExpenseType.variable,
       accountId: json['accountId'],
       nextBillingDate: json['nextBillingDate'] != null
           ? DateTime.parse(json['nextBillingDate'])

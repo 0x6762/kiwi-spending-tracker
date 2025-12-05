@@ -34,9 +34,8 @@ class DailyMetrics {
 
 class MonthlyAnalytics {
   final double totalSpent;
-  final double subscriptionExpenses;
-  final double fixedExpenses;
-  final double variableExpenses;
+  final double recurringExpenses;
+  final double oneTimeExpenses;
   final double previousMonthTotal;
   final double percentageChange;
   final bool isIncrease;
@@ -44,9 +43,8 @@ class MonthlyAnalytics {
 
   MonthlyAnalytics({
     required this.totalSpent,
-    required this.subscriptionExpenses,
-    required this.fixedExpenses,
-    required this.variableExpenses,
+    required this.recurringExpenses,
+    required this.oneTimeExpenses,
     required this.previousMonthTotal,
     required this.percentageChange,
     required this.isIncrease,
@@ -142,9 +140,8 @@ class ExpenseAnalyticsService {
     if (effectiveExpenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
-        subscriptionExpenses: 0.0,
-        fixedExpenses: 0.0,
-        variableExpenses: 0.0,
+        recurringExpenses: 0.0,
+        oneTimeExpenses: 0.0,
         previousMonthTotal: 0.0,
         percentageChange: 0.0,
         isIncrease: false,
@@ -159,28 +156,18 @@ class ExpenseAnalyticsService {
             expense.date.month == selectedMonth.month)
         .toList();
 
-    // Calculate totals for each expense type
-    final subscriptionTotal = monthlyExpenses
-        .where((expense) =>
-            expense.type == ExpenseType.subscription &&
-            (
-                // Either it's not a recurring subscription (actual payment)
-                expense.isRecurring == false ||
-                    // OR it's a template from the selected month (not just today)
-                    (expense.isRecurring == true &&
-                        expense.date.year == selectedMonth.year &&
-                        expense.date.month == selectedMonth.month)))
+    // Calculate totals based on recurring vs one-time
+    // Only count generated instances (isRecurring == false) or one-time expenses
+    final oneTimeTotal = monthlyExpenses
+        .where((expense) => expense.isRecurring == false)
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
-    final fixedTotal = monthlyExpenses
-        .where((expense) => expense.type == ExpenseType.fixed)
+    // Recurring templates from this month (isRecurring == true)
+    final recurringTotal = monthlyExpenses
+        .where((expense) => expense.isRecurring == true)
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
-    final variableTotal = monthlyExpenses
-        .where((expense) => expense.type == ExpenseType.variable)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    final monthlyTotal = subscriptionTotal + fixedTotal + variableTotal;
+    final monthlyTotal = recurringTotal + oneTimeTotal;
 
     // Calculate previous month total
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
@@ -227,9 +214,8 @@ class ExpenseAnalyticsService {
 
     return MonthlyAnalytics(
       totalSpent: monthlyTotal,
-      subscriptionExpenses: subscriptionTotal,
-      fixedExpenses: fixedTotal,
-      variableExpenses: variableTotal,
+      recurringExpenses: recurringTotal,
+      oneTimeExpenses: oneTimeTotal,
       previousMonthTotal: previousMonthTotal,
       percentageChange: percentageChange,
       isIncrease: isIncrease,
@@ -248,11 +234,10 @@ class ExpenseAnalyticsService {
     for (final expense in expenses) {
       if (expense.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
           expense.date.isBefore(endDate.add(const Duration(days: 1)))) {
-        // For subscription templates, include them in their creation month
+        // For recurring templates, include them in their creation month
         final monthKey = DateTime(expense.date.year, expense.date.month);
-        if (expense.type == ExpenseType.subscription &&
-            expense.isRecurring == true) {
-          // Nothing to skip - we want to include subscription templates in their creation month
+        if (expense.isRecurring == true) {
+          // Nothing to skip - we want to include recurring templates in their creation month
         }
 
         monthlyTotals[monthKey] =
@@ -343,9 +328,10 @@ class ExpenseAnalyticsService {
   Future<UpcomingExpensesAnalytics> getUpcomingExpenses(
       {DateTime? fromDate, ExpenseStateManager? expenseStateManager}) async {
     // Create upcoming expense service instance
-    final recurringService = RecurringExpenseService(_expenseRepo, expenseStateManager);
-    final upcomingService =
-        UpcomingExpenseService(_expenseRepo, recurringService, expenseStateManager);
+    final recurringService =
+        RecurringExpenseService(_expenseRepo, expenseStateManager);
+    final upcomingService = UpcomingExpenseService(
+        _expenseRepo, recurringService, expenseStateManager);
 
     // Get comprehensive summary
     final summary = await upcomingService.getUpcomingExpensesSummary(

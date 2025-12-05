@@ -102,7 +102,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
   Future<void> _loadUpcomingExpenses() async {
     try {
-      final upcomingService = Provider.of<UpcomingExpenseService>(context, listen: false);
+      final upcomingService =
+          Provider.of<UpcomingExpenseService>(context, listen: false);
       final upcomingItems = await upcomingService.getUpcomingExpenses(
         daysAhead: 30, // Show upcoming expenses for next 30 days
         includeRecurringTemplates: true,
@@ -113,7 +114,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
       final summary = await upcomingService.getUpcomingExpensesSummary(
         daysAhead: 30,
       );
-      
+
       // Convert UpcomingExpenseItem to Expense, using effectiveDate
       if (mounted) {
         setState(() {
@@ -163,7 +164,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             try {
-              final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+              final expenseStateManager =
+                  Provider.of<ExpenseStateManager>(context, listen: false);
               // Save via ExpenseStateManager (single source of truth)
               await expenseStateManager.updateExpense(updatedExpense);
               // Update local provider list
@@ -184,7 +186,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
     if (result == true) {
       try {
-        final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+        final expenseStateManager =
+            Provider.of<ExpenseStateManager>(context, listen: false);
         // Save via ExpenseStateManager (single source of truth)
         await expenseStateManager.deleteExpense(expense.id);
         // Update local provider list without saving again
@@ -203,7 +206,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
   Future<void> _handleDelete(Expense expense) async {
     try {
-      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      final expenseStateManager =
+          Provider.of<ExpenseStateManager>(context, listen: false);
       // Save via ExpenseStateManager (single source of truth)
       await expenseStateManager.deleteExpense(expense.id);
       // Update local provider list without saving again
@@ -221,7 +225,7 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
 
   Map<DateTime, List<Expense>> _groupExpensesByDate(List<Expense> expenses) {
     // Separate upcoming expenses from regular expenses
-    
+
     // Separate upcoming expenses from regular expenses
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -248,9 +252,8 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
     for (var upcoming in _upcomingExpenses) {
       // Check if this is a recurring template (has isRecurring flag)
       // If it is, we should add it even if ID matches, because it represents the future occurrence
-      final isRecurringTemplate = upcoming.isRecurring == true && 
-                                   upcoming.type == ExpenseType.subscription;
-      
+      final isRecurringTemplate = upcoming.isRecurring == true;
+
       final upcomingDate = DateTime(
         upcoming.date.year,
         upcoming.date.month,
@@ -260,12 +263,14 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
       // Only add if it's actually in the future
       if (upcomingDate.isAfter(today)) {
         // Check if already in upcoming list (by ID)
-        final alreadyInUpcoming = upcomingExpensesList.any((e) => e.id == upcoming.id);
-        
+        final alreadyInUpcoming =
+            upcomingExpensesList.any((e) => e.id == upcoming.id);
+
         if (!alreadyInUpcoming || isRecurringTemplate) {
           // For recurring templates, remove the template from upcoming if it exists
           if (isRecurringTemplate && alreadyInUpcoming) {
-            upcomingExpensesList.removeWhere((e) => e.id == upcoming.id && e.isRecurring == true);
+            upcomingExpensesList.removeWhere(
+                (e) => e.id == upcoming.id && e.isRecurring == true);
           }
           upcomingExpensesList.add(upcoming);
         }
@@ -273,14 +278,14 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
     }
 
     // Use cache if expenses haven't changed
-    if (_cachedGroupedExpenses != null && 
-        _lastExpensesForGrouping == expenses && 
+    if (_cachedGroupedExpenses != null &&
+        _lastExpensesForGrouping == expenses &&
         _lastUpcomingExpensesForGrouping == _upcomingExpenses) {
       return _cachedGroupedExpenses!;
     }
 
     final groupedExpenses = <DateTime, List<Expense>>{};
-    
+
     // Special key for upcoming expenses
     final upcomingKey = DateTime(9999, 12, 31);
 
@@ -332,18 +337,17 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel:
-          MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) =>
           MultiStepExpenseScreen(
-        type: ExpenseType.variable,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
         onExpenseAdded: (expense) async {
           try {
-            final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+            final expenseStateManager =
+                Provider.of<ExpenseStateManager>(context, listen: false);
             // Save via ExpenseStateManager (single source of truth)
             await expenseStateManager.addExpense(expense);
             // Update local provider list without saving again
@@ -427,10 +431,12 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                   });
 
                 // Calculate item count: upcoming card (if exists) + regular entries + load more
-                final regularEntriesCount = sortedEntries.where((e) => e.key != upcomingKey).length;
-                final itemCount = (hasUpcoming && _upcomingSummary != null ? 1 : 0) + 
-                                 regularEntriesCount + 
-                                 (provider.hasMore ? 1 : 0);
+                final regularEntriesCount =
+                    sortedEntries.where((e) => e.key != upcomingKey).length;
+                final itemCount =
+                    (hasUpcoming && _upcomingSummary != null ? 1 : 0) +
+                        regularEntriesCount +
+                        (provider.hasMore ? 1 : 0);
 
                 return ListView.builder(
                   controller: _scrollController,
@@ -460,7 +466,10 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                     }
 
                     // Adjust index if we showed the upcoming card
-                    final adjustedIndex = (hasUpcoming && _upcomingSummary != null) ? index - 1 : index;
+                    final adjustedIndex =
+                        (hasUpcoming && _upcomingSummary != null)
+                            ? index - 1
+                            : index;
 
                     // Load more indicator
                     if (adjustedIndex >= regularEntriesCount) {
@@ -473,7 +482,9 @@ class _AllExpensesScreenState extends State<AllExpensesScreen>
                     }
 
                     // Get regular entries (excluding upcoming)
-                    final regularEntries = sortedEntries.where((e) => e.key != upcomingKey).toList();
+                    final regularEntries = sortedEntries
+                        .where((e) => e.key != upcomingKey)
+                        .toList();
                     final entry = regularEntries[adjustedIndex];
 
                     final dayTotal = entry.value.fold<double>(

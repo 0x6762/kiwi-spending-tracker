@@ -40,12 +40,13 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
     if (status.isGranted) {
       return true;
     }
-    
+
     if (status.isPermanentlyDenied) {
-      _showError('Microphone permission is permanently denied. Please enable it in app settings.');
+      _showError(
+          'Microphone permission is permanently denied. Please enable it in app settings.');
       return false;
     }
-    
+
     _showError('Microphone permission is required for voice input.');
     return false;
   }
@@ -64,7 +65,8 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
           _isListening = false;
           _isProcessing = false;
         });
-        _showError('Error with speech recognition: ${errorNotification.errorMsg}');
+        _showError(
+            'Error with speech recognition: ${errorNotification.errorMsg}');
       },
     );
     setState(() {});
@@ -93,7 +95,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
             _lastWords = result.recognizedWords;
             print('Recognized words: $_lastWords');
           });
-          
+
           // Only process when we have the final result
           if (result.finalResult && !_isProcessing) {
             _processVoiceInput();
@@ -117,13 +119,15 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
 
     // Convert input to lowercase for easier matching
     final input = _lastWords.toLowerCase();
-    
+
     // Try to extract amount using regex, looking for numbers after "spent" or at the start
-    final amountRegex = RegExp(r'(?:spent |spend |)\$?(\d+(?:[.,]\d{1,2})?)\s+(?:on\s+|for\s+|)?(.+)');
+    final amountRegex = RegExp(
+        r'(?:spent |spend |)\$?(\d+(?:[.,]\d{1,2})?)\s+(?:on\s+|for\s+|)?(.+)');
     final match = amountRegex.firstMatch(input);
-    
+
     if (match == null) {
-      _showError('Could not understand the format. Please say something like "Spent 25 on beer"');
+      _showError(
+          'Could not understand the format. Please say something like "Spent 25 on beer"');
       _isProcessing = false;
       return;
     }
@@ -147,7 +151,6 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       categoryId: 'other', // Default category ID
       createdAt: DateTime.now(),
       accountId: 'checking', // Default account
-      type: ExpenseType.variable, // Default to variable expense
     );
 
     await widget.repository.addExpense(expense);
@@ -174,7 +177,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -186,11 +189,11 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
           ),
           const SizedBox(height: 16),
           Text(
-            _isListening 
-              ? _lastWords.isEmpty 
-                ? 'Listening...' 
-                : _lastWords
-              : 'Tap the microphone and say something like:\n"Spent 25 on groceries"',
+            _isListening
+                ? _lastWords.isEmpty
+                    ? 'Listening...'
+                    : _lastWords
+                : 'Tap the microphone and say something like:\n"Spent 25 on groceries"',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -198,9 +201,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
           ),
           const SizedBox(height: 24),
           Material(
-            color: _isListening 
-              ? theme.colorScheme.error
-              : theme.colorScheme.surfaceContainerLowest,
+            color: _isListening
+                ? theme.colorScheme.error
+                : theme.colorScheme.surfaceContainerLowest,
             shape: const CircleBorder(),
             child: InkWell(
               onTap: _listen,
@@ -210,9 +213,9 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
                 child: Icon(
                   _isListening ? Icons.stop : Icons.mic,
                   size: 32,
-                  color: _isListening 
-                    ? theme.colorScheme.onError
-                    : theme.colorScheme.primary,
+                  color: _isListening
+                      ? theme.colorScheme.onError
+                      : theme.colorScheme.primary,
                 ),
               ),
             ),
@@ -222,4 +225,4 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
       ),
     );
   }
-} 
+}

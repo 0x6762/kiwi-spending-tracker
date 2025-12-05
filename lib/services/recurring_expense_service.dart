@@ -7,9 +7,9 @@ import 'package:intl/intl.dart';
 
 /// Enum representing the status of a subscription
 enum SubscriptionStatus {
-  active,    // Normal active subscription
-  dueSoon,   // Due within the next 3 days
-  overdue,   // Past the billing date
+  active, // Normal active subscription
+  dueSoon, // Due within the next 3 days
+  overdue, // Past the billing date
 }
 
 /// Model for enhanced subscription data
@@ -55,14 +55,12 @@ class SubscriptionSummary {
 }
 
 /// Service for managing and automating recurring expenses.
-/// 
-/// Handles processing of subscription expenses only (ExpenseType.subscription).
-/// Subscriptions are the only expense type that can be auto-recurring with frequency.
-/// 
-/// Fixed and variable expenses are manually entered and do not use auto-recurring.
-/// Uses frequency enum (monthly/yearly) for scheduling subscription expenses.
-/// 
-/// Also provides subscription analytics, status tracking, and data enhancement.
+///
+/// Handles processing of all recurring expenses (isRecurring == true).
+/// Any expense can be recurring with a frequency setting.
+///
+/// Uses frequency enum for scheduling recurring expenses.
+/// Also provides recurring expense analytics, status tracking, and data enhancement.
 class RecurringExpenseService {
   final ExpenseRepository _expenseRepo;
   final ExpenseStateManager? _expenseStateManager;
@@ -77,41 +75,41 @@ class RecurringExpenseService {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     int processedCount = 0;
-    
-    // Get all active recurring expense templates (subscriptions only)
+
+    // Get all active recurring expense templates
     final expenses = await _expenseRepo.getAllExpenses();
-    final recurringExpenses = expenses.where((expense) => 
-      expense.type == ExpenseType.subscription &&
-      expense.isRecurring == true &&
-      (expense.endDate == null || expense.endDate!.isAfter(today))
-    ).toList();
-    
+    final recurringExpenses = expenses
+        .where((expense) =>
+            expense.isRecurring == true &&
+            (expense.endDate == null || expense.endDate!.isAfter(today)))
+        .toList();
+
     // Collect all changes for batch processing
     final expensesToAdd = <Expense>[];
     final expensesToUpdate = <Expense>[];
-    
+
     for (final template in recurringExpenses) {
       // Keep processing until all overdue cycles are caught up
       // Safety limit: max 100 iterations per template to prevent infinite loops
       int iterations = 0;
       const maxIterations = 100;
-      
+
       var currentTemplate = template;
       var nextDate = currentTemplate.nextBillingDate;
-      
+
       // Process all overdue cycles for this template
-      while (nextDate != null && 
-             iterations < maxIterations &&
-             (nextDate.isBefore(today) || 
-              nextDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day)))) {
-        
+      while (nextDate != null &&
+          iterations < maxIterations &&
+          (nextDate.isBefore(today) ||
+              nextDate.isAtSameMomentAs(
+                  DateTime(today.year, today.month, today.day)))) {
         // Check if template has expired
-        if (currentTemplate.endDate != null && 
+        if (currentTemplate.endDate != null &&
             currentTemplate.endDate!.isBefore(nextDate)) {
           // Template expired before this date, stop processing
           break;
         }
-        
+
         // Create a new expense entry based on the template
         final newExpense = currentTemplate.copyWith(
           id: _uuid.v4(),
@@ -121,32 +119,33 @@ class RecurringExpenseService {
           nextBillingDate: null, // Clear this for the instance
           // Keep the original type for the generated instance
         );
-        
+
         // Calculate the next billing date
         final calculatedNextDate = _calculateNextDate(currentTemplate);
-        
+
         // Update the template with the next date
         currentTemplate = currentTemplate.copyWith(
           nextBillingDate: calculatedNextDate,
         );
-        
+
         // Collect for batch processing
         expensesToAdd.add(newExpense);
         expensesToUpdate.add(currentTemplate);
-        
+
         // Update for next iteration
         nextDate = calculatedNextDate;
         processedCount++;
         iterations++;
       }
-      
+
       // Safety check: if we hit max iterations, log a warning
       if (iterations >= maxIterations) {
-        debugPrint('Warning: Reached max iterations for template ${template.id}. '
-                   'There may be more overdue cycles to process.');
+        debugPrint(
+            'Warning: Reached max iterations for template ${template.id}. '
+            'There may be more overdue cycles to process.');
       }
     }
-    
+
     // Process all changes in a single batch
     if (expensesToAdd.isNotEmpty || expensesToUpdate.isNotEmpty) {
       if (_expenseStateManager != null) {
@@ -164,76 +163,72 @@ class RecurringExpenseService {
         }
       }
     }
-    
+
     return processedCount;
   }
 
   /// Calculate the next occurrence date based on frequency.
-  /// Only supports monthly and yearly frequencies (subscriptions only)
   DateTime _calculateNextDate(Expense template) {
     final lastDate = template.nextBillingDate ?? template.date;
-    
-    // Use frequency to calculate next date (subscriptions only support monthly/yearly)
+
+    // Use frequency to calculate next date
     switch (template.frequency) {
+      case ExpenseFrequency.daily:
+        return DateTime(lastDate.year, lastDate.month, lastDate.day + 1);
+
+      case ExpenseFrequency.weekly:
+        return DateTime(lastDate.year, lastDate.month, lastDate.day + 7);
+
+      case ExpenseFrequency.biWeekly:
+        return DateTime(lastDate.year, lastDate.month, lastDate.day + 14);
+
       case ExpenseFrequency.monthly:
-        return DateTime(
-          lastDate.year,
-          lastDate.month + 1,
-          lastDate.day,
-        );
-        
+        return DateTime(lastDate.year, lastDate.month + 1, lastDate.day);
+
+      case ExpenseFrequency.quarterly:
+        return DateTime(lastDate.year, lastDate.month + 3, lastDate.day);
+
       case ExpenseFrequency.yearly:
-        return DateTime(
-          lastDate.year + 1,
-          lastDate.month,
-          lastDate.day,
-        );
-        
-      default:
+        return DateTime(lastDate.year + 1, lastDate.month, lastDate.day);
+
+      case ExpenseFrequency.oneTime:
+      case ExpenseFrequency.custom:
         // For unsupported frequencies, return the last date
         return lastDate;
     }
   }
 
-  /// Get all recurring expense templates (subscriptions only)
+  /// Get all recurring expense templates
   Future<List<Expense>> getRecurringTemplates() async {
     final expenses = await _expenseRepo.getAllExpenses();
-    return expenses.where((expense) => 
-      expense.type == ExpenseType.subscription &&
-      expense.isRecurring == true
-    ).toList();
-  }
-
-  /// Get recurring templates by type
-  Future<List<Expense>> getRecurringTemplatesByType(ExpenseType type) async {
-    final templates = await getRecurringTemplates();
-    return templates.where((expense) => expense.type == type).toList();
+    return expenses.where((expense) => expense.isRecurring == true).toList();
   }
 
   /// Get upcoming recurring expenses (templates that will generate expenses soon)
-  Future<List<Expense>> getUpcomingRecurringExpenses({int daysAhead = 30}) async {
+  Future<List<Expense>> getUpcomingRecurringExpenses(
+      {int daysAhead = 30}) async {
     final now = DateTime.now();
     final futureDate = now.add(Duration(days: daysAhead));
-    
+
     final templates = await getRecurringTemplates();
     final upcoming = <Expense>[];
-    
+
     for (final template in templates) {
       final nextDate = template.nextBillingDate;
-      if (nextDate != null && 
-          nextDate.isAfter(now) && 
+      if (nextDate != null &&
+          nextDate.isAfter(now) &&
           nextDate.isBefore(futureDate)) {
         upcoming.add(template);
       }
     }
-    
+
     // Sort by next billing date
     upcoming.sort((a, b) {
       final aDate = a.nextBillingDate ?? DateTime(9999, 12, 31);
       final bDate = b.nextBillingDate ?? DateTime(9999, 12, 31);
       return aDate.compareTo(bDate);
     });
-    
+
     return upcoming;
   }
 
@@ -241,7 +236,7 @@ class RecurringExpenseService {
   Future<List<Expense>> getOverdueRecurringExpenses() async {
     final now = DateTime.now();
     final templates = await getRecurringTemplates();
-    
+
     return templates.where((template) {
       final nextDate = template.nextBillingDate;
       return nextDate != null && nextDate.isBefore(now);
@@ -252,7 +247,7 @@ class RecurringExpenseService {
   Future<double> getMonthlyRecurringCost() async {
     final templates = await getRecurringTemplates();
     double total = 0.0;
-    
+
     for (final template in templates) {
       switch (template.frequency) {
         case ExpenseFrequency.daily:
@@ -279,13 +274,12 @@ class RecurringExpenseService {
           break;
       }
     }
-    
+
     return total;
   }
 
-  /// Example: Create a recurring subscription template
-  /// This is a helper method to demonstrate how to create recurring subscriptions
-  /// Only supports subscription type with monthly or yearly frequency
+  /// Create a recurring expense template
+  /// This is a helper method to demonstrate how to create recurring expenses
   Future<Expense> createRecurringTemplate({
     required String title,
     required double amount,
@@ -297,7 +291,7 @@ class RecurringExpenseService {
   }) async {
     final now = DateTime.now();
     final start = startDate ?? now;
-    
+
     // Calculate the first next billing date (only monthly/yearly supported)
     DateTime? nextBillingDate;
     switch (frequency) {
@@ -310,7 +304,7 @@ class RecurringExpenseService {
       default:
         nextBillingDate = null;
     }
-    
+
     final template = Expense(
       id: _uuid.v4(),
       title: title,
@@ -318,7 +312,6 @@ class RecurringExpenseService {
       date: start,
       createdAt: now,
       categoryId: categoryId,
-      type: ExpenseType.subscription, // Only subscriptions can be recurring
       accountId: accountId,
       isRecurring: true,
       frequency: frequency,
@@ -327,7 +320,7 @@ class RecurringExpenseService {
       necessity: ExpenseNecessity.discretionary, // Default, can be updated
       status: ExpenseStatus.paid,
     );
-    
+
     if (_expenseStateManager != null) {
       await _expenseStateManager!.addExpense(template);
     } else {
@@ -350,19 +343,17 @@ class RecurringExpenseService {
   /// Get subscriptions from provided expenses list
   /// Only returns templates (isRecurring == true), not generated instances
   List<SubscriptionData> getSubscriptionsFromExpenses(List<Expense> expenses) {
-    final subscriptions = expenses
-        .where((expense) => 
-            expense.type == ExpenseType.subscription &&
-            expense.isRecurring == true)
-        .toList();
-    
+    final subscriptions =
+        expenses.where((expense) => expense.isRecurring == true).toList();
+
     return _enhanceSubscriptions(subscriptions);
   }
 
   /// Retrieves subscription templates for a specific month
   /// Returns templates that have a nextBillingDate in the specified month
   /// Only returns templates (isRecurring == true), not generated instances
-  Future<List<SubscriptionData>> getSubscriptionsForMonth(DateTime month) async {
+  Future<List<SubscriptionData>> getSubscriptionsForMonth(
+      DateTime month) async {
     final expenses = await _expenseRepo.getAllExpenses();
     return getSubscriptionsForMonthFromExpenses(expenses, month);
   }
@@ -371,20 +362,20 @@ class RecurringExpenseService {
   List<SubscriptionData> getSubscriptionsForMonthFromExpenses(
       List<Expense> expenses, DateTime month) {
     final subscriptions = expenses
-        .where((expense) => 
-            expense.type == ExpenseType.subscription &&
+        .where((expense) =>
             expense.isRecurring == true &&
             expense.nextBillingDate != null &&
             expense.nextBillingDate!.year == month.year &&
             expense.nextBillingDate!.month == month.month)
         .toList();
-    
+
     return _enhanceSubscriptions(subscriptions);
   }
 
   /// Calculates a summary of subscription costs for a specific month
   /// Note: Returns summary for all active subscription templates, not just those due in the month
-  Future<SubscriptionSummary> getSubscriptionSummaryForMonth(DateTime month) async {
+  Future<SubscriptionSummary> getSubscriptionSummaryForMonth(
+      DateTime month) async {
     final expenses = await _expenseRepo.getAllExpenses();
     return getSubscriptionSummaryForMonthFromExpenses(expenses, month);
   }
@@ -394,29 +385,36 @@ class RecurringExpenseService {
       List<Expense> expenses, DateTime month) {
     // Use all subscription templates for the summary, not just those due in the month
     final subscriptions = getSubscriptionsFromExpenses(expenses);
-    
+
     final monthlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
         .toList();
-    
+
     final yearlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.yearly)
         .toList();
-    
-    final monthlyBillingAmount = monthlySubscriptions.fold(
-        0.0, (sum, sub) => sum + sub.expense.amount);
-    
-    final yearlyBillingAmount = yearlySubscriptions.fold(
-        0.0, (sum, sub) => sum + sub.expense.amount);
-    
+
+    final monthlyBillingAmount =
+        monthlySubscriptions.fold(0.0, (sum, sub) => sum + sub.expense.amount);
+
+    final yearlyBillingAmount =
+        yearlySubscriptions.fold(0.0, (sum, sub) => sum + sub.expense.amount);
+
     final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
-    
-    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
-    
-    final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
-    final dueSoonCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.dueSoon).length;
-    final overdueCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.overdue).length;
-    
+
+    final totalMonthlyAmount =
+        monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
+
+    final activeCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.active)
+        .length;
+    final dueSoonCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.dueSoon)
+        .length;
+    final overdueCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.overdue)
+        .length;
+
     return SubscriptionSummary(
       totalMonthlyAmount: totalMonthlyAmount,
       monthlyBillingAmount: monthlyBillingAmount,
@@ -429,7 +427,8 @@ class RecurringExpenseService {
   }
 
   /// Retrieves subscriptions filtered by status
-  Future<List<SubscriptionData>> getSubscriptionsByStatus(SubscriptionStatus status) async {
+  Future<List<SubscriptionData>> getSubscriptionsByStatus(
+      SubscriptionStatus status) async {
     final expenses = await _expenseRepo.getAllExpenses();
     return getSubscriptionsByStatusFromExpenses(expenses, status);
   }
@@ -448,32 +447,40 @@ class RecurringExpenseService {
   }
 
   /// Calculate subscription summary from provided expenses list
-  SubscriptionSummary getSubscriptionSummaryFromExpenses(List<Expense> expenses) {
+  SubscriptionSummary getSubscriptionSummaryFromExpenses(
+      List<Expense> expenses) {
     final subscriptions = getSubscriptionsFromExpenses(expenses);
-    
+
     // Calculate monthly costs based on frequency
     final monthlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.monthly)
         .toList();
-    
+
     final yearlySubscriptions = subscriptions
         .where((sub) => sub.expense.frequency == ExpenseFrequency.yearly)
         .toList();
-    
-    final monthlyBillingAmount = monthlySubscriptions.fold(
-        0.0, (sum, sub) => sum + sub.expense.amount);
-    
-    final yearlyBillingAmount = yearlySubscriptions.fold(
-        0.0, (sum, sub) => sum + sub.expense.amount);
-    
+
+    final monthlyBillingAmount =
+        monthlySubscriptions.fold(0.0, (sum, sub) => sum + sub.expense.amount);
+
+    final yearlyBillingAmount =
+        yearlySubscriptions.fold(0.0, (sum, sub) => sum + sub.expense.amount);
+
     final yearlyBillingMonthlyEquivalent = yearlyBillingAmount / 12;
-    final totalMonthlyAmount = monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
-    
+    final totalMonthlyAmount =
+        monthlyBillingAmount + yearlyBillingMonthlyEquivalent;
+
     // Count subscriptions by status
-    final activeCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.active).length;
-    final dueSoonCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.dueSoon).length;
-    final overdueCount = subscriptions.where((sub) => sub.status == SubscriptionStatus.overdue).length;
-    
+    final activeCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.active)
+        .length;
+    final dueSoonCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.dueSoon)
+        .length;
+    final overdueCount = subscriptions
+        .where((sub) => sub.status == SubscriptionStatus.overdue)
+        .length;
+
     return SubscriptionSummary(
       totalMonthlyAmount: totalMonthlyAmount,
       monthlyBillingAmount: monthlyBillingAmount,
@@ -490,7 +497,7 @@ class RecurringExpenseService {
     if (nextBillingDate == null) {
       return SubscriptionStatus.active;
     }
-    
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final billingDate = DateTime(
@@ -498,28 +505,28 @@ class RecurringExpenseService {
       nextBillingDate.month,
       nextBillingDate.day,
     );
-    
+
     if (billingDate.isBefore(today)) {
       return SubscriptionStatus.overdue;
     }
-    
+
     final threeDaysFromNow = today.add(const Duration(days: 3));
     if (!billingDate.isAfter(threeDaysFromNow)) {
       return SubscriptionStatus.dueSoon;
     }
-    
+
     return SubscriptionStatus.active;
   }
 
   /// Formats a date for display, with special handling for today and tomorrow
   String formatSubscriptionDate(DateTime? date) {
     if (date == null) return 'Unknown';
-    
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
     final dateToFormat = DateTime(date.year, date.month, date.day);
-    
+
     if (dateToFormat == today) {
       return 'Today';
     } else if (dateToFormat == tomorrow) {
@@ -534,7 +541,7 @@ class RecurringExpenseService {
     return subscriptions.map((subscription) {
       final nextBillingDate = subscription.nextBillingDate;
       final status = getSubscriptionStatus(nextBillingDate);
-      
+
       // Determine billing cycle from frequency
       String billingCycle;
       if (subscription.frequency == ExpenseFrequency.monthly) {
@@ -545,13 +552,13 @@ class RecurringExpenseService {
         // Default to Monthly for other frequencies
         billingCycle = 'Monthly';
       }
-      
+
       // Calculate monthly equivalent cost
       double monthlyEquivalentCost = subscription.amount;
       if (subscription.frequency == ExpenseFrequency.yearly) {
         monthlyEquivalentCost = subscription.amount / 12;
       }
-      
+
       return SubscriptionData(
         expense: subscription,
         status: status,
@@ -567,7 +574,7 @@ class RecurringExpenseService {
         if (a.status != b.status) {
           return a.status.index.compareTo(b.status.index);
         }
-        
+
         // Then sort by next billing date
         if (a.nextBillingDate != null && b.nextBillingDate != null) {
           return a.nextBillingDate!.compareTo(b.nextBillingDate!);
@@ -576,9 +583,9 @@ class RecurringExpenseService {
         } else if (b.nextBillingDate != null) {
           return 1;
         }
-        
+
         // Finally sort by title
         return a.expense.title.compareTo(b.expense.title);
       });
   }
-} 
+}

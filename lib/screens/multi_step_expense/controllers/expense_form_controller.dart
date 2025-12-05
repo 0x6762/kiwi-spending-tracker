@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 class ExpenseFormController extends ChangeNotifier {
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
-  final ExpenseType initialType;
   final Expense? initialExpense;
 
   // Form state
@@ -19,8 +18,6 @@ class ExpenseFormController extends ChangeNotifier {
   DateTime _selectedDate = DateTime.now();
   String _expenseName = '';
   String _selectedAccountId = DefaultAccounts.checking.id;
-  bool _isFixedExpense = false;
-  ExpenseType _selectedExpenseType = ExpenseType.variable;
   bool _isRecurring = false;
   ExpenseFrequency _frequency = ExpenseFrequency.oneTime;
 
@@ -31,8 +28,6 @@ class ExpenseFormController extends ChangeNotifier {
   DateTime get selectedDate => _selectedDate;
   String get expenseName => _expenseName;
   String get selectedAccountId => _selectedAccountId;
-  bool get isFixedExpense => _isFixedExpense;
-  ExpenseType get selectedExpenseType => _selectedExpenseType;
   bool get isRecurring => _isRecurring;
   ExpenseFrequency get frequency => _frequency;
   bool get isEditMode => initialExpense != null;
@@ -40,7 +35,6 @@ class ExpenseFormController extends ChangeNotifier {
   ExpenseFormController({
     required this.categoryRepo,
     required this.accountRepo,
-    required this.initialType,
     this.initialExpense,
   }) {
     _initialize();
@@ -48,8 +42,6 @@ class ExpenseFormController extends ChangeNotifier {
 
   void _initialize() {
     _loadAccount(_selectedAccountId);
-    _selectedExpenseType = initialType;
-    _isFixedExpense = initialType == ExpenseType.fixed;
 
     if (initialExpense != null) {
       _initializeFromExpense();
@@ -62,17 +54,8 @@ class ExpenseFormController extends ChangeNotifier {
     _selectedAccountId = expense.accountId;
     _expenseName = expense.title;
     _selectedDate = expense.date;
-    _selectedExpenseType = expense.type;
-    _isFixedExpense = expense.type == ExpenseType.fixed;
-
-    // Only subscriptions can be recurring
-    if (expense.type == ExpenseType.subscription) {
-      _isRecurring = expense.isRecurring;
-      _frequency = expense.frequency;
-    } else {
-      _isRecurring = false;
-      _frequency = ExpenseFrequency.oneTime;
-    }
+    _isRecurring = expense.isRecurring;
+    _frequency = expense.frequency;
 
     await _loadCategory(expense.categoryId);
     await _loadAccount(expense.accountId);
@@ -118,38 +101,7 @@ class ExpenseFormController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setFixedExpense(bool isFixed) {
-    _isFixedExpense = isFixed;
-    _selectedExpenseType = isFixed ? ExpenseType.fixed : ExpenseType.variable;
-    // Fixed and variable expenses cannot be recurring
-    _isRecurring = false;
-    _frequency = ExpenseFrequency.oneTime;
-    notifyListeners();
-  }
-
-  void setExpenseType(ExpenseType type) {
-    _selectedExpenseType = type;
-    _isFixedExpense = type == ExpenseType.fixed;
-
-    // Only subscriptions can have frequency/recurring
-    if (type == ExpenseType.subscription) {
-      _isRecurring = true;
-      _frequency =
-          ExpenseFrequency.monthly; // Default to monthly for subscriptions
-    } else {
-      // Fixed and variable expenses are one-time only
-      _isRecurring = false;
-      _frequency = ExpenseFrequency.oneTime;
-    }
-
-    notifyListeners();
-  }
-
   void setRecurring(bool isRecurring) {
-    // Only subscriptions can be recurring
-    if (_selectedExpenseType != ExpenseType.subscription) {
-      return;
-    }
     _isRecurring = isRecurring;
     if (!isRecurring) {
       _frequency = ExpenseFrequency.oneTime;
@@ -158,10 +110,6 @@ class ExpenseFormController extends ChangeNotifier {
   }
 
   void setFrequency(ExpenseFrequency frequency) {
-    // Frequency can only be set for subscriptions
-    if (_selectedExpenseType != ExpenseType.subscription) {
-      return;
-    }
     _frequency = frequency;
     // Automatically set isRecurring based on frequency
     _isRecurring = frequency != ExpenseFrequency.oneTime;
@@ -190,36 +138,35 @@ class ExpenseFormController extends ChangeNotifier {
 
     final amount = double.parse(_amount);
 
-    // Use the selected expense type
-    final expenseType = _selectedExpenseType;
-
     // Determine necessity based on category
     final necessity = _determineNecessity();
 
-    // Calculate next billing date for recurring expenses (subscriptions only)
+    // Calculate next billing date for recurring expenses
     DateTime? nextBillingDate;
-    if (_isRecurring && expenseType == ExpenseType.subscription) {
+    if (_isRecurring && _frequency != ExpenseFrequency.oneTime) {
+      final date = _selectedDate;
       switch (_frequency) {
+        case ExpenseFrequency.daily:
+          nextBillingDate = DateTime(date.year, date.month, date.day + 1);
+          break;
+        case ExpenseFrequency.weekly:
+          nextBillingDate = DateTime(date.year, date.month, date.day + 7);
+          break;
+        case ExpenseFrequency.biWeekly:
+          nextBillingDate = DateTime(date.year, date.month, date.day + 14);
+          break;
         case ExpenseFrequency.monthly:
-          nextBillingDate = DateTime(
-            _selectedDate.year,
-            _selectedDate.month + 1,
-            _selectedDate.day,
-          );
+          nextBillingDate = DateTime(date.year, date.month + 1, date.day);
+          break;
+        case ExpenseFrequency.quarterly:
+          nextBillingDate = DateTime(date.year, date.month + 3, date.day);
           break;
         case ExpenseFrequency.yearly:
-          nextBillingDate = DateTime(
-            _selectedDate.year + 1,
-            _selectedDate.month,
-            _selectedDate.day,
-          );
+          nextBillingDate = DateTime(date.year + 1, date.month, date.day);
           break;
         default:
           nextBillingDate = null;
       }
-    } else {
-      // Ensure non-subscriptions are not recurring
-      nextBillingDate = null;
     }
 
     return Expense(
@@ -232,15 +179,12 @@ class ExpenseFormController extends ChangeNotifier {
       createdAt: initialExpense?.createdAt ?? DateTime.now(),
       categoryId: _selectedCategory!.id,
       notes: null,
-      type: expenseType,
       accountId: _selectedAccountId,
       nextBillingDate: nextBillingDate,
       dueDate: null,
       necessity: necessity,
-      isRecurring: expenseType == ExpenseType.subscription && _isRecurring,
-      frequency: expenseType == ExpenseType.subscription
-          ? _frequency
-          : ExpenseFrequency.oneTime,
+      isRecurring: _isRecurring,
+      frequency: _frequency,
       status: ExpenseStatus.paid,
       endDate: null,
       budgetId: null,

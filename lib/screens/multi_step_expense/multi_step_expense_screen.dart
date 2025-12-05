@@ -11,7 +11,6 @@ import 'steps/category_step_widget.dart';
 import 'steps/details_step_widget.dart';
 
 class MultiStepExpenseScreen extends StatefulWidget {
-  final ExpenseType type;
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final void Function(Expense expense) onExpenseAdded;
@@ -19,7 +18,6 @@ class MultiStepExpenseScreen extends StatefulWidget {
 
   const MultiStepExpenseScreen({
     super.key,
-    required this.type,
     required this.categoryRepo,
     required this.accountRepo,
     required this.onExpenseAdded,
@@ -42,7 +40,6 @@ class _MultiStepExpenseScreenState extends State<MultiStepExpenseScreen> {
     _controller = ExpenseFormController(
       categoryRepo: widget.categoryRepo,
       accountRepo: widget.accountRepo,
-      initialType: widget.type,
       initialExpense: widget.expense,
     );
   }
@@ -119,14 +116,17 @@ class _MultiStepExpenseScreenState extends State<MultiStepExpenseScreen> {
             appBar: KiwiAppBar(
               backgroundColor: theme.colorScheme.surface,
               title: _getStepTitle(),
-              leading: _currentStep > 0 
+              leading: _currentStep > 0
                   ? const Icon(AppIcons.back)
                   : const Icon(AppIcons.close),
-              onLeadingPressed: _currentStep > 0 ? _previousStep : () => Navigator.pop(context),
+              onLeadingPressed: _currentStep > 0
+                  ? _previousStep
+                  : () => Navigator.pop(context),
               actions: [
                 // Step indicator
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainer,
                     borderRadius: BorderRadius.circular(16),
@@ -168,4 +168,4 @@ class _MultiStepExpenseScreenState extends State<MultiStepExpenseScreen> {
       ),
     );
   }
-} 
+}

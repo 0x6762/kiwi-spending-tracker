@@ -6,21 +6,17 @@ import '../sheets/picker_sheet.dart';
 
 class ExpenseFilterRow extends StatelessWidget {
   final DateTime selectedMonth;
-  final bool? selectedExpenseType;
   final String? selectedAccountId;
   final List<Expense> expenses;
   final ValueChanged<DateTime> onMonthSelected;
-  final ValueChanged<bool?> onExpenseTypeSelected;
   final ValueChanged<String?> onAccountSelected;
 
   const ExpenseFilterRow({
     super.key,
     required this.selectedMonth,
-    required this.selectedExpenseType,
     required this.selectedAccountId,
     required this.expenses,
     required this.onMonthSelected,
-    required this.onExpenseTypeSelected,
     required this.onAccountSelected,
   });
 
@@ -30,67 +26,32 @@ class ExpenseFilterRow extends StatelessWidget {
     required VoidCallback onTap,
     IconData? trailingIcon,
   }) {
-    return Builder(
-      builder: (context) {
-        final theme = Theme.of(context);
-        return TextButton(
-          onPressed: onTap,
-          style: TextButton.styleFrom(
-            backgroundColor: theme.colorScheme.surfaceContainer,
-            foregroundColor: theme.colorScheme.onSurfaceVariant,
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 10,
-              top: 8,
-              bottom: 8,
-            ),
+    return Builder(builder: (context) {
+      final theme = Theme.of(context);
+      return TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          backgroundColor: theme.colorScheme.surfaceContainer,
+          foregroundColor: theme.colorScheme.onSurfaceVariant,
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 10,
+            top: 8,
+            bottom: 8,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(label),
-              if (trailingIcon != null) ...[
-                const SizedBox(width: 4),
-                Icon(trailingIcon, size: 18),
-              ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label),
+            if (trailingIcon != null) ...[
+              const SizedBox(width: 4),
+              Icon(trailingIcon, size: 18),
             ],
-          ),
-        );
-      }
-    );
-  }
-
-  void _showExpenseTypeSheet(BuildContext context) {
-    PickerSheet.show(
-      context: context,
-      title: 'Expense Type',
-      children: [
-        ListTile(
-          title: const Text('All'),
-          selected: selectedExpenseType == null,
-          onTap: () {
-            onExpenseTypeSelected(null);
-            Navigator.pop(context);
-          },
+          ],
         ),
-        ListTile(
-          title: const Text('Fixed'),
-          selected: selectedExpenseType == true,
-          onTap: () {
-            onExpenseTypeSelected(true);
-            Navigator.pop(context);
-          },
-        ),
-        ListTile(
-          title: const Text('Variable'),
-          selected: selectedExpenseType == false,
-          onTap: () {
-            onExpenseTypeSelected(false);
-            Navigator.pop(context);
-          },
-        ),
-      ],
-    );
+      );
+    });
   }
 
   void _showAccountSheet(BuildContext context) {
@@ -124,9 +85,6 @@ class ExpenseFilterRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final monthFormat = DateFormat.yMMMM();
-    String expenseTypeLabel = 'All Types';
-    if (selectedExpenseType == true) expenseTypeLabel = 'Fixed';
-    if (selectedExpenseType == false) expenseTypeLabel = 'Variable';
 
     String accountLabel = 'All Accounts';
     if (selectedAccountId != null) {
@@ -159,14 +117,6 @@ class ExpenseFilterRow extends StatelessWidget {
                 onMonthSelected(picked);
               }
             },
-          ),
-          const SizedBox(width: 8),
-          // Expense type filter
-          _buildFilterChip(
-            label: expenseTypeLabel,
-            selected: true,
-            trailingIcon: Icons.keyboard_arrow_down,
-            onTap: () => _showExpenseTypeSheet(context),
           ),
           const SizedBox(width: 8),
           // Account filter
@@ -254,4 +204,4 @@ class MonthPickerDialog extends StatelessWidget {
       ),
     );
   }
-} 
+}

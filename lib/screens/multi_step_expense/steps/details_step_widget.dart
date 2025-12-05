@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../controllers/expense_form_controller.dart';
 import '../../../models/expense.dart';
@@ -8,7 +7,6 @@ import '../../../widgets/sheets/picker_sheet.dart';
 import '../../../widgets/common/app_input.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../utils/icons.dart';
-import '../../../theme/theme.dart';
 
 class DetailsStepWidget extends StatelessWidget {
   final VoidCallback? onSubmit;
@@ -18,57 +16,8 @@ class DetailsStepWidget extends StatelessWidget {
     required this.onSubmit,
   });
 
-  // Custom widget for SVG icon in expense type picker
-  Widget _buildSvgIcon(String assetPath, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SvgPicture.asset(
-        assetPath,
-        width: 20,
-        height: 20,
-        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-      ),
-    );
-  }
-
-  void _showExpenseTypePicker(BuildContext context, ExpenseFormController controller) {
-    PickerSheet.show(
-      context: context,
-      title: 'Expense Type',
-      children: [
-        ListTile(
-          title: const Text('Variable'),
-          selected: controller.selectedExpenseType == ExpenseType.variable,
-          onTap: () {
-            controller.setExpenseType(ExpenseType.variable);
-            Navigator.pop(context);
-          },
-        ),
-        ListTile(
-          title: const Text('Fixed'),
-          selected: controller.selectedExpenseType == ExpenseType.fixed,
-          onTap: () {
-            controller.setExpenseType(ExpenseType.fixed);
-            Navigator.pop(context);
-          },
-        ),
-        ListTile(
-          title: const Text('Subscription'),
-          selected: controller.selectedExpenseType == ExpenseType.subscription,
-          onTap: () {
-            controller.setExpenseType(ExpenseType.subscription);
-            Navigator.pop(context);
-          },
-        ),
-      ],
-    );
-  }
-
-  void _showFrequencyPicker(BuildContext context, ExpenseFormController controller) {
+  void _showFrequencyPicker(
+      BuildContext context, ExpenseFormController controller) {
     // Frequency is only available for subscriptions
     final frequencyOptions = [
       {'label': 'Monthly', 'value': ExpenseFrequency.monthly},
@@ -78,16 +27,18 @@ class DetailsStepWidget extends StatelessWidget {
     PickerSheet.show(
       context: context,
       title: 'Billing Cycle',
-      children: frequencyOptions.map(
-        (option) => ListTile(
-          title: Text(option['label'] as String),
-          selected: controller.frequency == option['value'],
-          onTap: () {
-            controller.setFrequency(option['value'] as ExpenseFrequency);
-            Navigator.pop(context);
-          },
-        ),
-      ).toList(),
+      children: frequencyOptions
+          .map(
+            (option) => ListTile(
+              title: Text(option['label'] as String),
+              selected: controller.frequency == option['value'],
+              onTap: () {
+                controller.setFrequency(option['value'] as ExpenseFrequency);
+                Navigator.pop(context);
+              },
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -110,39 +61,6 @@ class DetailsStepWidget extends StatelessWidget {
     }
   }
 
-  String _getExpenseTypeIcon(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.fixed:
-        return 'assets/icons/fixed_expense.svg';
-      case ExpenseType.subscription:
-        return 'assets/icons/subscription.svg';
-      case ExpenseType.variable:
-        return 'assets/icons/variable_expense.svg';
-    }
-  }
-
-  Color _getExpenseTypeColor(ExpenseType type, ThemeData theme) {
-    switch (type) {
-      case ExpenseType.fixed:
-        return theme.colorScheme.fixedExpenseColor;
-      case ExpenseType.subscription:
-        return theme.colorScheme.subscriptionColor;
-      case ExpenseType.variable:
-        return theme.colorScheme.variableExpenseColor;
-    }
-  }
-
-  String _getExpenseTypeLabel(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.fixed:
-        return 'Fixed';
-      case ExpenseType.subscription:
-        return 'Subscription';
-      case ExpenseType.variable:
-        return 'Variable';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -151,16 +69,17 @@ class DetailsStepWidget extends StatelessWidget {
       selector: (_, controller) => controller.canProceedFromStep(2),
       shouldRebuild: (prev, next) => prev != next,
       builder: (context, canProceed, child) {
-        final controller = Provider.of<ExpenseFormController>(context, listen: false);
-        
+        final controller =
+            Provider.of<ExpenseFormController>(context, listen: false);
+
         return Selector<ExpenseFormController, String>(
           selector: (_, controller) => controller.expenseName,
           shouldRebuild: (prev, next) => prev != next,
           builder: (context, expenseName, child) {
-            return Selector<ExpenseFormController, ExpenseType>(
-              selector: (_, controller) => controller.selectedExpenseType,
+            return Selector<ExpenseFormController, bool>(
+              selector: (_, controller) => controller.isRecurring,
               shouldRebuild: (prev, next) => prev != next,
-              builder: (context, selectedExpenseType, child) {
+              builder: (context, isRecurring, child) {
                 return Selector<ExpenseFormController, ExpenseFrequency>(
                   selector: (_, controller) => controller.frequency,
                   shouldRebuild: (prev, next) => prev != next,
@@ -170,116 +89,96 @@ class DetailsStepWidget extends StatelessWidget {
                       shouldRebuild: (prev, next) => prev != next,
                       builder: (context, isEditMode, child) {
                         return Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Expense name
-                    AppInput(
-                      initialValue: expenseName,
-                      hintText: 'Expense name (optional)',
-                      onChanged: controller.setExpenseName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      hintStyle: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Expense type section with label
-                    // Expense type label
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, bottom: 16),
-                      child: Text(
-                        'Expense type',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    // Expense type picker
-                    TextButton(
-                      onPressed: () => _showExpenseTypePicker(context, controller),
-                      style: TextButton.styleFrom(
-                        backgroundColor: theme.colorScheme.surfaceContainer,
-                        foregroundColor: theme.colorScheme.onSurfaceVariant,
-                        padding: const EdgeInsets.only(
-                          left: 12,
-                          right: 16,
-                          top: 12,
-                          bottom: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildSvgIcon(
-                            _getExpenseTypeIcon(selectedExpenseType),
-                            _getExpenseTypeColor(selectedExpenseType, theme),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _getExpenseTypeLabel(selectedExpenseType),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Expense name
+                                    AppInput(
+                                      initialValue: expenseName,
+                                      hintText: 'Expense name (optional)',
+                                      onChanged: controller.setExpenseName,
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                      hintStyle:
+                                          theme.textTheme.titleSmall?.copyWith(
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 24),
+
+                                    // Recurring toggle
+                                    SwitchListTile(
+                                      title: Text(
+                                        'Recurring Expense',
+                                        style: theme.textTheme.titleMedium,
+                                      ),
+                                      subtitle: Text(
+                                        'Enable for expenses that repeat regularly',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      value: isRecurring,
+                                      onChanged: (value) =>
+                                          controller.setRecurring(value),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 4),
+                                    ),
+
+                                    // Frequency section - only when recurring is enabled
+                                    if (isRecurring) ...[
+                                      const SizedBox(height: 24),
+                                      // Frequency label
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 4, bottom: 16),
+                                        child: Text(
+                                          'Billing Cycle',
+                                          style: theme.textTheme.titleSmall
+                                              ?.copyWith(
+                                            color: theme
+                                                .colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                      // Frequency picker
+                                      PickerButton(
+                                        label: _getFrequencyLabel(frequency),
+                                        icon: AppIcons.calendar,
+                                        onTap: () => _showFrequencyPicker(
+                                            context, controller),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: theme.colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Frequency section - only for subscriptions
-                    if (selectedExpenseType == ExpenseType.subscription) ...[
-                      const SizedBox(height: 24),
-                      // Frequency label
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 16),
-                        child: Text(
-                          'Billing Cycle',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      // Frequency picker
-                      PickerButton(
-                        label: _getFrequencyLabel(frequency),
-                        icon: AppIcons.calendar,
-                        onTap: () => _showFrequencyPicker(context, controller),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            // Submit button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: AppButton.primary(
-                text: isEditMode ? 'Update' : 'Add Expense',
-                onPressed: canProceed && onSubmit != null ? onSubmit! : null,
-                isExpanded: true,
-              ),
-            ),
-          ],
-        );
+                            // Submit button
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              child: AppButton.primary(
+                                text: isEditMode ? 'Update' : 'Add Expense',
+                                onPressed: canProceed && onSubmit != null
+                                    ? onSubmit!
+                                    : null,
+                                isExpanded: true,
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     );
                   },
@@ -291,4 +190,4 @@ class DetailsStepWidget extends StatelessWidget {
       },
     );
   }
-} 
+}

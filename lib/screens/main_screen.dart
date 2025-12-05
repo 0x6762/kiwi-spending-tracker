@@ -65,10 +65,11 @@ class _MainScreenState extends State<MainScreen>
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     _initializeAnimation();
-    
+
     // Load expenses from shared state manager
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      final expenseStateManager =
+          Provider.of<ExpenseStateManager>(context, listen: false);
       expenseStateManager.loadAllExpenses();
     });
   }
@@ -111,20 +112,18 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _loadExpenses() async {
     try {
-      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      final expenseStateManager =
+          Provider.of<ExpenseStateManager>(context, listen: false);
       await expenseStateManager.loadAllExpenses(forceRefresh: true);
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e),
+            error: e);
       }
     }
   }
 
   void _showAddExpenseDialog() {
-    _showAddExpenseDialogWithType(type: ExpenseType.variable);
-  }
-
-  void _showAddExpenseDialogWithType({required ExpenseType type}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -133,16 +132,18 @@ class _MainScreenState extends State<MainScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) =>
           MultiStepExpenseScreen(
-        type: type,
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
         onExpenseAdded: (expense) async {
           try {
-            final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+            final expenseStateManager =
+                Provider.of<ExpenseStateManager>(context, listen: false);
             await expenseStateManager.addExpense(expense);
           } catch (e) {
             if (mounted) {
-              ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+              ErrorHandler.showError(
+                  context, ErrorHandler.getUserFriendlyMessage(e),
+                  error: e);
             }
           }
         },
@@ -174,11 +175,14 @@ class _MainScreenState extends State<MainScreen>
           accountRepo: widget.accountRepo,
           onExpenseUpdated: (updatedExpense) async {
             try {
-              final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+              final expenseStateManager =
+                  Provider.of<ExpenseStateManager>(context, listen: false);
               await expenseStateManager.updateExpense(updatedExpense);
             } catch (e) {
               if (mounted) {
-                ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+                ErrorHandler.showError(
+                    context, ErrorHandler.getUserFriendlyMessage(e),
+                    error: e);
               }
             }
           },
@@ -194,11 +198,13 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _deleteExpense(Expense expense) async {
     try {
-      final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+      final expenseStateManager =
+          Provider.of<ExpenseStateManager>(context, listen: false);
       await expenseStateManager.deleteExpense(expense.id);
     } catch (e) {
       if (mounted) {
-        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e), error: e);
+        ErrorHandler.showError(context, ErrorHandler.getUserFriendlyMessage(e),
+            error: e);
       }
     }
   }
@@ -283,85 +289,85 @@ class _MainScreenState extends State<MainScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                    isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        : TodaySpendingCard(
-                            expenses: expenses,
-                            analyticsService: widget.analyticsService,
+                  isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(),
                           ),
-                    const SizedBox(height: 8),
-                    if (!isLoading) ...[
-                      if (expenses.isEmpty)
-                        _buildEmptyState()
-                      else ...[
-                    // Recent Transactions title section
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent Expenses',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AllExpensesScreen(
-                                    repository: widget.repository,
-                                    categoryRepo: widget.categoryRepo,
-                                    accountRepo: widget.accountRepo,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 8,
+                        )
+                      : TodaySpendingCard(
+                          expenses: expenses,
+                          analyticsService: widget.analyticsService,
+                        ),
+                  const SizedBox(height: 8),
+                  if (!isLoading) ...[
+                    if (expenses.isEmpty)
+                      _buildEmptyState()
+                    else ...[
+                      // Recent Transactions title section
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Recent Expenses',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'See all',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AllExpensesScreen(
+                                      repository: widget.repository,
+                                      categoryRepo: widget.categoryRepo,
+                                      accountRepo: widget.accountRepo,
+                                    ),
                                   ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: theme.colorScheme.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 8,
                                 ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  size: 12,
-                                  color: theme.colorScheme.onSurfaceVariant
-                                      .withOpacity(0.7),
-                                ),
-                              ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'See all',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 12,
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withOpacity(0.7),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                        ExpenseList(
-                          expenses: todayExpenses,
-                          categoryRepo: widget.categoryRepo,
-                          onTap: _viewExpenseDetails,
-                          onDelete: _deleteExpense,
+                          ],
                         ),
-                      ],
+                      ),
+                      ExpenseList(
+                        expenses: todayExpenses,
+                        categoryRepo: widget.categoryRepo,
+                        onTap: _viewExpenseDetails,
+                        onDelete: _deleteExpense,
+                      ),
                     ],
                   ],
+                ],
               ),
             ),
           ),
@@ -377,7 +383,8 @@ class _MainScreenState extends State<MainScreen>
         // Initialize nav controller after first build when we have the key
         if (_navController == null && _navigationKey.currentState != null) {
           _navController = ScrollAwareButtonController(
-            animationController: _navigationKey.currentState!.animationController,
+            animationController:
+                _navigationKey.currentState!.animationController,
             minScrollOffset: 100.0,
             scrollThreshold: 10.0,
             onShow: _showNavigation,
@@ -413,7 +420,8 @@ class _MainScreenState extends State<MainScreen>
               if (navigationService.isAddButtonSelected) {
                 _showAddExpenseDialog();
               } else if (index == 0) {
-                final expenseStateManager = Provider.of<ExpenseStateManager>(context, listen: false);
+                final expenseStateManager =
+                    Provider.of<ExpenseStateManager>(context, listen: false);
                 expenseStateManager.loadAllExpenses(forceRefresh: true);
               }
             },
