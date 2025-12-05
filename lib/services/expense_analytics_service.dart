@@ -34,8 +34,6 @@ class DailyMetrics {
 
 class MonthlyAnalytics {
   final double totalSpent;
-  final double recurringExpenses;
-  final double oneTimeExpenses;
   final double previousMonthTotal;
   final double percentageChange;
   final bool isIncrease;
@@ -43,8 +41,6 @@ class MonthlyAnalytics {
 
   MonthlyAnalytics({
     required this.totalSpent,
-    required this.recurringExpenses,
-    required this.oneTimeExpenses,
     required this.previousMonthTotal,
     required this.percentageChange,
     required this.isIncrease,
@@ -140,8 +136,6 @@ class ExpenseAnalyticsService {
     if (effectiveExpenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
-        recurringExpenses: 0.0,
-        oneTimeExpenses: 0.0,
         previousMonthTotal: 0.0,
         percentageChange: 0.0,
         isIncrease: false,
@@ -156,18 +150,9 @@ class ExpenseAnalyticsService {
             expense.date.month == selectedMonth.month)
         .toList();
 
-    // Calculate totals based on recurring vs one-time
-    // Only count generated instances (isRecurring == false) or one-time expenses
-    final oneTimeTotal = monthlyExpenses
-        .where((expense) => expense.isRecurring == false)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    // Recurring templates from this month (isRecurring == true)
-    final recurringTotal = monthlyExpenses
-        .where((expense) => expense.isRecurring == true)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    final monthlyTotal = recurringTotal + oneTimeTotal;
+    // Calculate total for the month
+    final monthlyTotal =
+        monthlyExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
     // Calculate previous month total
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
@@ -214,8 +199,6 @@ class ExpenseAnalyticsService {
 
     return MonthlyAnalytics(
       totalSpent: monthlyTotal,
-      recurringExpenses: recurringTotal,
-      oneTimeExpenses: oneTimeTotal,
       previousMonthTotal: previousMonthTotal,
       percentageChange: percentageChange,
       isIncrease: isIncrease,

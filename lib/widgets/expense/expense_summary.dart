@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/expense.dart';
 import '../../repositories/category_repository.dart';
 import '../../utils/formatters.dart';
-import '../../theme/theme.dart';
 import '../../services/expense_analytics_service.dart';
 import '../../services/recurring_expense_service.dart';
 import '../../repositories/expense_repository.dart';
@@ -182,37 +180,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
             ),
           ),
           const SizedBox(height: 8),
-          Card(
-            margin: EdgeInsets.zero,
-            color: theme.colorScheme.surfaceContainer,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            elevation: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _SummaryRow(
-                    label: 'Recurring Expenses',
-                    amount: analytics.recurringExpenses,
-                    context: context,
-                    iconAsset: 'assets/icons/subscription.svg',
-                    iconColor: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 0),
-                  _SummaryRow(
-                    label: 'One-time Expenses',
-                    amount: analytics.oneTimeExpenses,
-                    context: context,
-                    iconAsset: 'assets/icons/variable_expense.svg',
-                    iconColor: theme.colorScheme.variableExpenseColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
           // Subscription Plans Card
           if (widget.repository != null && widget.categoryRepo != null)
             FutureBuilder<SubscriptionSummary>(
@@ -253,63 +220,6 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 );
               },
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final double amount;
-  final BuildContext context;
-  final String iconAsset;
-  final Color iconColor;
-
-  const _SummaryRow({
-    required this.label,
-    required this.amount,
-    required this.context,
-    required this.iconAsset,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            iconAsset,
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(
-              iconColor,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Text(
-            formatCurrency(amount),
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
         ],
       ),
     );
