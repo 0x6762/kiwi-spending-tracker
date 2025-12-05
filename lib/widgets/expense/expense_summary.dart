@@ -10,7 +10,9 @@ import '../../screens/recurring_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import '../common/icon_container.dart';
 import '../../utils/icons.dart';
+import '../../theme/theme.dart';
 import 'recurring_expenses_card.dart';
+import 'necessity_cards.dart';
 
 class ExpenseSummary extends StatefulWidget {
   final List<Expense> expenses;
@@ -178,6 +180,12 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 8),
+          // Necessity Cards (Essential and Extra)
+          NecessityCards(
+            expenses: widget.expenses,
+            selectedMonth: widget.selectedMonth,
           ),
           const SizedBox(height: 8),
           // Recurring Expenses Card

@@ -78,7 +78,7 @@ class DetailsStepWidget extends StatelessWidget {
       case ExpenseNecessity.essential:
         return theme.colorScheme.error;
       case ExpenseNecessity.extra:
-        return theme.colorScheme.recurringExpenseColor;
+        return theme.colorScheme.extraExpenseColor;
       case ExpenseNecessity.savings:
         return theme.colorScheme.tertiary;
     }

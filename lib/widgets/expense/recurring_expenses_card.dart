@@ -28,21 +28,14 @@ class RecurringExpensesCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: _RecurringExpenseRow(
-                  label: 'Recurring Expenses',
-                  amount: summary.totalMonthlyAmount,
-                  context: context,
-                  icon: Icons.event_repeat_rounded,
-                  iconColor: theme.colorScheme.recurringExpenseColor,
-                  onTap: onTap,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+          child: _RecurringExpenseRow(
+            label: 'Recurring Expenses',
+            amount: summary.totalMonthlyAmount,
+            context: context,
+            icon: Icons.event_repeat_rounded,
+            iconColor: theme.colorScheme.recurringExpenseColor,
+            onTap: onTap,
           ),
         ),
       ),
@@ -73,10 +66,17 @@ class _RecurringExpenseRow extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: iconColor,
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: iconColor,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -84,6 +84,7 @@ class _RecurringExpenseRow extends StatelessWidget {
             label,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -91,6 +92,7 @@ class _RecurringExpenseRow extends StatelessWidget {
           formatCurrency(amount),
           style: theme.textTheme.titleSmall?.copyWith(
             color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
