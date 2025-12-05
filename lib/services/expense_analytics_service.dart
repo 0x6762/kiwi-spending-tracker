@@ -34,9 +34,6 @@ class DailyMetrics {
 
 class MonthlyAnalytics {
   final double totalSpent;
-  final double subscriptionExpenses;
-  final double fixedExpenses;
-  final double variableExpenses;
   final double previousMonthTotal;
   final double percentageChange;
   final bool isIncrease;
@@ -44,9 +41,6 @@ class MonthlyAnalytics {
 
   MonthlyAnalytics({
     required this.totalSpent,
-    required this.subscriptionExpenses,
-    required this.fixedExpenses,
-    required this.variableExpenses,
     required this.previousMonthTotal,
     required this.percentageChange,
     required this.isIncrease,
@@ -142,9 +136,6 @@ class ExpenseAnalyticsService {
     if (effectiveExpenses.isEmpty) {
       return MonthlyAnalytics(
         totalSpent: 0.0,
-        subscriptionExpenses: 0.0,
-        fixedExpenses: 0.0,
-        variableExpenses: 0.0,
         previousMonthTotal: 0.0,
         percentageChange: 0.0,
         isIncrease: false,
@@ -159,28 +150,9 @@ class ExpenseAnalyticsService {
             expense.date.month == selectedMonth.month)
         .toList();
 
-    // Calculate totals for each expense type
-    final subscriptionTotal = monthlyExpenses
-        .where((expense) =>
-            expense.type == ExpenseType.subscription &&
-            (
-                // Either it's not a recurring subscription (actual payment)
-                expense.isRecurring == false ||
-                    // OR it's a template from the selected month (not just today)
-                    (expense.isRecurring == true &&
-                        expense.date.year == selectedMonth.year &&
-                        expense.date.month == selectedMonth.month)))
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    final fixedTotal = monthlyExpenses
-        .where((expense) => expense.type == ExpenseType.fixed)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    final variableTotal = monthlyExpenses
-        .where((expense) => expense.type == ExpenseType.variable)
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-
-    final monthlyTotal = subscriptionTotal + fixedTotal + variableTotal;
+    // Calculate total for the month
+    final monthlyTotal =
+        monthlyExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
     // Calculate previous month total
     final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
@@ -227,9 +199,6 @@ class ExpenseAnalyticsService {
 
     return MonthlyAnalytics(
       totalSpent: monthlyTotal,
-      subscriptionExpenses: subscriptionTotal,
-      fixedExpenses: fixedTotal,
-      variableExpenses: variableTotal,
       previousMonthTotal: previousMonthTotal,
       percentageChange: percentageChange,
       isIncrease: isIncrease,
@@ -248,11 +217,10 @@ class ExpenseAnalyticsService {
     for (final expense in expenses) {
       if (expense.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
           expense.date.isBefore(endDate.add(const Duration(days: 1)))) {
-        // For subscription templates, include them in their creation month
+        // For recurring templates, include them in their creation month
         final monthKey = DateTime(expense.date.year, expense.date.month);
-        if (expense.type == ExpenseType.subscription &&
-            expense.isRecurring == true) {
-          // Nothing to skip - we want to include subscription templates in their creation month
+        if (expense.isRecurring == true) {
+          // Nothing to skip - we want to include recurring templates in their creation month
         }
 
         monthlyTotals[monthKey] =
@@ -343,9 +311,10 @@ class ExpenseAnalyticsService {
   Future<UpcomingExpensesAnalytics> getUpcomingExpenses(
       {DateTime? fromDate, ExpenseStateManager? expenseStateManager}) async {
     // Create upcoming expense service instance
-    final recurringService = RecurringExpenseService(_expenseRepo, expenseStateManager);
-    final upcomingService =
-        UpcomingExpenseService(_expenseRepo, recurringService, expenseStateManager);
+    final recurringService =
+        RecurringExpenseService(_expenseRepo, expenseStateManager);
+    final upcomingService = UpcomingExpenseService(
+        _expenseRepo, recurringService, expenseStateManager);
 
     // Get comprehensive summary
     final summary = await upcomingService.getUpcomingExpensesSummary(

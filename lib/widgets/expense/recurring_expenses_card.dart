@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/recurring_expense_service.dart';
 import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
 
-class SubscriptionPlansCard extends StatelessWidget {
-  final SubscriptionSummary summary;
+class RecurringExpensesCard extends StatelessWidget {
+  final RecurringExpenseSummary summary;
   final VoidCallback? onTap;
 
-  const SubscriptionPlansCard({
+  const RecurringExpensesCard({
     super.key,
     required this.summary,
     this.onTap,
@@ -17,7 +16,7 @@ class SubscriptionPlansCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       margin: EdgeInsets.zero,
       color: theme.colorScheme.surfaceContainer,
@@ -34,12 +33,12 @@ class SubscriptionPlansCard extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(12),
-                child: _SubscriptionRow(
-                  label: 'Subscriptions',
+                child: _RecurringExpenseRow(
+                  label: 'Recurring Expenses',
                   amount: summary.totalMonthlyAmount,
                   context: context,
-                  iconAsset: 'assets/icons/subscription.svg',
-                  iconColor: theme.colorScheme.subscriptionColor,
+                  icon: Icons.event_repeat_rounded,
+                  iconColor: theme.colorScheme.recurringExpenseColor,
                   onTap: onTap,
                 ),
               ),
@@ -51,19 +50,19 @@ class SubscriptionPlansCard extends StatelessWidget {
   }
 }
 
-class _SubscriptionRow extends StatelessWidget {
+class _RecurringExpenseRow extends StatelessWidget {
   final String label;
   final double amount;
   final BuildContext context;
-  final String iconAsset;
+  final IconData icon;
   final Color iconColor;
   final VoidCallback? onTap;
 
-  const _SubscriptionRow({
+  const _RecurringExpenseRow({
     required this.label,
     required this.amount,
     required this.context,
-    required this.iconAsset,
+    required this.icon,
     required this.iconColor,
     this.onTap,
   });
@@ -74,14 +73,10 @@ class _SubscriptionRow extends StatelessWidget {
 
     return Row(
       children: [
-        SvgPicture.asset(
-          iconAsset,
-          width: 24,
-          height: 24,
-          colorFilter: ColorFilter.mode(
-            iconColor,
-            BlendMode.srcIn,
-          ),
+        Icon(
+          icon,
+          size: 24,
+          color: iconColor,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -98,15 +93,7 @@ class _SubscriptionRow extends StatelessWidget {
             color: theme.colorScheme.onSurface,
           ),
         ),
-        if (onTap != null) ...[
-          const SizedBox(width: 8),
-          Icon(
-            Icons.chevron_right,
-            size: 20,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ],
       ],
     );
   }
-} 
+}

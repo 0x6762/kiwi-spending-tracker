@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/expense.dart';
 import '../models/expense_category.dart';
 import '../models/account.dart';
@@ -12,7 +11,6 @@ import '../repositories/account_repository.dart';
 import '../widgets/common/app_bar.dart';
 import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import 'multi_step_expense/multi_step_expense_screen.dart';
-import '../theme/theme.dart';
 
 class ExpenseDetailScreen extends StatefulWidget {
   final Expense expense;
@@ -49,8 +47,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 200),
-              pageBuilder: (context, animation, secondaryAnimation) => MultiStepExpenseScreen(
-        type: _currentExpense.type,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          MultiStepExpenseScreen(
         categoryRepo: widget.categoryRepo,
         accountRepo: widget.accountRepo,
         expense: _currentExpense,
@@ -132,46 +130,12 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     );
   }
 
-  String _getExpenseTypeLabel(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return 'Subscription';
-      case ExpenseType.fixed:
-        return 'Fixed Expense';
-      case ExpenseType.variable:
-        return 'Variable Expense';
-    }
-  }
-
-  String _getExpenseTypeIcon(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return 'assets/icons/subscription.svg';
-      case ExpenseType.fixed:
-        return 'assets/icons/fixed_expense.svg';
-      case ExpenseType.variable:
-        return 'assets/icons/variable_expense.svg';
-    }
-  }
-
-  Color _getExpenseTypeColor(ExpenseType type) {
-    final theme = Theme.of(context);
-    switch (type) {
-      case ExpenseType.subscription:
-        return theme.colorScheme.subscriptionColor;
-      case ExpenseType.fixed:
-        return theme.colorScheme.fixedExpenseColor;
-      case ExpenseType.variable:
-        return theme.colorScheme.variableExpenseColor;
-    }
-  }
-
   String _getNecessityLabel(ExpenseNecessity necessity) {
     switch (necessity) {
       case ExpenseNecessity.essential:
         return 'Essential (Need)';
-      case ExpenseNecessity.discretionary:
-        return 'Discretionary (Want)';
+      case ExpenseNecessity.extra:
+        return 'Extra (Want)';
       case ExpenseNecessity.savings:
         return 'Savings/Investment';
     }
@@ -181,7 +145,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     switch (necessity) {
       case ExpenseNecessity.essential:
         return Icons.home_outlined;
-      case ExpenseNecessity.discretionary:
+      case ExpenseNecessity.extra:
         return Icons.shopping_bag_outlined;
       case ExpenseNecessity.savings:
         return Icons.savings_outlined;
@@ -238,7 +202,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return FutureBuilder<Account?>(
       future: widget.accountRepo.findAccountById(_currentExpense.accountId),
       builder: (context, accountSnapshot) {
@@ -246,7 +210,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
 
         return FutureBuilder<ExpenseCategory?>(
           future: _currentExpense.categoryId != null
-              ? widget.categoryRepo.findCategoryById(_currentExpense.categoryId!)
+              ? widget.categoryRepo
+                  .findCategoryById(_currentExpense.categoryId!)
               : Future.value(null),
           builder: (context, categorySnapshot) {
             final category = categorySnapshot.data;
@@ -267,7 +232,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                       color: theme.colorScheme.error,
                     ),
                     onPressed: () async {
-                      final shouldDelete = await DeleteConfirmationDialog.show(context);
+                      final shouldDelete =
+                          await DeleteConfirmationDialog.show(context);
                       if (shouldDelete == true && mounted) {
                         Navigator.pop(context, true);
                       }
@@ -315,8 +281,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                           children: [
                             _buildDetailRow(
                               'Category',
-                              category?.name ?? CategoryRepository.uncategorizedCategory.name,
-                              category?.icon ?? CategoryRepository.uncategorizedCategory.icon,
+                              category?.name ??
+                                  CategoryRepository.uncategorizedCategory.name,
+                              category?.icon ??
+                                  CategoryRepository.uncategorizedCategory.icon,
                             ),
                             _buildDetailRow(
                               'Account',
@@ -334,14 +302,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                               DateFormat.jm().format(_currentExpense.createdAt),
                               AppIcons.time,
                             ),
-                            _buildDetailRow(
-                              'Type',
-                              _getExpenseTypeLabel(_currentExpense.type),
-                              _getExpenseTypeIcon(_currentExpense.type),
-                              iconColor: _getExpenseTypeColor(_currentExpense.type),
-                              isSvg: true,
-                            ),
-                            if (_currentExpense.notes != null && _currentExpense.notes!.isNotEmpty)
+                            if (_currentExpense.notes != null &&
+                                _currentExpense.notes!.isNotEmpty)
                               _buildDetailRow(
                                 'Notes',
                                 _currentExpense.notes!,
@@ -361,7 +323,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                               'Status',
                               _getStatusLabel(_currentExpense.status),
                               Icons.check_circle_outline,
-                              iconColor: _getStatusColor(_currentExpense.status),
+                              iconColor:
+                                  _getStatusColor(_currentExpense.status),
                             ),
                             if (_currentExpense.isRecurring)
                               _buildDetailRow(
@@ -375,7 +338,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                                 _currentExpense.paymentMethod!,
                                 Icons.payment,
                               ),
-                            if (_currentExpense.tags != null && _currentExpense.tags!.isNotEmpty)
+                            if (_currentExpense.tags != null &&
+                                _currentExpense.tags!.isNotEmpty)
                               _buildDetailRow(
                                 'Tags',
                                 _currentExpense.tags!.join(', '),

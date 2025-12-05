@@ -33,22 +33,11 @@ class UpcomingExpenseItem {
   /// Get a user-friendly description of the expense type
   String get typeDescription {
     if (isRecurringTemplate) {
-      return 'Recurring ${_getExpenseTypeLabel(expense.type)}';
+      return 'Recurring';
     } else if (isGeneratedInstance) {
-      return 'Generated ${_getExpenseTypeLabel(expense.type)}';
+      return 'Generated';
     } else {
-      return _getExpenseTypeLabel(expense.type);
-    }
-  }
-
-  String _getExpenseTypeLabel(ExpenseType type) {
-    switch (type) {
-      case ExpenseType.subscription:
-        return 'Subscription';
-      case ExpenseType.fixed:
-        return 'Fixed Expense';
-      case ExpenseType.variable:
-        return 'Variable Expense';
+      return 'One-time';
     }
   }
 }
@@ -74,8 +63,6 @@ class UpcomingExpenseService {
     return await _expenseRepo.getAllExpenses();
   }
 
-
-
   /// Get all upcoming expenses within a specified time range
   Future<List<UpcomingExpenseItem>> getUpcomingExpenses({
     int daysAhead = 30,
@@ -87,24 +74,27 @@ class UpcomingExpenseService {
     final now = DateTime.now();
     final referenceDate = fromDate ?? now;
     final futureDate = referenceDate.add(Duration(days: daysAhead));
-    
+
     final upcomingItems = <UpcomingExpenseItem>[];
 
     // 1. Get manual future expenses (non-recurring)
     if (includeManualExpenses) {
-      final manualUpcoming = await _getManualUpcomingExpenses(referenceDate, futureDate);
+      final manualUpcoming =
+          await _getManualUpcomingExpenses(referenceDate, futureDate);
       upcomingItems.addAll(manualUpcoming);
     }
 
     // 2. Get recurring expense templates that will generate expenses soon
     if (includeRecurringTemplates) {
-      final recurringUpcoming = await _getRecurringTemplateUpcoming(referenceDate, futureDate);
+      final recurringUpcoming =
+          await _getRecurringTemplateUpcoming(referenceDate, futureDate);
       upcomingItems.addAll(recurringUpcoming);
     }
 
     // 3. Get generated instances from recurring expenses
     if (includeGeneratedInstances) {
-      final generatedUpcoming = await _getGeneratedInstanceUpcoming(referenceDate, futureDate);
+      final generatedUpcoming =
+          await _getGeneratedInstanceUpcoming(referenceDate, futureDate);
       upcomingItems.addAll(generatedUpcoming);
     }
 
@@ -125,27 +115,13 @@ class UpcomingExpenseService {
     );
 
     final grouped = <String, List<UpcomingExpenseItem>>{};
-    
+
     for (final item in upcoming) {
       final key = item.typeDescription;
       grouped.putIfAbsent(key, () => []).add(item);
     }
 
     return grouped;
-  }
-
-  /// Get upcoming expenses for a specific expense type
-  Future<List<UpcomingExpenseItem>> getUpcomingExpensesByExpenseType({
-    required ExpenseType type,
-    int daysAhead = 30,
-    DateTime? fromDate,
-  }) async {
-    final allUpcoming = await getUpcomingExpenses(
-      daysAhead: daysAhead,
-      fromDate: fromDate,
-    );
-
-    return allUpcoming.where((item) => item.expense.type == type).toList();
   }
 
   /// Get total upcoming amount within a time range
@@ -179,7 +155,7 @@ class UpcomingExpenseService {
 
     for (final item in upcoming) {
       totalAmount += item.displayAmount;
-      
+
       if (item.isRecurringTemplate) {
         recurringAmount += item.displayAmount;
         recurringCount++;
@@ -204,19 +180,17 @@ class UpcomingExpenseService {
   /// Get overdue recurring expenses that should have been processed
   Future<List<UpcomingExpenseItem>> getOverdueRecurringExpenses() async {
     final now = DateTime.now();
-    
+
     // Use cached data if available
     List<Expense> templates;
     if (_expenseStateManager != null && _expenseStateManager!.hasCachedData) {
       final allExpenses = _expenseStateManager!.allExpenses ?? [];
-      templates = allExpenses.where((expense) => 
-        expense.type == ExpenseType.subscription &&
-        expense.isRecurring == true
-      ).toList();
+      templates =
+          allExpenses.where((expense) => expense.isRecurring == true).toList();
     } else {
       templates = await _recurringService.getRecurringTemplates();
     }
-    
+
     final overdue = <UpcomingExpenseItem>[];
 
     for (final template in templates) {
@@ -248,7 +222,8 @@ class UpcomingExpenseService {
   Future<List<UpcomingExpenseItem>> getExpensesDueThisWeek() async {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final weekStartDate =
+        DateTime(weekStart.year, weekStart.month, weekStart.day);
 
     return await getUpcomingExpenses(
       fromDate: weekStartDate,
@@ -281,8 +256,8 @@ class UpcomingExpenseService {
 
     for (final expense in allExpenses) {
       // Only include non-recurring expenses with future dates
-      if (!expense.isRecurring && 
-          expense.date.isAfter(fromDate) && 
+      if (!expense.isRecurring &&
+          expense.date.isAfter(fromDate) &&
           !expense.date.isAfter(toDate)) {
         manualUpcoming.add(UpcomingExpenseItem(
           expense: expense,
@@ -304,17 +279,16 @@ class UpcomingExpenseService {
     List<Expense> templates;
     if (_expenseStateManager != null && _expenseStateManager!.hasCachedData) {
       final allExpenses = _expenseStateManager!.allExpenses ?? [];
-      templates = allExpenses.where((expense) => 
-        expense.type == ExpenseType.subscription &&
-        expense.isRecurring == true
-      ).toList();
+      templates =
+          allExpenses.where((expense) => expense.isRecurring == true).toList();
     } else {
       templates = await _recurringService.getRecurringTemplates();
     }
-    
+
     final templateUpcoming = <UpcomingExpenseItem>[];
     // Normalize fromDate to start of day for comparison
-    final fromDateNormalized = DateTime(fromDate.year, fromDate.month, fromDate.day);
+    final fromDateNormalized =
+        DateTime(fromDate.year, fromDate.month, fromDate.day);
 
     // Normalize toDate to start of day for comparison
     final toDateNormalized = DateTime(toDate.year, toDate.month, toDate.day);
@@ -323,7 +297,8 @@ class UpcomingExpenseService {
       final nextDate = template.nextBillingDate;
       if (nextDate != null) {
         // Normalize nextDate to start of day for comparison
-        final nextDateNormalized = DateTime(nextDate.year, nextDate.month, nextDate.day);
+        final nextDateNormalized =
+            DateTime(nextDate.year, nextDate.month, nextDate.day);
         // Include recurring expenses that fall within the date range
         // Only include dates after fromDate and before or equal to toDate
         if (nextDateNormalized.isAfter(fromDateNormalized) &&
@@ -352,8 +327,8 @@ class UpcomingExpenseService {
     for (final expense in allExpenses) {
       // Look for generated instances (non-recurring expenses that were created by recurring service)
       // We can identify these by checking if they have a recurring template ID or other indicators
-      if (!expense.isRecurring && 
-          expense.date.isAfter(fromDate) && 
+      if (!expense.isRecurring &&
+          expense.date.isAfter(fromDate) &&
           !expense.date.isAfter(toDate) &&
           _isGeneratedInstance(expense)) {
         generatedUpcoming.add(UpcomingExpenseItem(
@@ -371,8 +346,8 @@ class UpcomingExpenseService {
   bool _isGeneratedInstance(Expense expense) {
     // This is a heuristic - in a real implementation, you might have a field
     // to track the source template, or use other indicators
-    return expense.title.contains('(Generated)') || 
-           expense.notes?.contains('Generated from recurring') == true;
+    return expense.title.contains('(Generated)') ||
+        expense.notes?.contains('Generated from recurring') == true;
   }
 }
 
@@ -399,10 +374,12 @@ class UpcomingExpensesSummary {
   });
 
   /// Get the percentage of recurring expenses
-  double get recurringPercentage => totalAmount > 0 ? (recurringAmount / totalAmount) * 100 : 0;
+  double get recurringPercentage =>
+      totalAmount > 0 ? (recurringAmount / totalAmount) * 100 : 0;
 
   /// Get the percentage of manual expenses
-  double get manualPercentage => totalAmount > 0 ? (manualAmount / totalAmount) * 100 : 0;
+  double get manualPercentage =>
+      totalAmount > 0 ? (manualAmount / totalAmount) * 100 : 0;
 
   /// Check if there are any upcoming expenses
   bool get hasUpcomingExpenses => totalCount > 0;
@@ -413,4 +390,3 @@ class UpcomingExpensesSummary {
   /// Check if there are any manual upcoming expenses
   bool get hasManualUpcoming => manualCount > 0;
 }
-

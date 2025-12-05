@@ -13,14 +13,8 @@ enum ExpenseStatus { pending, paid, overdue, cancelled }
 
 enum ExpenseNecessity {
   essential, // Needs (food, housing, utilities)
-  discretionary, // Wants (entertainment, dining out)
+  extra, // Wants (entertainment, dining out)
   savings // Future needs/wants
-}
-
-enum ExpenseType {
-  subscription, // Auto-recurring with fixed amount (Netflix, Spotify)
-  fixed, // Recurring pattern but variable amount - manually entered (Electricity, Water)
-  variable // One-time expenses (Groceries, Entertainment)
 }
 
 class Expense {
@@ -31,7 +25,6 @@ class Expense {
   final DateTime createdAt;
   final String? categoryId;
   final String? notes;
-  final ExpenseType type;
   final String accountId;
 
   final ExpenseNecessity necessity;
@@ -55,11 +48,10 @@ class Expense {
     required this.createdAt,
     this.categoryId,
     this.notes,
-    this.type = ExpenseType.variable,
     required this.accountId,
     this.nextBillingDate,
     this.dueDate,
-    this.necessity = ExpenseNecessity.discretionary,
+    this.necessity = ExpenseNecessity.extra,
     this.isRecurring = false,
     this.frequency = ExpenseFrequency.oneTime,
     this.status = ExpenseStatus.paid,
@@ -77,7 +69,6 @@ class Expense {
     DateTime? createdAt,
     String? categoryId,
     String? notes,
-    ExpenseType? type,
     String? accountId,
     DateTime? nextBillingDate,
     DateTime? dueDate,
@@ -98,7 +89,6 @@ class Expense {
       createdAt: createdAt ?? this.createdAt,
       categoryId: categoryId ?? this.categoryId,
       notes: notes ?? this.notes,
-      type: type ?? this.type,
       accountId: accountId ?? this.accountId,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       dueDate: dueDate ?? this.dueDate,
@@ -122,7 +112,6 @@ class Expense {
       'createdAt': createdAt.toIso8601String(),
       'categoryId': categoryId,
       'notes': notes,
-      'type': type.index,
       'accountId': accountId,
       'nextBillingDate': nextBillingDate?.toIso8601String(),
       'dueDate': dueDate?.toIso8601String(),
@@ -146,9 +135,6 @@ class Expense {
       createdAt: DateTime.parse(json['createdAt']),
       categoryId: json['categoryId'],
       notes: json['notes'],
-      type: json['type'] != null
-          ? ExpenseType.values[json['type'] as int]
-          : ExpenseType.variable,
       accountId: json['accountId'],
       nextBillingDate: json['nextBillingDate'] != null
           ? DateTime.parse(json['nextBillingDate'])
@@ -156,7 +142,7 @@ class Expense {
       dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
       necessity: json['necessity'] != null
           ? ExpenseNecessity.values[json['necessity'] as int]
-          : ExpenseNecessity.discretionary,
+          : ExpenseNecessity.extra,
       isRecurring: json['isRecurring'] ?? false,
       frequency: json['frequency'] != null
           ? ExpenseFrequency.values[json['frequency'] as int]

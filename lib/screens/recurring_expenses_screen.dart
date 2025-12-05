@@ -13,13 +13,14 @@ import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 
-class SubscriptionsScreen extends StatefulWidget {
-  final ExpenseRepository repository; // Required for RecurringExpenseService initialization
+class RecurringExpensesScreen extends StatefulWidget {
+  final ExpenseRepository
+      repository; // Required for RecurringExpenseService initialization
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final DateTime selectedMonth;
 
-  const SubscriptionsScreen({
+  const RecurringExpensesScreen({
     super.key,
     required this.repository,
     required this.categoryRepo,
@@ -28,10 +29,11 @@ class SubscriptionsScreen extends StatefulWidget {
   });
 
   @override
-  State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
+  State<RecurringExpensesScreen> createState() =>
+      _RecurringExpensesScreenState();
 }
 
-class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
+class _RecurringExpensesScreenState extends State<RecurringExpensesScreen> {
   late RecurringExpenseService _recurringExpenseService;
   final _dateFormat = DateFormat.yMMMd();
 
@@ -39,7 +41,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   void initState() {
     super.initState();
     // RecurringExpenseService constructor requires repository, but the methods we use
-    // (getSubscriptionsFromExpenses, etc.) don't actually use the repository
+    // (getRecurringExpensesFromExpenses, etc.) don't actually use the repository
     // They just process the expenses list from ExpenseStateManager
     _recurringExpenseService = RecurringExpenseService(
       widget.repository,
@@ -47,15 +49,16 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  /// Get subscriptions from ExpenseStateManager expenses
-  List<SubscriptionData> _getSubscriptions(List<Expense> expenses) {
-    return _recurringExpenseService.getSubscriptionsFromExpenses(expenses);
+  /// Get recurring expenses from ExpenseStateManager expenses
+  List<RecurringExpenseData> _getRecurringExpenses(List<Expense> expenses) {
+    return _recurringExpenseService.getRecurringExpensesFromExpenses(expenses);
   }
 
-  /// Get subscription summary from ExpenseStateManager expenses
-  SubscriptionSummary _getSubscriptionSummary(List<Expense> expenses) {
-    return _recurringExpenseService.getSubscriptionSummaryForMonthFromExpenses(
-        expenses, widget.selectedMonth);
+  /// Get recurring expense summary from ExpenseStateManager expenses
+  RecurringExpenseSummary _getRecurringExpenseSummary(List<Expense> expenses) {
+    return _recurringExpenseService
+        .getRecurringExpenseSummaryForMonthFromExpenses(
+            expenses, widget.selectedMonth);
   }
 
   String _formatDate(DateTime date) {
@@ -73,20 +76,22 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
   }
 
-  Future<void> _deleteSubscription(
+  Future<void> _deleteRecurringExpense(
       Expense expense, ExpenseStateManager expenseStateManager) async {
     try {
       await expenseStateManager.deleteExpense(expense.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete subscription: ${e.toString()}')),
+          SnackBar(
+              content:
+                  Text('Failed to delete recurring expense: ${e.toString()}')),
         );
       }
     }
   }
 
-  void _viewSubscriptionDetails(
+  void _viewRecurringExpenseDetails(
       Expense expense, ExpenseStateManager expenseStateManager) async {
     final result = await Navigator.push<dynamic>(
       context,
@@ -101,7 +106,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update subscription: ${e.toString()}')),
+                  SnackBar(
+                      content: Text(
+                          'Failed to update recurring expense: ${e.toString()}')),
                 );
               }
             }
@@ -112,16 +119,19 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
 
     if (result == true) {
-      await _deleteSubscription(expense, expenseStateManager);
+      await _deleteRecurringExpense(expense, expenseStateManager);
     }
   }
 
-  Widget _buildSubscriptionItem(BuildContext context, SubscriptionData subscription,
-      ExpenseCategory? category, ExpenseStateManager expenseStateManager) {
+  Widget _buildRecurringExpenseItem(
+      BuildContext context,
+      RecurringExpenseData recurringExpense,
+      ExpenseCategory? category,
+      ExpenseStateManager expenseStateManager) {
     final theme = Theme.of(context);
-    
+
     return Dismissible(
-      key: Key(subscription.expense.id),
+      key: Key(recurringExpense.expense.id),
       direction: DismissDirection.endToStart,
       background: Container(
         color: theme.colorScheme.surfaceContainer,
@@ -134,79 +144,83 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       ),
       confirmDismiss: (direction) async {
         return await DeleteConfirmationDialog.show(
-          context,
-          title: 'Delete Subscription',
-          message: 'Are you sure you want to delete this subscription?',
-        ) ?? false;
+              context,
+              title: 'Delete Recurring Expense',
+              message:
+                  'Are you sure you want to delete this recurring expense?',
+            ) ??
+            false;
       },
-      onDismissed: (_) => _deleteSubscription(subscription.expense, expenseStateManager),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                category?.icon ?? Icons.category_outlined,
-                color: theme.colorScheme.onSurfaceVariant,
+      onDismissed: (_) => _deleteRecurringExpense(
+          recurringExpense.expense, expenseStateManager),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            category?.icon ?? Icons.category_outlined,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                recurringExpense.expense.title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ),
-            title: Row(
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Row(
               children: [
                 Expanded(
                   child: Text(
-                    subscription.expense.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
+                    recurringExpense.nextBillingDate != null
+                        ? 'Next payment: ${_formatDate(recurringExpense.nextBillingDate!)}'
+                        : 'Paid on: ${_formatDate(recurringExpense.expense.date)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                ),
+                Text(
+                  recurringExpense.billingCycle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        subscription.nextBillingDate != null
-                            ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
-                            : 'Paid on: ${_formatDate(subscription.expense.date)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      subscription.billingCycle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            trailing: Text(
-              formatCurrency(subscription.expense.amount),
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            onTap: () => _viewSubscriptionDetails(subscription.expense, expenseStateManager),
+          ],
+        ),
+        trailing: Text(
+          formatCurrency(recurringExpense.expense.amount),
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
           ),
-        );
+        ),
+        onTap: () => _viewRecurringExpenseDetails(
+            recurringExpense.expense, expenseStateManager),
+      ),
+    );
   }
 
-  Widget _buildSubscriptionSummary(SubscriptionSummary summary) {
+  Widget _buildRecurringExpenseSummary(RecurringExpenseSummary summary) {
     final theme = Theme.of(context);
-    
+
     final totalMonthlyAmount = summary.totalMonthlyAmount;
-    
+
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 16, 8, 16),
       color: theme.colorScheme.surfaceContainerLowest,
@@ -235,7 +249,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${summary.totalSubscriptions} active plans',
+              '${summary.totalRecurringExpenses} active recurring expenses',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -248,26 +262,27 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   /// Batch load all categories at once to avoid N+1 queries
   Future<Map<String, ExpenseCategory?>> _loadCategoriesBatch(
-      List<SubscriptionData> subscriptions) async {
+      List<RecurringExpenseData> recurringExpenses) async {
     final Map<String, ExpenseCategory?> categoriesMap = {};
-    
+
     // Get unique category IDs
-    final categoryIds = subscriptions
-        .map((sub) => sub.expense.categoryId ?? CategoryRepository.uncategorizedId)
+    final categoryIds = recurringExpenses
+        .map(
+            (re) => re.expense.categoryId ?? CategoryRepository.uncategorizedId)
         .toSet()
         .toList();
-    
+
     // Load all categories in parallel
     final futures = categoryIds.map((id) async {
       final category = await widget.categoryRepo.findCategoryById(id);
       return MapEntry(id, category);
     });
-    
+
     final results = await Future.wait(futures);
     for (final entry in results) {
       categoriesMap[entry.key] = entry.value;
     }
-    
+
     return categoriesMap;
   }
 
@@ -279,7 +294,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
         backgroundColor: theme.colorScheme.surface,
-        title: 'Subscription Plans',
+        title: 'Recurring Expenses',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -288,19 +303,20 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       body: Consumer<ExpenseStateManager>(
         builder: (context, expenseStateManager, child) {
           final allExpenses = expenseStateManager.allExpenses ?? [];
-          final isLoading = expenseStateManager.isLoadingAll && allExpenses.isEmpty;
+          final isLoading =
+              expenseStateManager.isLoadingAll && allExpenses.isEmpty;
 
           if (isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final subscriptions = _getSubscriptions(allExpenses);
-          final summary = _getSubscriptionSummary(allExpenses);
+          final recurringExpenses = _getRecurringExpenses(allExpenses);
+          final summary = _getRecurringExpenseSummary(allExpenses);
 
-          if (subscriptions.isEmpty) {
+          if (recurringExpenses.isEmpty) {
             return Center(
               child: Text(
-                'No subscription plans found',
+                'No recurring expenses found',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -312,7 +328,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             onRefresh: () => expenseStateManager.refreshAll(),
             color: theme.colorScheme.primary,
             child: FutureBuilder<Map<String, ExpenseCategory?>>(
-              future: _loadCategoriesBatch(subscriptions),
+              future: _loadCategoriesBatch(recurringExpenses),
               builder: (context, categorySnapshot) {
                 final categoriesMap = categorySnapshot.data ?? {};
 
@@ -321,14 +337,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildSubscriptionSummary(summary),
+                      _buildRecurringExpenseSummary(summary),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Active Subscription Plans',
+                              'Active Recurring Expenses',
                               style: theme.textTheme.titleSmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -348,15 +364,16 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: subscriptions.length,
+                          itemCount: recurringExpenses.length,
                           itemBuilder: (context, index) {
-                            final subscription = subscriptions[index];
-                            final categoryId = subscription.expense.categoryId ??
-                                CategoryRepository.uncategorizedId;
+                            final recurringExpense = recurringExpenses[index];
+                            final categoryId =
+                                recurringExpense.expense.categoryId ??
+                                    CategoryRepository.uncategorizedId;
                             final category = categoriesMap[categoryId];
-                            return _buildSubscriptionItem(
+                            return _buildRecurringExpenseItem(
                               context,
-                              subscription,
+                              recurringExpense,
                               category,
                               expenseStateManager,
                             );
@@ -373,4 +390,4 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       ),
     );
   }
-} 
+}

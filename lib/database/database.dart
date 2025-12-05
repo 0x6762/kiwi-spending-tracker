@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -246,6 +246,58 @@ class AppDatabase extends _$AppDatabase {
               DROP TABLE expenses_table_old;
             ''');
           }
+
+          if (from < 9) {
+            // Remove type column - no longer needed
+            await customStatement('''
+              ALTER TABLE expenses_table RENAME TO expenses_table_old;
+            ''');
+
+            await customStatement('''
+              CREATE TABLE expenses_table (
+                id TEXT NOT NULL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT,
+                amount REAL NOT NULL,
+                date INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                category_id TEXT,
+                notes TEXT,
+                account_id TEXT NOT NULL,
+                next_billing_date INTEGER,
+                due_date INTEGER,
+                necessity INTEGER NOT NULL DEFAULT 1,
+                is_recurring INTEGER NOT NULL DEFAULT 0,
+                frequency INTEGER NOT NULL DEFAULT 0,
+                status INTEGER NOT NULL DEFAULT 1,
+                end_date INTEGER,
+                budget_id TEXT,
+                payment_method TEXT,
+                tags TEXT
+              );
+            ''');
+
+            await customStatement('''
+              INSERT INTO expenses_table (
+                id, title, description, amount, date, created_at, 
+                category_id, notes, account_id, 
+                next_billing_date, due_date, necessity, is_recurring, 
+                frequency, status, end_date, budget_id, 
+                payment_method, tags
+              )
+              SELECT 
+                id, title, description, amount, date, created_at, 
+                category_id, notes, account_id, 
+                next_billing_date, due_date, necessity, is_recurring, 
+                frequency, status, end_date, budget_id, 
+                payment_method, tags
+              FROM expenses_table_old;
+            ''');
+
+            await customStatement('''
+              DROP TABLE expenses_table_old;
+            ''');
+          }
         },
         beforeOpen: (details) async {
           debugPrint('Opening database version ${details.versionNow}');
@@ -351,14 +403,6 @@ class AppDatabase extends _$AppDatabase {
   Future<List<ExpenseTableData>> getExpensesByCategory(String categoryId) =>
       (select(expensesTable)
             ..where((e) => e.categoryId.equals(categoryId))
-            ..orderBy([
-              (e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)
-            ]))
-          .get();
-
-  Future<List<ExpenseTableData>> getExpensesByType(ExpenseType type) =>
-      (select(expensesTable)
-            ..where((e) => e.type.equals(type.index))
             ..orderBy([
               (e) => OrderingTerm(expression: e.date, mode: OrderingMode.desc)
             ]))
@@ -502,7 +546,6 @@ class AppDatabase extends _$AppDatabase {
     required int offset,
     DateTime? startDate,
     DateTime? endDate,
-    List<int>? types,
     List<String>? categoryIds,
     List<String>? accountIds,
     String? searchQuery,
@@ -518,10 +561,6 @@ class AppDatabase extends _$AppDatabase {
 
     if (endDate != null) {
       conditions.add(expensesTable.date.isSmallerOrEqualValue(endDate));
-    }
-
-    if (types != null && types.isNotEmpty) {
-      conditions.add(expensesTable.type.isIn(types));
     }
 
     if (categoryIds != null && categoryIds.isNotEmpty) {
@@ -560,7 +599,6 @@ class AppDatabase extends _$AppDatabase {
   Future<int> getExpenseCount({
     DateTime? startDate,
     DateTime? endDate,
-    List<int>? types,
     List<String>? categoryIds,
     List<String>? accountIds,
     String? searchQuery,
@@ -577,10 +615,6 @@ class AppDatabase extends _$AppDatabase {
 
     if (endDate != null) {
       conditions.add(expensesTable.date.isSmallerOrEqualValue(endDate));
-    }
-
-    if (types != null && types.isNotEmpty) {
-      conditions.add(expensesTable.type.isIn(types));
     }
 
     if (categoryIds != null && categoryIds.isNotEmpty) {

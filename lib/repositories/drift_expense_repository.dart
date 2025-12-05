@@ -52,42 +52,44 @@ class DriftExpenseRepository implements ExpenseRepository {
   }
 
   @override
-  Future<List<Expense>> getExpensesByNecessity(ExpenseNecessity necessity) async {
+  Future<List<Expense>> getExpensesByNecessity(
+      ExpenseNecessity necessity) async {
     final expenses = await (_db.select(_db.expensesTable)
-      ..where((tbl) => tbl.necessity.equals(necessity.index)))
-      .get();
+          ..where((tbl) => tbl.necessity.equals(necessity.index)))
+        .get();
     return expenses.map((e) => e.toDomain()).toList();
   }
 
   @override
   Future<List<Expense>> getRecurringExpenses() async {
     final expenses = await (_db.select(_db.expensesTable)
-      ..where((tbl) => tbl.isRecurring.equals(true)))
-      .get();
+          ..where((tbl) => tbl.isRecurring.equals(true)))
+        .get();
     return expenses.map((e) => e.toDomain()).toList();
   }
 
   @override
   Future<List<Expense>> getExpensesByStatus(ExpenseStatus status) async {
     final expenses = await (_db.select(_db.expensesTable)
-      ..where((tbl) => tbl.status.equals(status.index)))
-      .get();
+          ..where((tbl) => tbl.status.equals(status.index)))
+        .get();
     return expenses.map((e) => e.toDomain()).toList();
   }
 
   @override
-  Future<List<Expense>> getExpensesByFrequency(ExpenseFrequency frequency) async {
+  Future<List<Expense>> getExpensesByFrequency(
+      ExpenseFrequency frequency) async {
     final expenses = await (_db.select(_db.expensesTable)
-      ..where((tbl) => tbl.frequency.equals(frequency.index)))
-      .get();
+          ..where((tbl) => tbl.frequency.equals(frequency.index)))
+        .get();
     return expenses.map((e) => e.toDomain()).toList();
   }
 
   @override
   Future<List<Expense>> getExpensesByBudget(String budgetId) async {
     final expenses = await (_db.select(_db.expensesTable)
-      ..where((tbl) => tbl.budgetId.equals(budgetId)))
-      .get();
+          ..where((tbl) => tbl.budgetId.equals(budgetId)))
+        .get();
     return expenses.map((e) => e.toDomain()).toList();
   }
 
@@ -96,13 +98,10 @@ class DriftExpenseRepository implements ExpenseRepository {
     // This is a simple implementation that checks if any of the tags match
     // A more sophisticated implementation would use SQL LIKE with wildcards
     final expenses = await _db.getAllExpenses();
-    return expenses
-        .map((e) => e.toDomain())
-        .where((expense) {
-          if (expense.tags == null) return false;
-          return expense.tags!.any((tag) => tags.contains(tag));
-        })
-        .toList();
+    return expenses.map((e) => e.toDomain()).where((expense) {
+      if (expense.tags == null) return false;
+      return expense.tags!.any((tag) => tags.contains(tag));
+    }).toList();
   }
 
   // Implementation of new methods for upcoming expenses
@@ -127,7 +126,8 @@ class DriftExpenseRepository implements ExpenseRepository {
         );
   }
 
-  Future<List<Expense>> getExpensesByDateRange(DateTime start, DateTime end) async {
+  Future<List<Expense>> getExpensesByDateRange(
+      DateTime start, DateTime end) async {
     final expenses = await _db.getExpensesByDateRange(start, end);
     return expenses.map((e) => e.toDomain()).toList();
   }
@@ -147,16 +147,12 @@ class DriftExpenseRepository implements ExpenseRepository {
     try {
       final offset = page * pageSize;
 
-      // Convert filter types to indices
-      final typeIndices = filters?.types?.map((t) => t.index).toList();
-
       // Get paginated expenses
       final expenseData = await _db.getExpensesPaginated(
         limit: pageSize,
         offset: offset,
         startDate: filters?.startDate,
         endDate: filters?.endDate,
-        types: typeIndices,
         categoryIds: filters?.categoryIds,
         accountIds: filters?.accountIds,
         searchQuery: filters?.searchQuery,
@@ -168,7 +164,6 @@ class DriftExpenseRepository implements ExpenseRepository {
       final totalCount = await _db.getExpenseCount(
         startDate: filters?.startDate,
         endDate: filters?.endDate,
-        types: typeIndices,
         categoryIds: filters?.categoryIds,
         accountIds: filters?.accountIds,
         searchQuery: filters?.searchQuery,
@@ -221,12 +216,9 @@ class DriftExpenseRepository implements ExpenseRepository {
   @override
   Future<int> getExpenseCount({ExpenseFilters? filters}) async {
     try {
-      final typeIndices = filters?.types?.map((t) => t.index).toList();
-
       return await _db.getExpenseCount(
         startDate: filters?.startDate,
         endDate: filters?.endDate,
-        types: typeIndices,
         categoryIds: filters?.categoryIds,
         accountIds: filters?.accountIds,
         searchQuery: filters?.searchQuery,
@@ -235,4 +227,4 @@ class DriftExpenseRepository implements ExpenseRepository {
       throw Exception('Failed to get expense count: ${e.toString()}');
     }
   }
-} 
+}
