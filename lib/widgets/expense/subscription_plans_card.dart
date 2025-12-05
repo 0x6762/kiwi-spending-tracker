@@ -4,11 +4,11 @@ import '../../services/recurring_expense_service.dart';
 import '../../utils/formatters.dart';
 import '../../theme/theme.dart';
 
-class SubscriptionPlansCard extends StatelessWidget {
+class RecurringExpensesCard extends StatelessWidget {
   final SubscriptionSummary summary;
   final VoidCallback? onTap;
 
-  const SubscriptionPlansCard({
+  const RecurringExpensesCard({
     super.key,
     required this.summary,
     this.onTap,
@@ -17,7 +17,7 @@ class SubscriptionPlansCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       margin: EdgeInsets.zero,
       color: theme.colorScheme.surfaceContainer,
@@ -34,8 +34,8 @@ class SubscriptionPlansCard extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(12),
-                child: _SubscriptionRow(
-                  label: 'Subscriptions',
+                child: _RecurringExpenseRow(
+                  label: 'Recurring Expenses',
                   amount: summary.totalMonthlyAmount,
                   context: context,
                   iconAsset: 'assets/icons/subscription.svg',
@@ -51,7 +51,7 @@ class SubscriptionPlansCard extends StatelessWidget {
   }
 }
 
-class _SubscriptionRow extends StatelessWidget {
+class _RecurringExpenseRow extends StatelessWidget {
   final String label;
   final double amount;
   final BuildContext context;
@@ -59,7 +59,7 @@ class _SubscriptionRow extends StatelessWidget {
   final Color iconColor;
   final VoidCallback? onTap;
 
-  const _SubscriptionRow({
+  const _RecurringExpenseRow({
     required this.label,
     required this.amount,
     required this.context,
@@ -109,4 +109,4 @@ class _SubscriptionRow extends StatelessWidget {
       ],
     );
   }
-} 
+}

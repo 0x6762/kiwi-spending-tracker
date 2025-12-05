@@ -13,13 +13,14 @@ import '../widgets/dialogs/delete_confirmation_dialog.dart';
 import '../utils/formatters.dart';
 import 'expense_detail_screen.dart';
 
-class SubscriptionsScreen extends StatefulWidget {
-  final ExpenseRepository repository; // Required for RecurringExpenseService initialization
+class RecurringExpensesScreen extends StatefulWidget {
+  final ExpenseRepository
+      repository; // Required for RecurringExpenseService initialization
   final CategoryRepository categoryRepo;
   final AccountRepository accountRepo;
   final DateTime selectedMonth;
 
-  const SubscriptionsScreen({
+  const RecurringExpensesScreen({
     super.key,
     required this.repository,
     required this.categoryRepo,
@@ -28,10 +29,11 @@ class SubscriptionsScreen extends StatefulWidget {
   });
 
   @override
-  State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
+  State<RecurringExpensesScreen> createState() =>
+      _RecurringExpensesScreenState();
 }
 
-class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
+class _RecurringExpensesScreenState extends State<RecurringExpensesScreen> {
   late RecurringExpenseService _recurringExpenseService;
   final _dateFormat = DateFormat.yMMMd();
 
@@ -80,7 +82,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete subscription: ${e.toString()}')),
+          SnackBar(
+              content:
+                  Text('Failed to delete recurring expense: ${e.toString()}')),
         );
       }
     }
@@ -101,7 +105,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update subscription: ${e.toString()}')),
+                  SnackBar(
+                      content: Text(
+                          'Failed to update recurring expense: ${e.toString()}')),
                 );
               }
             }
@@ -116,10 +122,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
   }
 
-  Widget _buildSubscriptionItem(BuildContext context, SubscriptionData subscription,
-      ExpenseCategory? category, ExpenseStateManager expenseStateManager) {
+  Widget _buildSubscriptionItem(
+      BuildContext context,
+      SubscriptionData subscription,
+      ExpenseCategory? category,
+      ExpenseStateManager expenseStateManager) {
     final theme = Theme.of(context);
-    
+
     return Dismissible(
       key: Key(subscription.expense.id),
       direction: DismissDirection.endToStart,
@@ -134,79 +143,83 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       ),
       confirmDismiss: (direction) async {
         return await DeleteConfirmationDialog.show(
-          context,
-          title: 'Delete Subscription',
-          message: 'Are you sure you want to delete this subscription?',
-        ) ?? false;
+              context,
+              title: 'Delete Recurring Expense',
+              message:
+                  'Are you sure you want to delete this recurring expense?',
+            ) ??
+            false;
       },
-      onDismissed: (_) => _deleteSubscription(subscription.expense, expenseStateManager),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                category?.icon ?? Icons.category_outlined,
-                color: theme.colorScheme.onSurfaceVariant,
+      onDismissed: (_) =>
+          _deleteSubscription(subscription.expense, expenseStateManager),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            category?.icon ?? Icons.category_outlined,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                subscription.expense.title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ),
-            title: Row(
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Row(
               children: [
                 Expanded(
                   child: Text(
-                    subscription.expense.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
+                    subscription.nextBillingDate != null
+                        ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
+                        : 'Paid on: ${_formatDate(subscription.expense.date)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                ),
+                Text(
+                  subscription.billingCycle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        subscription.nextBillingDate != null
-                            ? 'Next payment: ${_formatDate(subscription.nextBillingDate!)}'
-                            : 'Paid on: ${_formatDate(subscription.expense.date)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      subscription.billingCycle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            trailing: Text(
-              formatCurrency(subscription.expense.amount),
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            onTap: () => _viewSubscriptionDetails(subscription.expense, expenseStateManager),
+          ],
+        ),
+        trailing: Text(
+          formatCurrency(subscription.expense.amount),
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
           ),
-        );
+        ),
+        onTap: () =>
+            _viewSubscriptionDetails(subscription.expense, expenseStateManager),
+      ),
+    );
   }
 
   Widget _buildSubscriptionSummary(SubscriptionSummary summary) {
     final theme = Theme.of(context);
-    
+
     final totalMonthlyAmount = summary.totalMonthlyAmount;
-    
+
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 16, 8, 16),
       color: theme.colorScheme.surfaceContainerLowest,
@@ -235,7 +248,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${summary.totalSubscriptions} active plans',
+              '${summary.totalSubscriptions} active recurring expenses',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -250,24 +263,25 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<Map<String, ExpenseCategory?>> _loadCategoriesBatch(
       List<SubscriptionData> subscriptions) async {
     final Map<String, ExpenseCategory?> categoriesMap = {};
-    
+
     // Get unique category IDs
     final categoryIds = subscriptions
-        .map((sub) => sub.expense.categoryId ?? CategoryRepository.uncategorizedId)
+        .map((sub) =>
+            sub.expense.categoryId ?? CategoryRepository.uncategorizedId)
         .toSet()
         .toList();
-    
+
     // Load all categories in parallel
     final futures = categoryIds.map((id) async {
       final category = await widget.categoryRepo.findCategoryById(id);
       return MapEntry(id, category);
     });
-    
+
     final results = await Future.wait(futures);
     for (final entry in results) {
       categoriesMap[entry.key] = entry.value;
     }
-    
+
     return categoriesMap;
   }
 
@@ -279,7 +293,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: KiwiAppBar(
         backgroundColor: theme.colorScheme.surface,
-        title: 'Subscription Plans',
+        title: 'Recurring Expenses',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -288,7 +302,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       body: Consumer<ExpenseStateManager>(
         builder: (context, expenseStateManager, child) {
           final allExpenses = expenseStateManager.allExpenses ?? [];
-          final isLoading = expenseStateManager.isLoadingAll && allExpenses.isEmpty;
+          final isLoading =
+              expenseStateManager.isLoadingAll && allExpenses.isEmpty;
 
           if (isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -300,7 +315,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           if (subscriptions.isEmpty) {
             return Center(
               child: Text(
-                'No subscription plans found',
+                'No recurring expenses found',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -328,7 +343,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Active Subscription Plans',
+                              'Active Recurring Expenses',
                               style: theme.textTheme.titleSmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -351,8 +366,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           itemCount: subscriptions.length,
                           itemBuilder: (context, index) {
                             final subscription = subscriptions[index];
-                            final categoryId = subscription.expense.categoryId ??
-                                CategoryRepository.uncategorizedId;
+                            final categoryId =
+                                subscription.expense.categoryId ??
+                                    CategoryRepository.uncategorizedId;
                             final category = categoriesMap[categoryId];
                             return _buildSubscriptionItem(
                               context,
@@ -373,4 +389,4 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       ),
     );
   }
-} 
+}

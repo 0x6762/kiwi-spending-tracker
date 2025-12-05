@@ -198,7 +198,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                         overdueSubscriptions: 0,
                       );
 
-                return SubscriptionPlansCard(
+                return RecurringExpensesCard(
                   summary: subscriptionSummary,
                   onTap: widget.repository != null &&
                           widget.categoryRepo != null &&
@@ -207,7 +207,7 @@ class _ExpenseSummaryState extends State<ExpenseSummary> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SubscriptionsScreen(
+                              builder: (context) => RecurringExpensesScreen(
                                 repository: widget.repository!,
                                 categoryRepo: widget.categoryRepo!,
                                 accountRepo: widget.accountRepo!,
