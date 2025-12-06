@@ -10,7 +10,6 @@ import '../../screens/recurring_expenses_screen.dart';
 import '../charts/monthly_expense_chart.dart';
 import '../common/icon_container.dart';
 import '../../utils/icons.dart';
-import '../../theme/theme.dart';
 import 'recurring_expenses_card.dart';
 import 'necessity_cards.dart';
 
